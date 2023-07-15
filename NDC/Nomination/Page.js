@@ -314,138 +314,139 @@ const Toolbar = styled.div`
 `;
 
 return (
-  <div>
-    {houses.map((group) => (
-      <>
-        {group.id === state.selectedHouse && (
-          <Widget
-            key={i}
-            src={widgets.header}
-            props={{
-              startTime: group.start,
-              endTime: group.end,
-              type: "Nomination",
-            }}
-          />
-        )}
-      </>
-    ))}
-    <Filter className="d-flex">
-      <div className="w-100">
-        <Widget
-          src={widgets.filter}
-          props={{
-            handleFilter,
-            candidateId: state.candidateId,
-            placeholder: "Search by candidate name and affiliation",
-          }}
-        />
-      </div>
-      <Toolbar>
-        {state.showModal && (
-          <Widget
-            src={`dokxo.near/widget/NDC.Nomination.Compose`}
-            props={{
-              candidateOrReplay: true,
-              onClickConfirm: () => State.update({ showModal: false }),
-              onClickCancel: () => State.update({ showModal: false }),
-            }}
-          />
-        )}
-        {state.showModalDelete && (
-          <Widget
-            src={`dokxo.near/widget/NDC.Nomination.DeleteNomination`}
-            props={{
-              candidateOrReplay: true,
-              onClickConfirm: () => State.update({ showModalDelete: false }),
-              onClickCancel: () => State.update({ showModalDelete: false }),
-            }}
-          />
-        )}
-        {state.og ? (
-          <ButtonNominateContainer>
-            {state.selfNomination ? (
-              <Widget
-                src={widgets.button}
-                props={{
-                  Button: {
-                    className: "danger",
-                    text: "Delete Self Nomination",
-                    onClick: () => State.update({ showModalDelete: true }),
-                    icon: <i class="bi bi-trash"></i>,
-                  },
-                }}
-              />
-            ) : (
-              <Widget
-                src={widgets.button}
-                props={{
-                  Button: {
-                    text: "Self Nominate",
-                    onClick: () =>
-                      !status.sbt ? State.update({ showModal: true }) : "",
-                    icon: <i class="bi bi-plus-lg"></i>,
-                  },
-                }}
-              />
-            )}
-          </ButtonNominateContainer>
-        ) : (
-          <></>
-        )}
-      </Toolbar>
-    </Filter>
-    <Container className="d-flex row">
-      <Left className="col-lg">
-        <H5>Houses</H5>
-        <Widget
-          src={widgets.houses}
-          props={{
-            selectedHouse: state.selectedHouse,
-            houses: houses,
-            handleSelect: (item) => handleSelect(item),
-          }}
-        />
-        <div>
-          {state.sbt ? (
-            ""
-          ) : (
-            <VerifiedDiv>
-              <VerifiedHeader>
-                <VerifiedHeaderContainer>
-                  <VerfiedTitle>To Comment or to Upvote</VerfiedTitle>
-                  <VerifedDesc>
-                    Verify as a Human to comment or to upvote
-                  </VerifedDesc>
-                </VerifiedHeaderContainer>
-              </VerifiedHeader>
-              <VerifyButton
-                className="text-decoration-none"
-                href="https://i-am-human.app/"
-                target="_blank"
-                rel="noopener"
-              >
-                <VerifyButtonText>Verify as a Human</VerifyButtonText>
-              </VerifyButton>
-            </VerifiedDiv>
+  <>
+    <div>
+      {houses.map((group) => (
+        <>
+          {group.id === state.selectedHouse && (
+            <Widget
+              key={i}
+              src={widgets.header}
+              props={{
+                startTime: group.start,
+                endTime: group.end,
+                type: "Nomination",
+              }}
+            />
           )}
+        </>
+      ))}
+      <Filter className="d-flex">
+        <div className="w-100">
+          <Widget
+            src={widgets.filter}
+            props={{
+              handleFilter,
+              candidateId: state.candidateId,
+              placeholder: "Search by candidate name and affiliation",
+            }}
+          />
         </div>
-      </Left>
-      <Center className="col-lg-9 px-2 px-md-3 d-flex flex-row flex-wrap ">
-        {state.nominations.length > 0 ? (
-          state.nominations.map((data) => {
-            return (
-              <>
-                <Widget src={widgets.card} props={data} />
-              </>
-            );
-          })
-        ) : (
-          <div className="flex mt-10 container-fluid align-self-center">
-            <H5 className="text-center">{state.notFound}</H5>
+        <Toolbar>
+          {state.og && (
+            <ButtonNominateContainer>
+              {state.selfNomination ? (
+                <Widget
+                  src={widgets.button}
+                  props={{
+                    Button: {
+                      className: "danger",
+                      text: "Delete Self Nomination",
+                      onClick: () => State.update({ showModalDelete: true }),
+                      icon: <i class="bi bi-trash"></i>,
+                    },
+                  }}
+                />
+              ) : (
+                <Widget
+                  src={widgets.button}
+                  props={{
+                    Button: {
+                      text: "Self Nominate",
+                      onClick: () =>
+                        !status.sbt ? State.update({ showModal: true }) : "",
+                      icon: <i class="bi bi-plus-lg"></i>,
+                    },
+                  }}
+                />
+              )}
+            </ButtonNominateContainer>
+          )}
+        </Toolbar>
+      </Filter>
+      <Container className="d-flex row">
+        <Left className="col-lg">
+          <H5>Houses</H5>
+          <Widget
+            src={widgets.houses}
+            props={{
+              selectedHouse: state.selectedHouse,
+              houses: houses,
+              handleSelect: (item) => handleSelect(item),
+            }}
+          />
+          <div>
+            {state.sbt ? (
+              ""
+            ) : (
+              <VerifiedDiv>
+                <VerifiedHeader>
+                  <VerifiedHeaderContainer>
+                    <VerfiedTitle>To Comment or to Upvote</VerfiedTitle>
+                    <VerifedDesc>
+                      Verify as a Human to comment or to upvote
+                    </VerifedDesc>
+                  </VerifiedHeaderContainer>
+                </VerifiedHeader>
+                <VerifyButton
+                  className="text-decoration-none"
+                  href="https://i-am-human.app/"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <VerifyButtonText>Verify as a Human</VerifyButtonText>
+                </VerifyButton>
+              </VerifiedDiv>
+            )}
           </div>
-        )}
-      </Center>
-    </Container>
-  </div>
+        </Left>
+        <Center className="col-lg-9 px-2 px-md-3 d-flex flex-row flex-wrap ">
+          {state.nominations.length > 0 ? (
+            state.nominations.map((data) => {
+              return (
+                <>
+                  <Widget src={widgets.card} props={data} />
+                </>
+              );
+            })
+          ) : (
+            <div className="flex mt-10 container-fluid align-self-center">
+              <H5 className="text-center">{state.notFound}</H5>
+            </div>
+          )}
+        </Center>
+      </Container>
+    </div>
+
+    <>
+      {state.showModal && (
+        <Widget
+          src={`rubycop.near/widget/NDC.Nomination.Compose`}
+          props={{
+            candidateOrReplay: true,
+            handleClose: () => State.update({ showModal: false }),
+          }}
+        />
+      )}
+      {state.showModalDelete && (
+        <Widget
+          src={`rubycop.near/widget/NDC.Nomination.DeleteNomination`}
+          props={{
+            candidateOrReplay: true,
+            handleClose: () => State.update({ showModalDelete: false }),
+          }}
+        />
+      )}
+    </>
+  </>
 );

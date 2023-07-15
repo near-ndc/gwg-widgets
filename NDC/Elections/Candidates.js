@@ -17,6 +17,7 @@ const {
 const widgets = {
   voters: "rubycop.near/widget/NDC.Elections.Voters",
   button: "rubycop.near/widget/NDC.StyledComponents",
+  verifyHuman: "rubycop.near/widget/NDC.VerifyHuman",
 };
 
 const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
@@ -534,18 +535,6 @@ const CastVotes = () => (
   </CastVotesSection>
 );
 
-const VerifyHuman = () => (
-  <CastVotesSection className="not-verified d-flex align-items-center justify-content-between">
-    <div>
-      <h4>Want to vote?</h4>
-      <h5 className="text-secondary">
-        Click on the button next to and Verify as a Human to proceed.
-      </h5>
-    </div>
-    <PrimaryLink href="https://i-am-human.app/">Verify as Human</PrimaryLink>
-  </CastVotesSection>
-);
-
 return (
   <Container>
     <h1>{housesMapping[typ]}</h1>
@@ -567,6 +556,12 @@ return (
         There are no candidates found
       </div>
     )}
-    <div>{isIAmHuman ? <CastVotes /> : <VerifyHuman />}</div>
+    <div>
+      {isIAmHuman ? (
+        <CastVotes />
+      ) : (
+        <Widget src={widgets.verifyHuman} props={{ title: "Want to vote?" }} />
+      )}
+    </div>
   </Container>
 );

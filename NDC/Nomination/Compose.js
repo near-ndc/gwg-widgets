@@ -70,34 +70,24 @@ const CardStyled = styled.div`
   height: 100%;
   background: #f8f8f9;
   gap: 10px;
-  border-radius: 10px;
+  padding: 20px;
   margin: 0 auto;
+  border-radius: 10px;
   overflow-y: scroll;
-  @media only screen and (max-width: 480px) {
-    width: 92%;
-  }
 `;
 
 const CardForm = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 0px;
   width: 100%;
   height: auto;
 `;
 
-const H1styled = styled.h1`
-  margin-left: 16px;
-  margin-top: 16px;
-  margin-right: auto;
-  width: 100%;
-  height: 19px;
+const H1 = styled.h1`
+  margin-bottom: 10px;
   font-style: normal;
   font-weight: 500;
   font-size: 16px;
-  line-height: 120%;
-  color: #000000;
 `;
 
 const Submitcontainer = styled.div`
@@ -136,6 +126,23 @@ const ComponentWrapper = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+`;
+
+const ErrorBlock = styled.div`
+  border-radius: 4px;
+  border: 1px solid #c23f38;
+  background: #f1d6d5;
+  color: #c23f38;
+  font-size: 12px;
+  padding: 8px 12px;
+  margin: 20px 0 30px 0;
+`;
+
+const Hr = styled.div`
+  height: 1px;
+  margin: 15px 0;
+  width: 100%;
+  background: rgba(208, 214, 217, 0.4);
 `;
 
 const validatedInputs = () => {
@@ -270,29 +277,15 @@ const filesOnChange = (files) => {
   }
 };
 
-const handleName = (item) => {
-  State.update({ name: item, error_msg: null });
-};
-const handleProfile = (item) => {
+const handleName = (item) => State.update({ name: item, error_msg: null });
+
+const handleProfile = (item) =>
   State.update({ profileAccount: item, error_msg: null });
-};
-const handleHouse = (item) => {
-  console.log(item);
-  if (item === "HouseOfMerit") {
-    console.log("HouseOfMerit");
-    Storage.privateSet("Houseselected", 1);
-  }
-  if (item === "CouncilOfAdvisors") {
-    console.log("CouncilOfAdvisors");
 
-    Storage.privateSet("Houseselected", 2);
-  }
-  if (item === "TransparencyCommission") {
-    console.log("TransparencyCommission");
-
-    Storage.privateSet("Houseselected", 3);
-  }
-  console.log(Storage.privateGet("Houseselected"));
+const handleChangeHouse = (item) => {
+  if (item === "HouseOfMerit") Storage.privateSet("Houseselected", 1);
+  if (item === "CouncilOfAdvisors") Storage.privateSet("Houseselected", 2);
+  if (item === "TransparencyCommission") Storage.privateSet("Houseselected", 3);
 
   State.update({ house_intended: item, error_msg: null });
 };
@@ -319,13 +312,13 @@ const removeField = (index) => {
   });
 };
 
-const validate = (key, item, limit = 2000) =>
-  State.update({ [key]: item.substring(0, limit), error_msg: null });
+const validate = (key, item, limit) =>
+  State.update({ [key]: item.substring(0, limit ?? 2000), error_msg: null });
 
-const validateAffiliations = (key, event, limit) => {
+const validateAffiliations = (params, key, limit) => {
   let data = state.afiliation;
 
-  data[params.index][key] = event.target.value.substring(0, limit);
+  data[params.index][key] = params.event.target.value.substring(0, limit);
   State.update({ afiliation: data, error_msg: null });
 };
 
@@ -362,7 +355,9 @@ const handleNominate = () => {
     deposit: 100000000000000000000000,
   };
 
-  Near.call([Social_Payload, SelfNominate_Payload]);
+  Near.call([Social_Payload, SelfNominate_Payload]).then((data) =>
+    handleClose()
+  );
 };
 
 return (
@@ -414,54 +409,99 @@ return (
       </div>
       <CardStyled name="compose">
         <div className="d-flex flex-column ">
-          <div className="d-flex flex-column">
-            <H1styled>Self Nominate</H1styled>
-          </div>
+          <H1>Self Nominate</H1>
 
           <CardForm name="cardform">
             <Widget
-              src={`dokxo.near/widget/Compose.Profile`}
+              src={"rubycop.near/widget/NDC.StyledComponents"}
               props={{
-                img: state.img,
-                isCid: RealProfileImageCid.IS_CID,
-                name: state.name,
-                profileAccount: state.profileAccount,
-                house_intended: state.house_intended,
-                filesOnChange,
-                handleName,
-                handleProfile,
-                handleHouse,
+                Dropdown: {
+                  label: "House",
+                  handleChange: (e) => handleChangeHouse(e.target.value),
+                  options: [
+                    { title: "Select house", value: 0, default: true },
+                    { title: "House Of Merit", value: "HouseOfMerit" },
+                    {
+                      title: "Council Of Advisors",
+                      value: "CouncilOfAdvisors",
+                    },
+                    {
+                      title: "Transparency Commission",
+                      value: "TransparencyCommission",
+                    },
+                  ],
+                },
+              }}
+            />
+            <Hr />
+            <Widget
+              src={`rubycop.near/widget/Compose.Platform`}
+              props={{
+                inputs: [
+                  {
+                    label:
+                      "How are you involved with the NEAR ecosystem? Why are you a qualified candidate? Why should people vote for you?",
+                    placeholder: "Elaborate",
+                    value: state.HAYInvolve,
+                    handleChange: (e) => validate("HAYInvolve", e.target.value),
+                  },
+                  {
+                    label:
+                      "What is your strategy to develop the NEAR ecosystem?",
+                    placeholder: "Elaborate on your strategy",
+                    value: state.WIYStrategy,
+                    handleChange: (e) =>
+                      validate("WIYStrategy", e.target.value),
+                  },
+                  {
+                    label:
+                      "Platform: What’s your view and pledge on Key Issue 1?",
+                    placeholder: "Elaborate on your position and pledge",
+                    value: state.Key_Issue_1,
+                    handleChange: (e) =>
+                      validate("Key_Issue_1", e.target.value),
+                  },
+                  {
+                    label:
+                      "Platform: What’s your view and pledge on Key Issue 2?",
+                    placeholder: "Elaborate on your position and pledge",
+                    value: state.Key_Issue_2,
+                    handleChange: (e) =>
+                      validate("Key_Issue_2", e.target.value),
+                  },
+                  {
+                    label:
+                      "Platform: What’s your view and pledge on Key Issue 3?",
+                    placeholder: "Elaborate on your position and pledge",
+                    value: state.Key_Issue_3,
+                    handleChange: (e) =>
+                      validate("Key_Issue_3", e.target.value),
+                  },
+                  {
+                    label: "Additional Platform",
+                    placeholder:
+                      "Elaborate on your position and your pledge on additional issues and topics",
+                    value: state.addition_platform,
+                    handleChange: (e) =>
+                      validate("addition_platform", e.target.value),
+                  },
+                ],
               }}
             />
             <Widget
-              src={`dokxo.near/widget/Compose.Platform`}
-              props={{
-                HAYInvolve: state.HAYInvolve,
-                WIYStrategy: state.WIYStrategy,
-                Key_Issue_1: state.Key_Issue_1,
-                Key_Issue_2: state.Key_Issue_2,
-                Key_Issue_3: state.Key_Issue_3,
-                addition_platform: state.addition_platform,
-                handleHAYInvolve: (e) => validate("HAYInvolve", e),
-                handleWIYStrategy: (e) => validate("WIYStrategy", e),
-                handleKey_Issue_1: (e) => validate("Key_Issue_1", e),
-                handleKey_Issue_2: (e) => validate("Key_Issue_2", e),
-                handleKey_Issue_3: (e) => validate("Key_Issue_3", e),
-                handleAditional: (e) => validate("addition_platform", e),
-              }}
-            />
-            <Widget
-              src={`dokxo.near/widget/Compose.Affiliations`}
+              src={`rubycop.near/widget/Compose.Affiliations`}
               props={{
                 affiliations: state.afiliation,
                 addFields,
                 removeField,
-                handleAFFCompanyName: (e) =>
-                  validateAffiliations("company_name", e, 500),
-                handleAFFStartdate: (e) =>
-                  validateAffiliations("start_date", e),
-                handleAFFEnddate: (e) => validateAffiliations("end_date", e),
-                handleAFFRole: (e) => validateAffiliations("role", e, 500),
+                handleAFFCompanyName: (params) =>
+                  validateAffiliations(params, "company_name", 500),
+                handleAFFStartdate: (params) =>
+                  validateAffiliations(params, "start_date"),
+                handleAFFEnddate: (params) =>
+                  validateAffiliations(params, "end_date"),
+                handleAFFRole: (params) =>
+                  validateAffiliations(params, "role", 500),
               }}
             />
 
@@ -471,41 +511,17 @@ return (
                 agreement: state.agreement,
                 tags: state.tags,
                 handleTags: (e) => validate("tags", e.target.value, 500),
-                handleDeclaration
+                handleDeclaration,
               }}
             />
-            <div
-              class="row col-sm-12 mx-0"
-              style={{
-                width: "100%",
-                "padding-left": "16px",
-                "padding-right": "16px",
-              }}
-            >
-              {
-                <div
-                  style={{
-                    display: "flex",
-                    "justify-content": "start",
-                  }}
-                >
-                  {state.error_msg && (
-                    <label
-                      style={{
-                        display: "flex",
-                        "justify-content": "end",
-                        color: "#FF0000",
-                        "border-bottom": "1px solid red",
-                        "font-size": "14px",
-                        "margin-bottom": "10px",
-                        "margin-top": "10px",
-                      }}
-                    >
-                      {state.error_msg}
-                    </label>
-                  )}
-                </div>
-              }
+
+            {state.error_msg && (
+              <ErrorBlock>
+                <label className="text-danger">{state.error_msg}</label>
+              </ErrorBlock>
+            )}
+
+            <div className="col-sm-12 px-4 w-100">
               <Submitcontainer>
                 <Widget
                   src={widgets.button}
@@ -522,10 +538,7 @@ return (
                   props={{
                     Button: {
                       text: "Submit",
-                      onClick: () => {
-                        handleNominate();
-                        handleClose();
-                      },
+                      onClick: handleNominate,
                     },
                   }}
                 />

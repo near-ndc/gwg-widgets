@@ -62,6 +62,7 @@ const H1 = styled.h1`
   font-size: 40px;
   font-weight: 500;
   margin-bottom: 0;
+  text-transform: capitalize;
 `;
 
 const H6 = styled.h6`
@@ -123,7 +124,7 @@ const SmallTimerContainer = styled.div`
 const TitleContainer = () => (
   <>
     <Logo src="https://pbs.twimg.com/profile_images/1622941553839816707/nmf3MWw1_400x400.jpg" />
-    <H1>NDC Elections</H1>
+    <H1>NDC {type}s</H1>
   </>
 );
 

@@ -1,4 +1,4 @@
-const { title } = props;
+const { title, small } = props;
 
 const Container = styled.div`
   background: #fdfeff;
@@ -28,11 +28,12 @@ const Container = styled.div`
   }
 `;
 const PrimaryLink = styled.a`
-  width: max-content;
+  width: ${(p) => (p.small ? "100%" : "max-content")};
   padding: 8px 20px;
   font-size: 14px;
   border-radius: 10px;
   font-weight: 500;
+  text-align:center;
   line-height: 24px;
   border: 0;
   background: #ffd50d;
@@ -44,12 +45,18 @@ const PrimaryLink = styled.a`
   }
 `;
 const VerifyHuman = () => (
-  <Container className="not-verified d-flex align-items-center justify-content-between">
-    <div>
+  <Container
+    className={`not-verified d-flex ${
+      small ? "flex-column" : "align-items-center justify-content-between"
+    }`}
+  >
+    <div className={`${small ? "pb-3" : ""}`}>
       <h4>{title}</h4>
       <h5 className="text-secondary">Click on Verify as a Human to proceed.</h5>
     </div>
-    <PrimaryLink href="https://i-am-human.app/">Verify as Human</PrimaryLink>
+    <PrimaryLink small={small} href="https://i-am-human.app/">
+      Verify as Human
+    </PrimaryLink>
   </Container>
 );
 return <VerifyHuman />;

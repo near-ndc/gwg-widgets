@@ -11,7 +11,7 @@ let imageIsUrl = profileInfo.image.url ? true : false;
 let RealProfileImageAsURL = "";
 
 const widgets = {
-  button: "rubycop.near/widget/NDC.StyledComponents",
+  styledComponents: "rubycop.near/widget/NDC.StyledComponents",
 };
 
 if (imageIsNFT) {
@@ -413,7 +413,7 @@ return (
 
           <CardForm name="cardform">
             <Widget
-              src={"rubycop.near/widget/NDC.StyledComponents"}
+              src={widgets.styledComponents}
               props={{
                 Dropdown: {
                   label: "House",
@@ -524,7 +524,7 @@ return (
             <div className="col-sm-12 px-4 w-100">
               <Submitcontainer>
                 <Widget
-                  src={widgets.button}
+                  src={widgets.styledComponents}
                   props={{
                     Button: {
                       className: "secondary dark",
@@ -534,7 +534,7 @@ return (
                   }}
                 />
                 <Widget
-                  src={widgets.button}
+                  src={widgets.styledComponents}
                   props={{
                     Button: {
                       text: "Submit",

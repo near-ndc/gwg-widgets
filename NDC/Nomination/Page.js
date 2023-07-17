@@ -5,7 +5,7 @@ org = props.org ? org : "test"; // for testing purposes
 
 const electionContract = "elections-v1.gwg-testing.near";
 const registryContract = "registry-v1.gwg-testing.near";
-let nominationContract = "nominations-v1.gwg-testing.near";
+const nominationContract = "nominations-v1.gwg-testing.near";
 const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 
 function handleSelfRevoke() {
@@ -19,11 +19,12 @@ const houses = [
 ];
 
 const widgets = {
-  header: "syi216.near/widget/NDC.Nomination.Header",
-  card: "syi216.near/widget/NDC.nomination.card",
+  header: "rubycop.near/widget/NDC.Elections.Header",
+  card: "rubycop.near/widget/NDC.Nomination.Card",
   houses: "rubycop.near/widget/NDC.Elections.Houses",
   filter: "rubycop.near/widget/NDC.Elections.Filter",
-  button: "rubycop.near/widget/NDC.StyledComponents",
+  styledComponents: "rubycop.near/widget/NDC.StyledComponents",
+  verifyHuman: "rubycop.near/widget/NDC.VerifyHuman",
 };
 
 State.init({
@@ -31,8 +32,8 @@ State.init({
   house: "HouseOfMerit",
   start: true,
   nominations: [],
-  sbt: true,
-  og: true,
+  sbt: false,
+  og: false,
   selfNomination: false,
   search: false,
   candidateId: "",
@@ -41,9 +42,7 @@ State.init({
 });
 
 const httpRequestOpt = {
-  headers: {
-    "x-api-key": "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5",
-  },
+  headers: { "x-api-key": apiKey },
 };
 
 function getVerifiedHuman() {
@@ -65,7 +64,7 @@ function getVerifiedHuman() {
   });
   asyncFetch(
     `https://api.pikespeak.ai/nominations/candidates-comments-and-upvotes?candidate=${context.accountId}`,
-    { headers: { "x-api-key": "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5" } }
+    httpRequestOpt
   ).then((res) => {
     if (res.body.length > 0) {
       State.update({ selfNomination: true });
@@ -148,8 +147,11 @@ const handleSelect = (item) => {
   State.update({ selectedHouse: item.id });
 };
 
-function handleFilter(text) {
+function handleFilter(e) {
+  const text = e.target.value;
+
   State.update({ candidateId: text });
+
   if (!state.search) {
     State.update({ originNominations: state.nominations, search: true });
   }
@@ -347,7 +349,7 @@ return (
             <ButtonNominateContainer>
               {state.selfNomination ? (
                 <Widget
-                  src={widgets.button}
+                  src={widgets.styledComponents}
                   props={{
                     Button: {
                       className: "danger",
@@ -359,12 +361,12 @@ return (
                 />
               ) : (
                 <Widget
-                  src={widgets.button}
+                  src={widgets.styledComponents}
                   props={{
                     Button: {
                       text: "Self Nominate",
                       onClick: () =>
-                        !status.sbt ? State.update({ showModal: true }) : "",
+                        state.sbt ? "" : State.update({ showModal: true }),
                       icon: <i class="bi bi-plus-lg"></i>,
                     },
                   }}
@@ -374,7 +376,7 @@ return (
           )}
         </Toolbar>
       </Filter>
-      <Container className="d-flex row">
+      <Container className="d-flex row justify-content-between w-100">
         <Left className="col-lg">
           <H5>Houses</H5>
           <Widget
@@ -386,39 +388,21 @@ return (
             }}
           />
           <div>
-            {state.sbt ? (
-              ""
-            ) : (
-              <VerifiedDiv>
-                <VerifiedHeader>
-                  <VerifiedHeaderContainer>
-                    <VerfiedTitle>To Comment or to Upvote</VerfiedTitle>
-                    <VerifedDesc>
-                      Verify as a Human to comment or to upvote
-                    </VerifedDesc>
-                  </VerifiedHeaderContainer>
-                </VerifiedHeader>
-                <VerifyButton
-                  className="text-decoration-none"
-                  href="https://i-am-human.app/"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  <VerifyButtonText>Verify as a Human</VerifyButtonText>
-                </VerifyButton>
-              </VerifiedDiv>
+            {!state.sbt && (
+              <div className="mt-5">
+                <Widget
+                  src={widgets.verifyHuman}
+                  props={{ title: "Want to upvote?", small: true }}
+                />
+              </div>
             )}
           </div>
         </Left>
-        <Center className="col-lg-9 px-2 px-md-3 d-flex flex-row flex-wrap ">
+        <Center className="col-lg-9 px-2 px-md-3 d-flex flex-row flex-wrap">
           {state.nominations.length > 0 ? (
-            state.nominations.map((data) => {
-              return (
-                <>
-                  <Widget src={widgets.card} props={data} />
-                </>
-              );
-            })
+            state.nominations.map((data) => (
+              <Widget src={widgets.card} props={data} />
+            ))
           ) : (
             <div className="flex mt-10 container-fluid align-self-center">
               <H5 className="text-center">{state.notFound}</H5>
@@ -433,7 +417,6 @@ return (
         <Widget
           src={`rubycop.near/widget/NDC.Nomination.Compose`}
           props={{
-            candidateOrReplay: true,
             handleClose: () => State.update({ showModal: false }),
           }}
         />
@@ -442,7 +425,7 @@ return (
         <Widget
           src={`rubycop.near/widget/NDC.Nomination.DeleteNomination`}
           props={{
-            candidateOrReplay: true,
+            house: state.house,
             handleClose: () => State.update({ showModalDelete: false }),
           }}
         />

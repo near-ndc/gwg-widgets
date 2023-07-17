@@ -1,4 +1,4 @@
-const { Button, Dropdown, TextArea, Input } = props;
+const { Button, Dropdown, TextArea, Input, Link, Tag } = props;
 
 const Styled = {
   Button: styled.button`
@@ -6,9 +6,10 @@ const Styled = {
     padding: ${(props) => (Button.size === "sm" ? "4px 12px" : "8px 20px")};
     height: ${(props) => (Button.size === "sm" ? "28px" : "")};
     font-size: ${(props) => (Button.size === "sm" ? "12px" : "14px")};
-    border-radius: 10px;
+    border-radius: ${(props) => (Button.size === "sm" ? "6px" : "10px")};
     font-weight: 500;
     line-height: 24px;
+    text-align: center;
     border: 0;
 
     &.danger {
@@ -71,6 +72,85 @@ const Styled = {
       margin: 0 0 0 5px;
     }
   `,
+
+  Link: styled.a`
+    width: max-content;
+    padding: ${(props) => (Link.size === "sm" ? "4px 12px" : "8px 20px")};
+    height: ${(props) => (Link.size === "sm" ? "28px" : "")};
+    font-size: ${(props) => (Link.size === "sm" ? "12px" : "14px")};
+    border-radius: ${(props) => (Link.size === "sm" ? "6px" : "10px")};
+    font-weight: 500;
+    line-height: 24px;
+    text-align: center;
+    border: 0;
+    color: black;
+
+    &:hover {
+      text-decoration: none;
+      color: black;
+    }
+
+    &.danger {
+      border: 1px solid #c23f38;
+      background: #f1d6d5;
+      color: #c23f38;
+    }
+
+    &.primary {
+      background: #ffd50d;
+
+      &:hover {
+        background: #e7c211;
+      }
+
+      &.dark {
+        color: #fff;
+        background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
+
+        &:hover {
+          background: linear-gradient(90deg, #792ac0 0%, #423abd 100%);
+        }
+      }
+
+      &:disabled {
+        background: #c3cace;
+        color: #828688;
+        border: 0;
+      }
+    }
+
+    &.secondary {
+      background: transparent;
+      border: 1px solid;
+      border-color: #ffd50d;
+      color: #ffd50d;
+
+      &:hover {
+        border-color: #e7c211;
+        color: #e7c211;
+      }
+
+      &.dark {
+        color: #4f46e5;
+        border-color: #4f46e5;
+
+        &:hover {
+          border-color: #2f2a87;
+          color: #2f2a87;
+        }
+      }
+
+      &:disabled {
+        border-color: #c3cace;
+        color: #828688;
+      }
+    }
+
+    i {
+      margin: 0 0 0 5px;
+    }
+  `,
+
   Select: styled.select`
     padding: 8px 10px;
     width: 100%;
@@ -99,12 +179,41 @@ const Styled = {
     font-size: 14px;
     color: #828688;
   `,
+  Tag: styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 4px 8px;
+    border: 1px solid #9333ea;
+    color: #9333ea;
+    background: linear-gradient(
+      90deg,
+      rgba(147, 51, 234, 0.1) 0%,
+      rgba(79, 70, 229, 0.1) 100%
+    );
+    border-radius: 100px;
+
+    &.dark {
+      color: #fff;
+      background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
+    }
+
+    p {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 150px;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 11px;
+      line-height: 120%;
+      margin-bottom: 0;
+    }
+  `,
 };
 
 const Container = styled.div`
-  button {
-    margin: 5px;
-  }
   h4 {
     margin: 10px 0;
   }
@@ -116,6 +225,23 @@ const Label = styled.label`
   font-weight: 500;
   margin-bottom: 5px;
 `;
+
+if (Link)
+  return (
+    <Styled.Link
+      size={Link.size}
+      className={`align-items-center d-flex ${Link.className ?? "primary"}`}
+      href={Link.href}
+      disabled={Link.disabled}
+    >
+      <div>{Link.text}</div>
+      {Link.icon && (
+        <div className={`${Link.size === "sm" ? "fs-7" : "fs-6"}`}>
+          {Link.icon}
+        </div>
+      )}
+    </Styled.Link>
+  );
 
 if (Button)
   return (
@@ -132,6 +258,13 @@ if (Button)
         </div>
       )}
     </Styled.Button>
+  );
+
+if (Tag)
+  return (
+    <Styled.Tag className={Tag.className}>
+      <p title={Tag.title}>{Tag.title}</p>
+    </Styled.Tag>
   );
 
 if (Dropdown)
@@ -200,11 +333,11 @@ if (Input)
     </div>
   );
 
-const WidgetButton = ({ size, className, disabled, text, icon }) => (
+const WidgetButton = ({ type, size, className, disabled, text, icon }) => (
   <Widget
     src={"rubycop.near/widget/NDC.StyledComponents"}
     props={{
-      Button: {
+      [type ?? "Button"]: {
         size,
         className,
         disabled,
@@ -253,8 +386,8 @@ const WidgetInput = ({ type }) => {
 
 return (
   <Container>
-    <h4>Buttons</h4>
-    <div className="d-flex align-items-end flex-wrap">
+    <h4>Button</h4>
+    <div className="d-flex align-items-end flex-wrap gap-2">
       <WidgetButton text="Primary" />
       <WidgetButton text="Primary" icon={<i class="bi bi-check-lg"></i>} />
       <WidgetButton
@@ -268,7 +401,7 @@ return (
       <WidgetButton size="sm" className="secondary" text="Secondary" />
     </div>
 
-    <div className="d-flex align-items-end flex-wrap">
+    <div className="d-flex align-items-end flex-wrap gap-2">
       <WidgetButton text="Primary Dark" className="primary dark" />
       <WidgetButton
         text="Primary Dark"
@@ -290,7 +423,7 @@ return (
       />
     </div>
 
-    <div className="d-flex align-items-end flex-wrap">
+    <div className="d-flex align-items-end flex-wrap gap-2">
       <WidgetButton
         text="Danger"
         className="danger"
@@ -298,10 +431,36 @@ return (
       />
     </div>
 
+    <h4>Link Button</h4>
+    <div className="d-flex align-items-end flex-wrap gap-2">
+      <WidgetButton type="Link" text="Primary" className="primary dark" />
+      <WidgetButton type="Link" text="Secondary" className="secondary dark" />
+    </div>
+
+    <h4>Tag</h4>
+    <div className="d-flex align-items-end flex-wrap gap-2">
+      <Widget
+        src={"rubycop.near/widget/NDC.StyledComponents"}
+        props={{ Tag: { title: "Lorem ipsum", className: "dark" } }}
+      />
+      <Widget
+        src={"rubycop.near/widget/NDC.StyledComponents"}
+        props={{ Tag: { title: "Lorem ipsum" } }}
+      />
+      <Widget
+        src={"rubycop.near/widget/NDC.StyledComponents"}
+        props={{
+          Tag: {
+            title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+          },
+        }}
+      />
+    </div>
+
     <h4>Select</h4>
     <WidgetSelect />
 
-    <h4>Inputs</h4>
+    <h4>Input</h4>
     <WidgetInput type="Input" />
     <WidgetInput type="TextArea" />
   </Container>

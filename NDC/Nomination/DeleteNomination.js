@@ -1,4 +1,4 @@
-const { handleClose, house } = props;
+const { handleClose, house, nomination_contract } = props;
 
 const ModalCard = styled.div`
   position: fixed;
@@ -37,15 +37,12 @@ const IconContainer = styled.div`
 `;
 
 const widgets = {
-  styledComponents: "rubycop.near/widget/NDC.StyledComponents",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
 };
-
-let nominationContract = "nominations-v1.gwg-testing.near";
 
 function handleSelfRevoke() {
   Storage.privateSet("Houseselected", house);
-
-  Near.call(nominationContract, "self_revoke");
+  Near.call(nomination_contract, "self_revoke").then(() => handleClose());
 }
 
 return (
@@ -58,7 +55,8 @@ return (
         <i className="fs-1 bi bi-trash" />
       </IconContainer>
       <h5 className="text-center py-3">
-        Are you sure about to delete your nomination?
+        Are you sure you’d like to delete your nomination? You will lose the
+        current upvotes and comments.
       </h5>
       <div className="d-flex justify-content-between align-items-center">
         <Widget

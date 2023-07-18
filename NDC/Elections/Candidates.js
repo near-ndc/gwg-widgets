@@ -15,9 +15,9 @@ const {
 } = props;
 
 const widgets = {
-  voters: "rubycop.near/widget/NDC.Elections.Voters",
-  button: "rubycop.near/widget/NDC.StyledComponents",
-  verifyHuman: "rubycop.near/widget/NDC.VerifyHuman",
+  voters: "election.ndctools.near/widget/NDC.Elections.Voters",
+  button: "nomination.ndctools.near/widget/NDC.StyledComponents",
+  verifyHuman: "nomination.ndctools.near/widget/NDC.VerifyHuman",
 };
 
 const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
@@ -560,7 +560,13 @@ return (
       {isIAmHuman ? (
         <CastVotes />
       ) : (
-        <Widget src={widgets.verifyHuman} props={{ title: "Want to vote?" }} />
+        <Widget
+          src={widgets.verifyHuman}
+          props={{
+            title: "Want to vote?",
+            description: "Click on Verify as a Human to proceed.",
+          }}
+        />
       )}
     </div>
   </Container>

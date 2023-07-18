@@ -1,11 +1,11 @@
-let { ids, org } = props;
+let { ids, org, election_contract, registry_contract } = props;
 
 ids = props.ids ? ids : [1, 2, 3]; // for testing purposes
 org = props.org ? org : "test"; // for testing purposes
 
-const electionContract = "elections-v1.gwg-testing.near";
-const registryContract = "registry-v1.gwg-testing.near";
-const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
+const electionContract = election_contract ?? "elections-v1.gwg-testing.near";
+const registryContract = registry_contract ?? "registry.i-am-human.near";
+const apiKey = api_key ?? "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 
 let houses = [
   Near.view(electionContract, "proposal", { prop_id: ids[0] }),
@@ -42,16 +42,19 @@ State.update({ isIAmHuman: isHuman[0][1].length > 0 });
 
 const totalHumal = 3000;
 
-asyncFetch("https://api.pikespeak.ai/election/total-voters", {
-  headers: {
-    "x-api-key": apiKey,
-  },
-}).then((resp) => {
+asyncFetch(
+  `https://api.pikespeak.ai/election/total-voters?contract=${electionContract}&registry=${registryContract}`,
+  {
+    headers: {
+      "x-api-key": apiKey,
+    },
+  }
+).then((resp) => {
   if (resp.body) State.update({ humanVoted: resp.body });
 });
 
 asyncFetch(
-  `https://api.pikespeak.ai/election/votes-by-voter?voter=${context.accountId}`,
+  `https://api.pikespeak.ai/election/votes-by-voter?voter=${context.accountId}&contract=${electionContract}&registry=${registryContract}`,
   {
     headers: {
       "x-api-key": apiKey,
@@ -62,13 +65,13 @@ asyncFetch(
 });
 
 const widgets = {
-  header: "rubycop.near/widget/NDC.Elections.Header",
-  filter: "rubycop.near/widget/NDC.Elections.Filter",
-  houses: "rubycop.near/widget/NDC.Elections.Houses",
-  progress: "rubycop.near/widget/NDC.Elections.Progress",
-  candidates: "rubycop.near/widget/NDC.Elections.Candidates",
-  statistic: "rubycop.near/widget/NDC.Elections.Statistic",
-  activities: "rubycop.near/widget/NDC.Elections.Activities",
+  header: "election.ndctools.near/widget/NDC.Elections.Header",
+  filter: "election.ndctools.near/widget/NDC.Elections.Filter",
+  houses: "election.ndctools.near/widget/NDC.Elections.Houses",
+  progress: "election.ndctools.near/widget/NDC.Elections.Progress",
+  candidates: "election.ndctools.near/widget/NDC.Elections.Candidates",
+  statistic: "election.ndctools.near/widget/NDC.Elections.Statistic",
+  activities: "election.ndctools.near/widget/NDC.Elections.Activities",
 };
 
 const handleSelect = (item) => {

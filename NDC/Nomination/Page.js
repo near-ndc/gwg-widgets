@@ -1,12 +1,17 @@
 // TODO: Should be grabbed from contract side
-let { ids, org } = props;
+let {
+  ids,
+  election_contract,
+  registry_contract,
+  nomination_contract,
+  api_key,
+} = props;
 ids = props.ids ? ids : [1, 2, 3]; // for testing purposes
-org = props.org ? org : "test"; // for testing purposes
 
-const electionContract = "elections-v1.gwg-testing.near";
-const registryContract = "registry-v1.gwg-testing.near";
-const nominationContract = "nominations-v1.gwg-testing.near";
-const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
+const electionContract = election_contract ?? "elections-v1.gwg-testing.near";
+const registryContract = registry_contract ?? "registry.i-am-human.near";
+const nominationContract = nomination_contract ?? "nominations.ndc-gwg.near";
+const apiKey = api_key ?? "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 
 function handleSelfRevoke() {
   Near.call(nominationContract, "self_revoke");
@@ -19,12 +24,15 @@ const houses = [
 ];
 
 const widgets = {
-  header: "rubycop.near/widget/NDC.Elections.Header",
-  card: "rubycop.near/widget/NDC.Nomination.Card",
-  houses: "rubycop.near/widget/NDC.Elections.Houses",
-  filter: "rubycop.near/widget/NDC.Elections.Filter",
-  styledComponents: "rubycop.near/widget/NDC.StyledComponents",
-  verifyHuman: "rubycop.near/widget/NDC.VerifyHuman",
+  header: "election.ndctools.near/widget/NDC.Elections.Header",
+  card: "nomination.ndctools.near/widget/NDC.Nomination.Card",
+  houses: "election.ndctools.near/widget/NDC.Elections.Houses",
+  filter: "election.ndctools.near/widget/NDC.Elections.Filter",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
+  verifyHuman: "nomination.ndctools.near/widget/NDC.VerifyHuman",
+  compose: "nomination.ndctools.near/widget/NDC.Nomination.Compose",
+  deleteNomination:
+    "nomination.ndctools.near/widget/NDC.Nomination.DeleteNomination",
 };
 
 State.init({
@@ -47,7 +55,7 @@ const httpRequestOpt = {
 
 function getVerifiedHuman() {
   asyncFetch(
-    `https://api.pikespeak.ai/sbt/sbt-by-owner?holder=${context.accountId}&class_id=1&issuer=fractal.i-am-human.near&with_expired=false`,
+    `https://api.pikespeak.ai/sbt/sbt-by-owner?holder=${context.accountId}&class_id=1&issuer=fractal.i-am-human.near&with_expired=false&registry=${registryContract}`,
     httpRequestOpt
   ).then((res) => {
     if (res.body.length > 0) {
@@ -55,7 +63,7 @@ function getVerifiedHuman() {
     }
   });
   asyncFetch(
-    `https://api.pikespeak.ai/sbt/sbt-by-owner?holder=${context.accountId}&class_id=2&issuer=fractal.i-am-human.near&with_expired=false`,
+    `https://api.pikespeak.ai/sbt/sbt-by-owner?holder=${context.accountId}&class_id=1&issuer=community.i-am-human.near&with_expired=false&registry=${registryContract}`,
     httpRequestOpt
   ).then((res) => {
     if (res.body.length > 0) {
@@ -63,7 +71,7 @@ function getVerifiedHuman() {
     }
   });
   asyncFetch(
-    `https://api.pikespeak.ai/nominations/candidates-comments-and-upvotes?candidate=${context.accountId}`,
+    `https://api.pikespeak.ai/nominations/candidates-comments-and-upvotes?candidate=${context.accountId}&contract=${nominationContract}`,
     httpRequestOpt
   ).then((res) => {
     if (res.body.length > 0) {
@@ -75,17 +83,20 @@ function getVerifiedHuman() {
 function getNominationInfo() {
   let nominationsArr = [];
   asyncFetch(
-    `https://api.pikespeak.ai/nominations/house-nominations?house=${state.house}`,
+    `https://api.pikespeak.ai/nominations/house-nominations?house=${state.house}&contract=${electionContract}`,
     httpRequestOpt
   ).then((res) => {
+    console.log(res.body);
+
     if (res.body.length <= 0) {
       State.update({ nominations: [] });
+      return;
     }
+
     for (const [i, data] of res.body.entries()) {
-      let objCard = {
-        indexerData: data,
-      };
+      let objCard = { indexerData: data };
       let nominee = data.nominee;
+
       asyncFetch(
         `https://api.pikespeak.ai/nominations/candidates-comments-and-upvotes?candidate=${data.nominee}`,
         httpRequestOpt
@@ -101,20 +112,18 @@ function getNominationInfo() {
         }, 1000);
 
         setTimeout(() => {
+          if (data.is_revoked || !profileData || !nominationData) return;
+
           objCard = {
             profileData: profileData,
             nominationData: nominationData,
             upVoteData: upVoteInfo,
             ...objCard,
           };
-          if (!data.is_revoked) {
-            if (profileData && nominationData) {
-              nominationsArr.push(objCard);
-            }
-          }
-          if (i == res.body.length - 1) {
-            State.update({ nominations: nominationsArr });
-          }
+
+          nominationsArr.push(objCard);
+
+          State.update({ nominations: nominationsArr });
         }, 1000);
       });
     }
@@ -177,6 +186,7 @@ function handleFilter(e) {
 
 const Container = styled.div`
   padding: 30px 0;
+  margin: 0;
 `;
 
 const ActivityContainer = styled.div`
@@ -365,8 +375,7 @@ return (
                   props={{
                     Button: {
                       text: "Self Nominate",
-                      onClick: () =>
-                        state.sbt ? "" : State.update({ showModal: true }),
+                      onClick: () => State.update({ showModal: true }),
                       icon: <i class="bi bi-plus-lg"></i>,
                     },
                   }}
@@ -392,7 +401,11 @@ return (
               <div className="mt-5">
                 <Widget
                   src={widgets.verifyHuman}
-                  props={{ title: "Want to upvote?", small: true }}
+                  props={{
+                    title: "To Comment or to Upvote",
+                    description: "Verify as a Human to comment or to Upvote",
+                    small: true,
+                  }}
                 />
               </div>
             )}
@@ -401,7 +414,16 @@ return (
         <Center className="col-lg-9 px-2 px-md-3 d-flex flex-row flex-wrap">
           {state.nominations.length > 0 ? (
             state.nominations.map((data) => (
-              <Widget src={widgets.card} props={data} />
+              <Widget
+                src={widgets.card}
+                props={{
+                  data,
+                  registry_contract: registryContract,
+                  nomination_contract: nominationContract,
+                  election_contract: electionContract,
+                  api_key: apiKey,
+                }}
+              />
             ))
           ) : (
             <div className="flex mt-10 container-fluid align-self-center">
@@ -415,18 +437,20 @@ return (
     <>
       {state.showModal && (
         <Widget
-          src={`rubycop.near/widget/NDC.Nomination.Compose`}
+          src={widgets.compose}
           props={{
             handleClose: () => State.update({ showModal: false }),
+            nomination_contract: nominationContract,
           }}
         />
       )}
       {state.showModalDelete && (
         <Widget
-          src={`rubycop.near/widget/NDC.Nomination.DeleteNomination`}
+          src={widgets.deleteNomination}
           props={{
             house: state.house,
             handleClose: () => State.update({ showModalDelete: false }),
+            nomination_contract: nominationContract,
           }}
         />
       )}

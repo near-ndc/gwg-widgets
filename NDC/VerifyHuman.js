@@ -1,4 +1,4 @@
-const { title, small } = props;
+const { title, description, small } = props;
 
 const Container = styled.div`
   background: #fdfeff;
@@ -52,7 +52,7 @@ const VerifyHuman = () => (
   >
     <div className={`${small ? "pb-3" : ""}`}>
       <h4>{title}</h4>
-      <h5 className="text-secondary">Click on Verify as a Human to proceed.</h5>
+      <h5 className="text-secondary">{description}</h5>
     </div>
     <PrimaryLink small={small} href="https://i-am-human.app/">
       Verify as Human

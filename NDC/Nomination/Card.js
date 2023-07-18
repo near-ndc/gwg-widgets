@@ -1,4 +1,10 @@
-const data = props;
+const {
+  data,
+  registry_contract,
+  nomination_contract,
+  election_contract,
+  api_key,
+} = props;
 
 State.init({
   verified: false,
@@ -7,27 +13,25 @@ State.init({
   shareText: "Copy link to the clipboard",
 });
 
-const nominationContract = "nominations-v1.gwg-testing.near";
-const registryContract = "registry-v1.gwg-testing.near";
-const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
-
 const widgets = {
-  styledComponents: "rubycop.near/widget/NDC.StyledComponents",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
+  candidatePage:
+    "#/nomination.ndctools.near/widget/NDC.Nomination.Candidate.Page",
+  addComment: "nomination.ndctools.near/widget/NDC.Nomination.AddComment",
 };
 
-const isHuman = Near.view(registryContract, "is_human", {
+const isHuman = Near.view(registry_contract, "is_human", {
   account: context.accountId,
 });
-
 State.update({ verified: isHuman[0][1].length > 0 });
 
 const httpRequestOpt = {
-  headers: { "x-api-key": apiKey },
+  headers: { "x-api-key": api_key },
 };
 
 function getVerifiedHuman() {
   asyncFetch(
-    `https://api.pikespeak.ai/nominations/is-upvoted-by?candidate=${data.indexerData.nominee}&upvoter=${context.accountId}`,
+    `https://api.pikespeak.ai/nominations/is-upvoted-by?candidate=${data.indexerData.nominee}&upvoter=${context.accountId}&contract=${nomination_contract}`,
     httpRequestOpt
   ).then((res) => {
     State.update({ voted: res.body });
@@ -41,7 +45,7 @@ if (state.start) {
 
 function handleUpVote() {
   Near.call(
-    nominationContract,
+    nomination_contract,
     state.voted ? "remove_upvote" : "upvote",
     {
       candidate: data.indexerData.nominee,
@@ -52,10 +56,9 @@ function handleUpVote() {
 }
 
 function handleShare() {
-  console.log(copied);
   State.update({ shareText: "Copied" });
   clipboard.writeText(
-    "https://near.org/#/yairnava.near/widget/NDC.Nomination.Candidate.Container?house=" +
+    "https://near.org/#/nomination.ndctools.near/widget/NDC.Nomination.Candidate.Page?house=" +
       data.indexerData.house +
       "&candidate=" +
       data.indexerData.nominee
@@ -64,7 +67,7 @@ function handleShare() {
 
 function getComponentURL() {
   const url =
-    "https%3A%2F%2Fnear.org%2F%23%2Fyairnava.near%2Fwidget%2FNDC.Nomination.Candidate.Container%3Fhouse%3D" +
+    "https%3A%2F%2Fnear.org%2F%23%2Fnomination.ndctools.near%2Fwidget%2FNDC.Nomination.Candidate.Page%3Fhouse%3D" +
     data.indexerData.house +
     "%26candidate%3D" +
     data.indexerData.nominee;
@@ -188,9 +191,6 @@ const Icon = styled.img`
   height: 17px;
 `;
 const CollapseCandidate = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
   padding: 12px;
   background: #ffffff;
   border-radius: 6px;
@@ -249,7 +249,7 @@ const KeyIssuesHeader = styled.div`
 const KeyIssuesTitle = styled.p`
   font-style: normal;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 120%;
   margin-bottom: 0;
 `;
@@ -418,14 +418,13 @@ const Dropbtn = styled.button`
 
 const DropdownContent = styled.div`
   display: none;
-  font-size: 13px;
+  left: 0;
+  font-size: 12px;
   flex-direction: column;
   align-items: flex-start;
   position: absolute;
   border-radius: 8px;
   background: #ffffff;
-  width: 200px;
-  gap: 9px;
   box-shadow: 0px 0px 30px 0px rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   z-index: 1;
@@ -433,10 +432,13 @@ const DropdownContent = styled.div`
 `;
 
 const Element = styled.div`
+  width: 150px;
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   cursor: pointer;
-  justify-content: center;
-  width: 100%;
+  padding: 10px;
+
   &:hover {
     border-radius: 6px;
     background: #f8f8f9;
@@ -445,7 +447,7 @@ const Element = styled.div`
 
 const ShareLink = styled.a`
   color: black;
-  padding: 12px 16px;
+  margin-right: 8px 12px;
   text-decoration: none;
   display: block;
   text-align: start;
@@ -458,20 +460,20 @@ const ShareIcon = styled.img`
 const DropdownContainerHover = styled.div`
   width: fit-content;
   float: right;
+
   &:hover ${DropdownContent} {
     display: flex;
+    margin-top: -165px;
   }
 `;
 
 const Separation = styled.div`
-    margin-top: -196px;
-    width: 200px;
     position: absolute;
   }
 `;
 
-const canUpvote =
-  state.verified && context.accountId != data.indexerData.nominee;
+const canUpvote = () =>
+  state.verified && context.accountId != data.indexerData?.nominee;
 
 const getShortUserName = (userId) => {
   if (userId.length === 64) return `${userId.slice(0, 4)}..${userId.slice(-4)}`;
@@ -481,6 +483,8 @@ const getShortUserName = (userId) => {
 };
 
 const trimText = (text, limit) => {
+  if (!text) return "";
+
   const _limit = limit ?? 200;
   const ending = text.length > _limit ? "..." : "";
   const trimmed = text.slice(0, limit ?? 200);
@@ -521,7 +525,7 @@ return (
     <Card>
       {state.showModal && (
         <Widget
-          src={`dokxo.near/widget/CommentCard`}
+          src={widgets.addComment}
           props={{
             candidateOrReplay: true,
             username: data.indexerData.nominee,
@@ -534,9 +538,8 @@ return (
         <div className="d-flex align-items-center gap-2">
           <ProfilePicture
             src={
-              data.imgURL
-                ? data.imgURL
-                : "https://apricot-straight-eagle-592.mypinata.cloud/ipfs/QmZBPPMKLdZG2zVpYaf9rcbtNfAp7c3BtsvzxzBb9pNihm?_gl=1*6avmrp*rs_ga*MzkyOTE0Mjc4LjE2ODY4NjgxODc.*rs_ga_5RMPXG14TE*MTY4NjkzMzM2NC4zLjEuMTY4NjkzMzM4Ni4zOC4wLjA."
+              data.imgURL ??
+              "https://apricot-straight-eagle-592.mypinata.cloud/ipfs/QmZBPPMKLdZG2zVpYaf9rcbtNfAp7c3BtsvzxzBb9pNihm?_gl=1*6avmrp*rs_ga*MzkyOTE0Mjc4LjE2ODY4NjgxODc.*rs_ga_5RMPXG14TE*MTY4NjkzMzM2NC4zLjEuMTY4NjkzMzM4Ni4zOC4wLjA."
             }
             alt="pic"
           ></ProfilePicture>
@@ -556,19 +559,19 @@ return (
               }}
             />
             <HeaderContentText>
-              <NominationName>{data.profileData.name}</NominationName>
+              <NominationName>{data.profileData?.name}</NominationName>
               <NominationUser>
-                {getShortUserName(data.nominationData.profileAccount)}
+                {getShortUserName(data.nominationData?.profileAccount)}
               </NominationUser>
             </HeaderContentText>
           </HeaderContent>
         </div>
-        {canUpvote && (
+        {canUpvote() && (
           <Widget
             src={widgets.styledComponents}
             props={{
               Button: {
-                text: `+${data.upVoteData.upvotes ?? 0}`,
+                text: `+${data.upVoteData?.upvotes ?? 0}`,
                 className: "secondary dark",
                 size: "sm",
                 onClick: handleUpVote,
@@ -582,13 +585,17 @@ return (
         <CollapseCandidateContent>
           <CollapseCandidateText>Candidate Affiliations</CollapseCandidateText>
           <CandidateTagContainer className="w-100 d-flex flex-wrap">
-            {JSON.parse(data.nominationData.afiliation).map((data) => (
-              <Widget
-                src={widgets.styledComponents}
-                props={{
-                  Tag: { title: data.company_name },
-                }}
-              />
+            {JSON.parse(data.nominationData?.afiliation).map((data) => (
+              <>
+                {data.company_name && (
+                  <Widget
+                    src={widgets.styledComponents}
+                    props={{
+                      Tag: { title: data.company_name },
+                    }}
+                  />
+                )}
+              </>
             ))}
           </CandidateTagContainer>
         </CollapseCandidateContent>
@@ -596,11 +603,11 @@ return (
       <KeyIssues>
         <KeyIssuesContent>
           <KeyIssuesHeader>
-            <KeyIssuesTitle>Key issues</KeyIssuesTitle>
+            <KeyIssuesTitle>Platform</KeyIssuesTitle>
           </KeyIssuesHeader>
           <KeyIssuesContainer>
             {keyIssues.map((issue, i) => (
-              <div key={i}>
+              <div className="w-100" key={i}>
                 <KeyIssueTitle>{issue.title}</KeyIssueTitle>
                 <KeyIssueDescription className="text-secondary">
                   {trimText(issue.desc)}
@@ -613,130 +620,76 @@ return (
       </KeyIssues>
       <LowerSection>
         <LowerSectionContainer>
+          <KeyIssues>
+            <KeyIssuesContent>
+              <KeyIssuesHeader>
+                <KeyIssuesTitle>Tags</KeyIssuesTitle>
+              </KeyIssuesHeader>
+              <div className="d-flex w-100">
+                <TagSection>
+                  {data.nominationData.tags
+                    .trim()
+                    .split(",")
+                    .map((data) => (
+                      <>
+                        {data && (
+                          <Widget
+                            src={widgets.styledComponents}
+                            props={{
+                              Tag: { title: data },
+                            }}
+                          />
+                        )}
+                      </>
+                    ))}
+                </TagSection>
+              </div>
+            </KeyIssuesContent>
+          </KeyIssues>
           <ButtonsLowerSection>
             <TextLowerSectionContainer className="align-items-center">
               <i className="bi bi-clock"></i>
               {data.indexerData.timestamp && (
                 <TimestampText>
-                  <div>
+                  <span>
                     {new Date(data.indexerData.timestamp).toDateString()}
-                  </div>
+                  </span>
                   <span>by</span>
                   <b>{data.indexerData.nominee}</b>
                 </TimestampText>
               )}
             </TextLowerSectionContainer>
-            <Widget
-              src={widgets.styledComponents}
-              props={{
-                Button: {
-                  text: `+${data.upVoteData.comments.length ?? 0}`,
-                  disabled: !state.verified,
-                  size: "sm",
-                  className: "secondary dark",
-                  onClick: () => {
-                    !data.preview ? State.update({ showModal: true }) : "";
-                  },
-                  icon: <i className="bi bi-chat-square-text-fill"></i>,
-                },
-              }}
-            />
           </ButtonsLowerSection>
-          <div className="d-flex w-100 justify-content-between align-items-center">
-            <TagSection>
-              {data.nominationData.tags
-                .trim()
-                .split(",")
-                .map((data) => (
-                  <Widget
-                    src={widgets.styledComponents}
-                    props={{
-                      Tag: { title: data },
-                    }}
-                  />
-                ))}
-            </TagSection>
-
+          <div className="d-flex w-100 align-items-center">
             {!data.preview && (
-              <div className="d-flex gap-2">
+              <div className="d-flex w-100 gap-2 justify-content-between">
+                <Widget
+                  src={widgets.styledComponents}
+                  props={{
+                    Button: {
+                      text: `+${data.upVoteData.comments.length ?? 0} Comments`,
+                      disabled: !state.verified,
+                      size: "sm",
+                      className: "secondary dark w-100 justify-content-center",
+                      onClick: () => {
+                        !data.preview ? State.update({ showModal: true }) : "";
+                      },
+                      icon: <i className="bi bi-chat-square-text-fill"></i>,
+                    },
+                  }}
+                />
                 <Widget
                   src={widgets.styledComponents}
                   props={{
                     Link: {
                       text: "View",
                       size: "sm",
-                      className: "secondary dark",
-                      href: `#/yairnava.near/widget/NDC.Nomination.Candidate.Container?house=${data.indexerData.house}&candidate=${data.indexerData.nominee}`,
+                      className: "primary w-100 justify-content-center",
+                      href: `${widgets.candidatePage}?house=${data.indexerData.house}&candidate=${data.indexerData.nominee}&nomination_contract=${nomination_contract}&election_contract=${election_contract}`,
+                      icon: <i className="bi bi-eye fs-6"></i>,
                     },
                   }}
                 />
-                <DropdownContainerHover>
-                  <Widget
-                    src={widgets.styledComponents}
-                    props={{
-                      Button: {
-                        text: "Share",
-                        size: "sm",
-                        onClick: handleShare,
-                        icon: <i className="bi bi-share-fill"></i>,
-                      },
-                    }}
-                  />
-                  <Separation>
-                    <DropdownContent>
-                      <Element onClick={handleShare}>
-                        <OverlayTrigger
-                          placement={top}
-                          overlay={<Tooltip>{state.shareText}</Tooltip>}
-                        >
-                          <ShareLink
-                            style={{
-                              width: "132px",
-                              "text-decoration": "none",
-                              color: "black",
-                            }}
-                          >
-                            Share as a Link
-                          </ShareLink>
-                        </OverlayTrigger>
-                        <ShareIcon src="https://emerald-related-swordtail-341.mypinata.cloud/ipfs/QmV7qjDVv5dhsMJF1hRqCzeVNEHervtSURQmyBqWLdvtq3" />
-                      </Element>
-                      <Element>
-                        <ShareLink
-                          target="_blank"
-                          href={
-                            "https://twitter.com/intent/tweet?text=Please%20checkout%20this%20NDC%20Candidate%20and%20Support%20the%20NDC%20Election!%20&url=" +
-                            getComponentURL()
-                          }
-                          style={{
-                            width: "132px",
-                            "text-decoration": "none",
-                            color: "black",
-                          }}
-                        >
-                          Share on Twitter
-                        </ShareLink>
-                        <ShareIcon src="https://emerald-related-swordtail-341.mypinata.cloud/ipfs/QmTXndeq7DWFW8gwsmhLBXTd4KzCeKr2Q6GgMwUA8fmfoJ" />
-                      </Element>
-                      <Element>
-                        <ShareLink
-                          href={
-                            "mailto:?subject=Please%20checkout%20this%20NDC%20Candidate%20and%20Support%20the%20NDC%20Election&body=Support%20the%20NDC%20Election!%20" +
-                            getComponentURL()
-                          }
-                          style={{
-                            width: "132px",
-                            "text-decoration": "none",
-                            color: "black",
-                          }}
-                        >
-                          Share by Email
-                        </ShareLink>
-                        <ShareIcon src="https://emerald-related-swordtail-341.mypinata.cloud/ipfs/QmdDa1om9dWr49n7ozBsGhQfNrkQ3FxYWCtKRtNwHkuz3Q" />
-                      </Element>
-                    </DropdownContent>
-                  </Separation>
-                </DropdownContainerHover>
               </div>
             )}
           </div>

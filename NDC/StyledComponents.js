@@ -35,9 +35,15 @@ const Styled = {
       }
 
       &:disabled {
+        cursor: not-allowed;
         background: #c3cace;
         color: #828688;
         border: 0;
+
+        &:hover {
+          background: #c3cace;
+          color: #828688;
+        }
       }
     }
 
@@ -65,11 +71,18 @@ const Styled = {
       &:disabled {
         border-color: #c3cace;
         color: #828688;
+        cursor: not-allowed;
+
+        &:hover {
+          border-color: #c3cace;
+          color: #828688;
+        }
       }
     }
 
     i {
-      margin: 0 0 0 5px;
+      margin: 0;
+      margin-left: ${(props) => (props.text ? "5px" : "0")};
     }
   `,
 
@@ -250,6 +263,7 @@ if (Button)
       className={`align-items-center d-flex ${Button.className ?? "primary"}`}
       onClick={Button.onClick}
       disabled={Button.disabled}
+      text={Button.text}
     >
       <div>{Button.text}</div>
       {Button.icon && (
@@ -271,7 +285,10 @@ if (Dropdown)
   return (
     <div>
       <Label>{Dropdown.label}</Label>
-      <Styled.Select onChange={(e) => Dropdown.handleChange(e.target.value)}>
+      <Styled.Select
+        value={Dropdown.value}
+        onChange={(e) => Dropdown.handleChange(e.target.value)}
+      >
         {Dropdown.options.map((opt) => (
           <>
             {opt.default ? (
@@ -290,19 +307,18 @@ if (Dropdown)
 if (TextArea)
   return (
     <div>
-      <Label>{TextArea.label}</Label>
+      {TextArea.label && <Label>{TextArea.label}</Label>}
       <Styled.TextArea
         value={TextArea.value}
         placeholder={TextArea.placeholder}
         onChange={TextArea.handleChange}
         rows={5}
-        maxLength={TextArea.maxLength}
       />
 
       {TextArea.maxLength && (
         <div className="d-flex justify-content-end">
           <small style={{ fontSize: 12 }} className="text-secondary">
-            {TextArea.maxLength - TextArea.value.length} left
+            {parseInt(TextArea.maxLength) - TextArea.value.length ?? 0} left
           </small>
         </div>
       )}
@@ -326,7 +342,7 @@ if (Input)
       {Input.maxLength && (
         <div className="d-flex justify-content-end">
           <small style={{ fontSize: 12 }} className="text-secondary">
-            {Input.maxLength - Input.value.length} left
+            {parseInt(Input.maxLength) - Input.value.length ?? 0} left
           </small>
         </div>
       )}
@@ -335,7 +351,7 @@ if (Input)
 
 const WidgetButton = ({ type, size, className, disabled, text, icon }) => (
   <Widget
-    src={"rubycop.near/widget/NDC.StyledComponents"}
+    src={"nomination.ndctools.near/widget/NDC.StyledComponents"}
     props={{
       [type ?? "Button"]: {
         size,
@@ -350,7 +366,7 @@ const WidgetButton = ({ type, size, className, disabled, text, icon }) => (
 
 const WidgetSelect = () => (
   <Widget
-    src={"rubycop.near/widget/NDC.StyledComponents"}
+    src={"nomination.ndctools.near/widget/NDC.StyledComponents"}
     props={{
       Dropdown: {
         label: "Select label",
@@ -369,12 +385,12 @@ const WidgetInput = ({ type }) => {
 
   return (
     <Widget
-      src={"rubycop.near/widget/NDC.StyledComponents"}
+      src={"nomination.ndctools.near/widget/NDC.StyledComponents"}
       props={{
         [type]: {
           label: "Select label",
           placeholder: "Placeholder text here...",
-          maxLength: 20,
+          maxLength: "20",
           min: new Date(),
           value: state[type],
           handleChange: (e) => State.update({ [type]: e.target.value }),
@@ -387,7 +403,7 @@ const WidgetInput = ({ type }) => {
 return (
   <Container>
     <h4>Button</h4>
-    <div className="d-flex align-items-end flex-wrap gap-2">
+    <div className="d-flex align-items-end flex-wrap gap-2 mb-2">
       <WidgetButton text="Primary" />
       <WidgetButton text="Primary" icon={<i class="bi bi-check-lg"></i>} />
       <WidgetButton
@@ -401,7 +417,7 @@ return (
       <WidgetButton size="sm" className="secondary" text="Secondary" />
     </div>
 
-    <div className="d-flex align-items-end flex-wrap gap-2">
+    <div className="d-flex align-items-end flex-wrap gap-2 mb-2">
       <WidgetButton text="Primary Dark" className="primary dark" />
       <WidgetButton
         text="Primary Dark"
@@ -423,11 +439,25 @@ return (
       />
     </div>
 
-    <div className="d-flex align-items-end flex-wrap gap-2">
+    <div className="d-flex align-items-end flex-wrap gap-2 mb-2">
       <WidgetButton
         text="Danger"
         className="danger"
         icon={<i class="bi bi-trash" />}
+      />
+    </div>
+
+    <div className="d-flex align-items-end flex-wrap gap-2 mb-2">
+      <WidgetButton
+        size="sm"
+        className="secondary dark"
+        icon={<i class="bi bi-share"></i>}
+      />
+      <WidgetButton
+        disabled
+        size="sm"
+        className="secondary dark"
+        icon={<i class="bi bi-share"></i>}
       />
     </div>
 
@@ -438,17 +468,17 @@ return (
     </div>
 
     <h4>Tag</h4>
-    <div className="d-flex align-items-end flex-wrap gap-2">
+    <div className="d-flex align-items-end flex-wrap gap-2 mb-2">
       <Widget
-        src={"rubycop.near/widget/NDC.StyledComponents"}
+        src={"nomination.ndctools.near/widget/NDC.StyledComponents"}
         props={{ Tag: { title: "Lorem ipsum", className: "dark" } }}
       />
       <Widget
-        src={"rubycop.near/widget/NDC.StyledComponents"}
+        src={"nomination.ndctools.near/widget/NDC.StyledComponents"}
         props={{ Tag: { title: "Lorem ipsum" } }}
       />
       <Widget
-        src={"rubycop.near/widget/NDC.StyledComponents"}
+        src={"nomination.ndctools.near/widget/NDC.StyledComponents"}
         props={{
           Tag: {
             title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",

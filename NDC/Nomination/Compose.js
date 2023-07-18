@@ -1,6 +1,5 @@
-const { handleClose } = props;
+const { handleClose, nomination_contract } = props;
 
-let Nominationcontract = "nominations-v1.gwg-testing.near";
 let Socialcontract = "social.near";
 
 let profileInfo = Social.getr(`${context.accountId}/profile`);
@@ -11,7 +10,12 @@ let imageIsUrl = profileInfo.image.url ? true : false;
 let RealProfileImageAsURL = "";
 
 const widgets = {
-  styledComponents: "rubycop.near/widget/NDC.StyledComponents",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
+  affiliations:
+    "nomination.ndctools.near/widget/NDC.Nomination.Compose.Affiliations",
+  platform: "nomination.ndctools.near/widget/NDC.Nomination.Compose.Platform",
+  page: "nomination.ndctools.near/widget/NDC.Nomination.Page",
+  tags: "nomination.ndctools.near/widget/NDC.Nomination.Compose.Tags"
 };
 
 if (imageIsNFT) {
@@ -45,7 +49,7 @@ State.init({
   },
   name: profileInfo.name ? profileInfo.name : "",
   profileAccount: context.accountId ? "@" + context.accountId : "",
-  house_intended: "",
+  house_intended: 0,
   HAYInvolve: "",
   WIYStrategy: "",
   Key_Issue_1: "",
@@ -63,6 +67,7 @@ State.init({
   agreement: "false",
   tags: "",
   error_msg: "",
+  video: "",
 });
 
 const CardStyled = styled.div`
@@ -145,6 +150,10 @@ const Hr = styled.div`
   background: rgba(208, 214, 217, 0.4);
 `;
 
+const Section = styled.div`
+  margin: 12px 0;
+`;
+
 const validatedInputs = () => {
   const {
     img,
@@ -171,57 +180,42 @@ const validatedInputs = () => {
   }
   if (isEmpty(name)) {
     State.update({ error_msg: "Fill the name" });
-
     isValid = false;
   }
   if (isEmpty(profileAccount)) {
     State.update({ error_msg: "Fill the Profile Account" });
-
     isValid = false;
   }
-  if (isEmpty(house_intended)) {
+  if (house_intended === 0) {
     State.update({ error_msg: "Select a house" });
-
     isValid = false;
   }
   if (isEmpty(HAYInvolve)) {
     State.update({ error_msg: "How are you involved?" });
-
     isValid = false;
   }
   if (isEmpty(WIYStrategy)) {
     State.update({ error_msg: "What is your strategy?" });
-
     isValid = false;
   }
   if (isEmpty(Key_Issue_1)) {
     State.update({ error_msg: "Fill the key issued 1" });
-
-    isValid = false;
-  }
-  if (isEmpty(Key_Issue_1)) {
-    State.update({ error_msg: "Fill the key issued 1" });
-
     isValid = false;
   }
   if (isEmpty(Key_Issue_2)) {
     State.update({ error_msg: "Fill the key issued 2" });
-
     isValid = false;
   }
   if (isEmpty(Key_Issue_3)) {
     State.update({ error_msg: "Fill the key issued 3" });
-
     isValid = false;
   }
   if (tags.split(",").length == 0) {
     State.update({ error_msg: "Write a tag" });
-
     isValid = false;
   }
   if (isFalse(agreement)) {
     State.update({ error_msg: "Accept the declaration" });
-
     isValid = false;
   }
   if (afiliation.length == 0) {
@@ -233,28 +227,26 @@ const validatedInputs = () => {
     afiliation.forEach((element) => {
       if (isEmpty(element.company_name)) {
         State.update({ error_msg: "Fill the company name" });
-
         isValid = false;
       }
       if (isEmpty(element.start_date)) {
         State.update({ error_msg: "Select a start date" });
-
         isValid = false;
       }
       if (isEmpty(element.end_date)) {
         State.update({ error_msg: "Select a end date" });
-
         isValid = false;
       }
       if (isEmpty(element.role)) {
         State.update({ error_msg: "Write your role" });
-
         isValid = false;
       }
     });
   } else {
     State.update({ error_msg: null });
+    isValid = false;
   }
+
   return isValid;
 };
 
@@ -322,8 +314,8 @@ const validateAffiliations = (params, key, limit) => {
   State.update({ afiliation: data, error_msg: null });
 };
 
-const handleDeclaration = (item) => {
-  State.update({ agreement: item.target.checked.toString(), error_msg: null });
+const handleDeclaration = (agreement) => {
+  State.update({ agreement, error_msg: null });
 };
 
 const handleNominate = () => {
@@ -336,7 +328,7 @@ const handleNominate = () => {
   const SocialArgs = JSON.parse(data);
 
   let SelfNominate_Payload = {
-    contractName: Nominationcontract,
+    contractName: nomination_contract,
     methodName: "self_nominate",
     args: {
       house: state.house_intended,
@@ -355,9 +347,7 @@ const handleNominate = () => {
     deposit: 100000000000000000000000,
   };
 
-  Near.call([Social_Payload, SelfNominate_Payload]).then((data) =>
-    handleClose()
-  );
+  Near.call([Social_Payload, SelfNominate_Payload]).then(() => handleClose());
 };
 
 return (
@@ -373,7 +363,7 @@ return (
       >
         <HiddeableWidget>
           <Widget
-            src={`syi216.near/widget/NDC.nomination.card`}
+            src={widgets.page}
             props={{
               nominationData: {
                 img: {
@@ -389,6 +379,7 @@ return (
                 Key_Issue_3: state.Key_Issue_3,
                 addition_platform: state.addition_platform,
                 tags: state.tags,
+                video: state.video,
               },
               indexerData: {
                 house: state.house_intended,
@@ -417,7 +408,8 @@ return (
               props={{
                 Dropdown: {
                   label: "House",
-                  handleChange: (e) => handleChangeHouse(e.target.value),
+                  value: state.house_intended,
+                  handleChange: (item) => handleChangeHouse(item),
                   options: [
                     { title: "Select house", value: 0, default: true },
                     { title: "House Of Merit", value: "HouseOfMerit" },
@@ -435,7 +427,7 @@ return (
             />
             <Hr />
             <Widget
-              src={`rubycop.near/widget/Compose.Platform`}
+              src={widgets.platform}
               props={{
                 inputs: [
                   {
@@ -455,7 +447,7 @@ return (
                   },
                   {
                     label:
-                      "Platform: What’s your view and pledge on Key Issue 1?",
+                      "What’s your view and pledge on the issue of User Experience and Accessibility? This issue focuses on improving the user experience, developing the social layer, enhancing the developer experience, and making the Near platform accessible to all users, including those with little technical expertise. It also explores how Near can evoke positive emotions in its users.",
                     placeholder: "Elaborate on your position and pledge",
                     value: state.Key_Issue_1,
                     handleChange: (e) =>
@@ -463,7 +455,7 @@ return (
                   },
                   {
                     label:
-                      "Platform: What’s your view and pledge on Key Issue 2?",
+                      "What’s your view and pledge on the issue of Economic Growth and Innovation? This issue emphasizes the need for economic growth within the NDC, the development of DeFi capabilities, the establishment of fiat ramps, and the support for founders, developers, creators, and builders. It also stresses the importance of launching useful products on the Near mainnet.",
                     placeholder: "Elaborate on your position and pledge",
                     value: state.Key_Issue_2,
                     handleChange: (e) =>
@@ -471,7 +463,7 @@ return (
                   },
                   {
                     label:
-                      "Platform: What’s your view and pledge on Key Issue 3?",
+                      "What’s your view and pledge on the issue of Marketing and Outreach? This issue underscores the importance of marketing to make NEAR a household name, conducting research, participating in conferences and hackathons, integrating with Web 2.0 platforms, and promoting Near as a hub of innovation.",
                     placeholder: "Elaborate on your position and pledge",
                     value: state.Key_Issue_3,
                     handleChange: (e) =>
@@ -489,7 +481,7 @@ return (
               }}
             />
             <Widget
-              src={`rubycop.near/widget/Compose.Affiliations`}
+              src={widgets.affiliations}
               props={{
                 affiliations: state.afiliation,
                 addFields,
@@ -505,8 +497,23 @@ return (
               }}
             />
 
+            <Section>
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Input: {
+                    label: "Video Link (optional)",
+                    placeholder: "Add a Youtube video link that describes your candidacy",
+                    value: state.video,
+                    handleChange: (e) =>
+                      State.update({ video: e.target.value }),
+                  },
+                }}
+              />
+            </Section>
+
             <Widget
-              src={`dokxo.near/widget/Compose.TagAndDeclaration`}
+              src={widgets.tags}
               props={{
                 agreement: state.agreement,
                 tags: state.tags,
@@ -538,7 +545,7 @@ return (
                   props={{
                     Button: {
                       text: "Submit",
-                      onClick: handleNominate,
+                      onClick: () => handleNominate(),
                     },
                   }}
                 />

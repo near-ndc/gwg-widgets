@@ -536,13 +536,14 @@ return (
       )}
       <HeaderCard className="d-flex justify-content-between">
         <div className="d-flex align-items-center gap-2">
-          <ProfilePicture
-            src={
-              data.imgURL ??
-              "https://apricot-straight-eagle-592.mypinata.cloud/ipfs/QmZBPPMKLdZG2zVpYaf9rcbtNfAp7c3BtsvzxzBb9pNihm?_gl=1*6avmrp*rs_ga*MzkyOTE0Mjc4LjE2ODY4NjgxODc.*rs_ga_5RMPXG14TE*MTY4NjkzMzM2NC4zLjEuMTY4NjkzMzM4Ni4zOC4wLjA."
-            }
-            alt="pic"
-          ></ProfilePicture>
+          <Widget
+            src="mob.near/widget/ProfileImage"
+            props={{
+              accountId: data.nominationData?.profileAccount,
+              imageClassName: "rounded-circle w-100 h-100",
+              style: { width: "45px", height: "45px" },
+            }}
+          />
           <HeaderContent>
             <Widget
               src={widgets.styledComponents}

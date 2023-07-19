@@ -4,6 +4,7 @@ const {
   nomination_contract,
   election_contract,
   api_key,
+  dev,
 } = props;
 
 State.init({
@@ -472,14 +473,20 @@ const Separation = styled.div`
   }
 `;
 
+const Wrapper = styled.div`
+    @media only screen and (max-width: 610px) {
+      width: 100%;
+    }
+  }
+`;
+
 const canUpvote = () =>
   state.verified && context.accountId != data.indexerData?.nominee;
 
 const getShortUserName = (userId) => {
   if (userId.length === 64) return `${userId.slice(0, 4)}..${userId.slice(-4)}`;
-  const name = userId.slice(0, -5); // truncate .near
 
-  return name.length > 20 ? `${name.slice(0, 20)}...` : name;
+  return userId
 };
 
 const trimText = (text, limit) => {
@@ -521,7 +528,7 @@ const keyIssues = [
 ];
 
 return (
-  <div className="p-2 col-lg-4 col-md-6 col-sm-12">
+  <Wrapper className="p-2 col-lg-4 col-md-6 col-sm-12">
     <Card>
       {state.showModal && (
         <Widget
@@ -531,6 +538,7 @@ return (
             username: data.indexerData.nominee,
             onClickConfirm: () => State.update({ showModal: false }),
             onClickCancel: () => State.update({ showModal: false }),
+            nomination_contract,
           }}
         />
       )}
@@ -621,32 +629,34 @@ return (
       </KeyIssues>
       <LowerSection>
         <LowerSectionContainer>
-          <KeyIssues>
-            <KeyIssuesContent>
-              <KeyIssuesHeader>
-                <KeyIssuesTitle>Tags</KeyIssuesTitle>
-              </KeyIssuesHeader>
-              <div className="d-flex w-100">
-                <TagSection>
-                  {data.nominationData.tags
-                    .trim()
-                    .split(",")
-                    .map((data) => (
-                      <>
-                        {data && (
-                          <Widget
-                            src={widgets.styledComponents}
-                            props={{
-                              Tag: { title: data },
-                            }}
-                          />
-                        )}
-                      </>
-                    ))}
-                </TagSection>
-              </div>
-            </KeyIssuesContent>
-          </KeyIssues>
+          {data.nominationData.tags.length > 0 && (
+            <KeyIssues>
+              <KeyIssuesContent>
+                <KeyIssuesHeader>
+                  <KeyIssuesTitle>Tags</KeyIssuesTitle>
+                </KeyIssuesHeader>
+                <div className="d-flex w-100">
+                  <TagSection>
+                    {data.nominationData.tags
+                      .trim()
+                      .split(",")
+                      .map((data) => (
+                        <>
+                          {data && (
+                            <Widget
+                              src={widgets.styledComponents}
+                              props={{
+                                Tag: { title: data },
+                              }}
+                            />
+                          )}
+                        </>
+                      ))}
+                  </TagSection>
+                </div>
+              </KeyIssuesContent>
+            </KeyIssues>
+          )}
           <ButtonsLowerSection>
             <TextLowerSectionContainer className="align-items-center">
               <i className="bi bi-clock"></i>
@@ -686,7 +696,7 @@ return (
                       text: "View",
                       size: "sm",
                       className: "primary w-100 justify-content-center",
-                      href: `${widgets.candidatePage}?house=${data.indexerData.house}&candidate=${data.indexerData.nominee}&nomination_contract=${nomination_contract}&election_contract=${election_contract}`,
+                      href: `${widgets.candidatePage}?house=${data.indexerData.house}&candidate=${data.indexerData.nominee}&dev=${dev}`,
                       icon: <i className="bi bi-eye fs-6"></i>,
                     },
                   }}
@@ -697,5 +707,5 @@ return (
         </LowerSectionContainer>
       </LowerSection>
     </Card>
-  </div>
+  </Wrapper>
 );

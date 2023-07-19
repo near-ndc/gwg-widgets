@@ -1,4 +1,11 @@
-const { data, house, candidate, nomination_contract, registry_contract, api_key } = props;
+const {
+  data,
+  house,
+  candidate,
+  nomination_contract,
+  registry_contract,
+  api_key,
+} = props;
 
 State.init({
   tabSelected: "comments",
@@ -739,8 +746,7 @@ return (
                 Collective. It is my utmost goal to instill faith and prosperity
                 in our ecosystem. In the event of my election, I pledge to
                 support and promote the operation and development of the NEAR
-                Digital Collective.
-                <br /> <br /> Transparency stands as the cornerstone of a
+                Digital Collective. Transparency stands as the cornerstone of a
                 thriving governance framework and as a candidate, I strongly
                 believe in leading by example. I vow to disclose comprehensive
                 information about my previous affiliations, partnerships, and
@@ -748,28 +754,42 @@ return (
                 public interest. This includes openly sharing any conflicts of
                 interest, financial relationships, or external influences that
                 could compromise my ability to serve with impartiality and
-                integrity.
-                <br /> <br />
-                Moreover, I fully recognize the numerous challenges that our
-                NEAR ecosystem currently faces, demanding immediate attention
-                and effective solutions. As a responsible candidate, I am deeply
-                committed to identifying, addressing, and resolving these issues
-                to the best of my abilities. I acknowledge the gravity of these
-                problems and understand that superficial fixes and empty
-                promises are insufficient. Therefore, I pledge to conduct
-                thorough research, seek input from experts, and engage with
-                stakeholders to devise sustainable, equitable strategies. In the
-                event of my election, my top priorities will be focused on
-                addressing critical ecosystem challenges.
-                <br /> <br />I recognize that this declaration is not merely a
-                symbolic gesture, but a solemn commitment to the NEAR ecosystem.
-                I understand the weight of the expectations. I pledge to honor
-                the trust placed in me with unwavering dedication,
-                determination, and integrity. Through this declaration, I affirm
-                my commitment to transparency, accountability, and the resolve
-                to actualize my pledges to the best of my abilities if elected.
-                Together, let us embark on a journey towards a brighter future
-                of the NEAR ecosystem.
+                integrity. Moreover, I fully recognize the numerous challenges
+                that our NEAR ecosystem currently faces, demanding immediate
+                attention and effective solutions. As a responsible candidate, I
+                am deeply committed to identifying, addressing, and resolving
+                these issues to the best of my abilities. I acknowledge the
+                gravity of these problems and understand that superficial fixes
+                and empty promises are insufficient. Therefore, I pledge to
+                conduct thorough research, seek input from experts, and engage
+                with stakeholders to devise sustainable, equitable strategies.
+                In the event of my election, my top priorities will be focused
+                on addressing critical ecosystem challenges. I recognize that
+                vote buying is considered a harmful practice because it
+                undermines the fundamental principles of democracy and fair
+                elections. Vote buying manipulates and influences voters by
+                offering financial incentives or other material benefits in
+                exchange for their votes. This undermines the free will and
+                independent decision-making of individuals, as their choices
+                become influenced solely by personal gain rather than informed
+                judgment or shared values. Vote buying distorts the true
+                preferences and opinions of the electorate, and reinforces
+                inequality. Finally vote buying erodes trust and confidence. By
+                engaging in vote buying, candidates and political actors are
+                more likely to prioritize the interests of those who provided
+                financial support over the interests of the wider public. This
+                diminishes accountability and weakens the democratic principle
+                of serving the common good. I promise that I will not engage in
+                this and other nefarious acts during the election process. I
+                recognize that this declaration is not merely a symbolic
+                gesture, but a solemn commitment to the NEAR ecosystem. I
+                understand the weight of the expectations. I pledge to honor the
+                trust placed in me with unwavering dedication, determination,
+                and integrity. Through this declaration, I affirm my commitment
+                to transparency, accountability, and the resolve to actualize my
+                pledges to the best of my abilities if elected. Together, let us
+                embark on a journey towards a brighter future of the NEAR
+                ecosystem.
               </SectionDescription>
             </DeclarationCard>
           ) : (

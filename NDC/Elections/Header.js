@@ -16,7 +16,13 @@ const timer = setInterval(() => {
   const end = new Date(parseInt(endTime)).getTime();
   let title = "";
 
-  const diff = new Date(parseInt(end)).getTime() - new Date().getTime();
+  let diff;
+  if (now < start)
+    diff = new Date(parseInt(start)).getTime() - new Date().getTime();
+  else if (now > start && now < end)
+    diff = new Date(parseInt(end)).getTime() - new Date().getTime();
+  else diff = 0;
+
   let days = Math.floor(diff / (1000 * 60 * 60 * 24));
   let hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));

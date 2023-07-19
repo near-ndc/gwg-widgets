@@ -1,9 +1,13 @@
-let { ids, org, election_contract, nomination_contract } = props;
+let { ids, dev, house, candidate } = props;
 ids = ids ? ids : [1, 2, 3]; // for testing purposes
 
-const electionContract = election_contract ?? "elections-v1.gwg-testing.near";
-const nominationContract = nomination_contract ?? "nominations.ndc-gwg.near";
-const registryContract = registry_contract ?? "registry.i-am-human.near";
+const electionContract = "elections-v1.gwg-testing.near";
+const registryContract = dev
+  ? "registry-v1.gwg-testing.near"
+  : "registry.i-am-human.near";
+const nominationContract = dev
+  ? "nominations-v1.gwg-testing.near"
+  : "nominations.ndc-gwg.near";
 const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 
 const widgets = {
@@ -11,7 +15,9 @@ const widgets = {
   mobile: "nomination.ndctools.near/widget/NDC.Nomination.Candidate.MobileView",
   desktop:
     "nomination.ndctools.near/widget/NDC.Nomination.Candidate.DesktopView",
-  back: "#/nomination.ndctools.near/widget/NDC.Nomination.Page",
+  back: dev
+    ? `#/nomination.ndctools.near/widget/NDC.Nomination.Page?dev=true`
+    : `#/nomination.ndctools.near/widget/NDC.Nomination.Page`,
 };
 
 const houses = [
@@ -64,8 +70,8 @@ const Desktop = styled.div`
 
 return (
   <div>
-    <Mobile style={{ display: "flex", "justify-content": "center" }}>
-      <Mobile style={{ width: "359px" }}>
+    <Mobile className="d-flex justify-content-center">
+      <Mobile>
         {houses.map((house) => (
           <>
             {house.typ === props.house && (

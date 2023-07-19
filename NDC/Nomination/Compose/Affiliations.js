@@ -65,7 +65,7 @@ return (
                   src={widgets.styledComponents}
                   props={{
                     Input: {
-                      label: "Organization Name",
+                      label: "Organization Name *",
                       placeholder: "Company Name",
                       value: form.company_name,
                       handleChange: (event) =>
@@ -81,7 +81,7 @@ return (
                     props={{
                       Input: {
                         type: "date",
-                        label: "Start date",
+                        label: "Start date *",
                         value: form.start_date ?? getCurrDate(),
                         handleChange: (event) =>
                           handleAFFStartdate({ index, event }),
@@ -96,7 +96,7 @@ return (
                     props={{
                       Input: {
                         type: "date",
-                        label: "End date",
+                        label: "End date *",
                         value: form.end_date ?? getCurrDate(),
                         handleChange: (event) =>
                           handleAFFEnddate({ index, event }),
@@ -111,7 +111,7 @@ return (
                   src={widgets.styledComponents}
                   props={{
                     TextArea: {
-                      label: "Role Description",
+                      label: "Role Description *",
                       placeholder:
                         "Please describe your role at the organization",
                       value: form.role,

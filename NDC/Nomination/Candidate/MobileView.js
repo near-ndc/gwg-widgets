@@ -1,9 +1,11 @@
-const { nomination_contract, registry_contract, api_key } = props;
+const { nomination_contract, registry_contract, api_key, data, candidate } =
+  props;
 
 State.init({
   verified: false,
   start: true,
   voted: false,
+  showDeclaration: false,
 });
 
 const widgets = {
@@ -59,24 +61,21 @@ const DetailContent = styled.div`
 `;
 const DetailCard = styled.div`
   display: flex;
-  width: 358px;
   padding: 16px;
   flex-direction: column;
-  align-items: flex-start;
   gap: 16px;
   border-radius: 10px;
   background: #f8f8f9;
 `;
 const DetailHeader = styled.div`
   display: flex;
-  width: 326px;
   align-items: center;
   gap: 12px;
 `;
 const ProfilePicture = styled.img`
-  border-radius: 20px;
-  width: 40px;
-  height: 40px;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
   flex-shrink: 0;
 `;
 const HeaderDetailContent = styled.div`
@@ -145,6 +144,7 @@ const NominationTitleContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  margin: 5px 0;
 `;
 const NominationTitle = styled.p`
   display: flex;
@@ -206,7 +206,6 @@ const UpvoteIcon = styled.img`
 `;
 const PlatformCard = styled.div`
   display: flex;
-  width: 326px;
   padding: 8px 12px;
   align-items: flex-start;
   gap: 12px;
@@ -221,18 +220,12 @@ const PlatformContent = styled.div`
 `;
 const PlatformHeaderDiv = styled.div`
   display: flex;
-  width: 302px;
   align-items: flex-start;
   gap: 12px;
 `;
 const PlatformHeaderText = styled.p`
-  display: flex;
-  flex-direction: column;
-  flex: 1 0 0;
-  color: #000;
-  font-size: 12px;
-  font-weight: 800;
-  line-height: 120%;
+  font-size: 18px;
+  font-weight: 500;
   margin: 0px;
 `;
 const PlatformInfoDiv = styled.div`
@@ -243,43 +236,41 @@ const PlatformInfoDiv = styled.div`
 `;
 const PlatformInfoHeader = styled.div`
   display: flex;
-  width: 302px;
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
+  width: 100%;
 `;
 const PlatInforHeadText = styled.p`
-  margin: 0px;
-  color: var(--000000, #000);
-  font-size: 10px;
-  font-weight: 500;
-  line-height: 120%;
-`;
-const PlatInfoHeadSeparator = styled.hr`
-  width: 302px;
-  height: 0px;
-  margin: 8px 0 0 0;
-  border: 1px solid rgba(208, 214, 217, 1);
-`;
-const KeyIssuesContainer = styled.div`
-  display: flex;
-  width: 302px;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-`;
-const KeyIssueTitle = styled.p`
-  color: var(--primary-000000, #000);
   font-size: 12px;
   line-height: 120%;
   margin: 0px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: left;
+`;
+const HR = styled.div`
+  height: 1px;
+  width: 100%;
+  margin: 8px 0 0 0;
+  background: rgba(208, 214, 217, 1);
+`;
+const KeyIssuesContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+`;
+const KeyIssueTitle = styled.h5`
+  font-size: 13px;
+  line-height: 16px;
+  margin: 7px 0 3px 0;
 `;
 const KeyIssueDescription = styled.p`
   color: #828688;
   font-size: 12px;
-  line-height: 130%;
+  line-height: 18px;
   margin: 0px;
-  width: 302px;
   text-align: justify;
 `;
 const CandidateCard = styled.div`
@@ -293,7 +284,6 @@ const CandidateCard = styled.div`
 `;
 const CandidateContent = styled.div`
   display: flex;
-  width: 302px;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
@@ -314,7 +304,6 @@ const CandidateHeaderText = styled.p`
 `;
 const CandidateInfoDiv = styled.div`
   display: flex;
-  width: 290px;
   padding: 8px;
   flex-direction: column;
   align-items: flex-start;
@@ -382,7 +371,6 @@ const CandidateDescription = styled.p`
   font-size: 12px;
   line-height: 130%;
   margin: 0px;
-  width: 295px;
   text-align: justify;
 `;
 const DeclarationCard = styled.div`
@@ -396,11 +384,11 @@ const DeclarationCard = styled.div`
 `;
 const DeclarationContent = styled.div`
   display: flex;
-  width: 302px;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
   gap: 4px;
+  width: 100%;
 `;
 const DeclarationHeader = styled.div`
   display: flex;
@@ -413,10 +401,10 @@ const DeclarationHeaderText = styled.p`
   font-size: 12px;
   font-weight: 800;
   line-height: 120%;
+  margin-bottom: 0;
 `;
 const DeclarationInfo = styled.div`
   display: flex;
-  width: 290px;
   padding: 8px 0px;
   flex-direction: column;
   align-items: flex-start;
@@ -431,7 +419,6 @@ const DeclarationDescription = styled.p`
   text-align: justify;
 `;
 const DeclarationImage = styled.img`
-  width: 290px;
   height: 234px;
 `;
 const CommentSection = styled.div`
@@ -445,7 +432,6 @@ const CommentSection = styled.div`
 `;
 const CommentHeader = styled.div`
   display: flex;
-  width: 326px;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
@@ -524,9 +510,37 @@ const afiilationsSort = afilations
   .sort((a, b) => new Date(a.end_date) - new Date(b.end_date))
   .reverse();
 
+const issues = [
+  {
+    description: CandidateProps.HAYInvolve,
+    title:
+      "How are you involved with the NEAR ecosystem? Why are you a qualified candidate? Why should people vote for you?",
+  },
+  {
+    description: CandidateProps.WIYStrategy,
+    title: "What is your strategy to develop the NEAR ecosystem?",
+  },
+  {
+    description: CandidateProps.Key_Issue_1,
+    title:
+      "What’s your view and pledge on the issue of User Experience and Accessibility? This issue focuses on improving the user experience, developing the social layer, enhancing the developer experience, and making the Near platform accessible to all users, including those with little technical expertise. It also explores how Near can evoke positive emotions in its users.",
+  },
+  {
+    description: CandidateProps.Key_Issue_2,
+    title:
+      "What’s your view and pledge on the issue of Economic Growth and Innovation? This issue emphasizes the need for economic growth within the NDC, the development of DeFi capabilities, the establishment of fiat ramps, and the support for founders, developers, creators, and builders. It also stresses the importance of launching useful products on the Near mainnet.",
+  },
+  {
+    description: CandidateProps.Key_Issue_3,
+    title:
+      "What’s your view and pledge on the issue of Marketing and Outreach? This issue underscores the importance of marketing to make NEAR a household name, conducting research, participating in conferences and hackathons, integrating with Web 2.0 platforms, and promoting Near as a hub of innovation.",
+  },
+  { description: CandidateProps.addition_platform, title: "Other Platform" },
+];
+
 return (
   <DetailContent>
-    <DetailCard>
+    <DetailCard className="justify-content-center">
       <DetailHeader>
         <ProfilePicture
           src={
@@ -539,7 +553,7 @@ return (
         <HeaderDetailContent>
           <TagContainer>
             <HouseTagDiv>
-              <HouseTagText style={{ "font-size": "8px" }}>
+              <HouseTagText style={{ "font-size": "10px" }}>
                 {props.house == "HouseOfMerit"
                   ? "House of Merit"
                   : props.house == "CouncilOfAdvisors"
@@ -547,18 +561,6 @@ return (
                   : "Transparency Commission"}
               </HouseTagText>
             </HouseTagDiv>
-            {CandidateProps.tags
-              .trim()
-              .split(",")
-              .map((tag, index) => {
-                return tag && index < 2 ? (
-                  <TagDiv key={index}>
-                    <TagDivText>{tag}</TagDivText>
-                  </TagDiv>
-                ) : (
-                  <></>
-                );
-              })}
           </TagContainer>
           <NominationTitleContainer>
             <NominationTitle>
@@ -570,29 +572,46 @@ return (
                 : "@candidate.near"}
             </NominationUser>
           </NominationTitleContainer>
+          <TagContainer>
+            {CandidateProps.tags
+              .trim()
+              .split(",")
+              .map((tag) => {
+                return tag && tag != "" ? (
+                  <Widget
+                    src={widgets.styledComponents}
+                    props={{
+                      Tag: { title: tag },
+                    }}
+                  />
+                ) : null;
+              })}
+          </TagContainer>
         </HeaderDetailContent>
-        {state.verified && context.accountId != props.candidate ? (
-          <UpvoteButton onClick={handleUpVote}>
-            <UpvoteCount>
-              {props.data.comments[0].upvotes
-                ? "+" + props.data.comments[0].upvotes
-                : "+" + 0}
-            </UpvoteCount>
-            <UpvoteIcon src="https://apricot-straight-eagle-592.mypinata.cloud/ipfs/QmXqGSZvrgGkVviBJirnBtT9krTHHsjPYX1UM8EWExFxCM?_gl=1*1hd2izc*rs_ga*MzkyOTE0Mjc4LjE2ODY4NjgxODc.*rs_ga_5RMPXG14TE*MTY4NjkzOTYyNC40LjAuMTY4NjkzOTYyNC42MC4wLjA."></UpvoteIcon>
-          </UpvoteButton>
-        ) : (
-          <UpvoteButtonDisabled>
-            <UpvoteCount style={{ filter: "grayscale(1)" }}>
-              {props.data.comments[0].upvotes
-                ? "+" + props.data.comments[0].upvotes
-                : "+" + 0}
-            </UpvoteCount>
-            <UpvoteIcon
-              style={{ filter: "grayscale(1)" }}
-              src="https://apricot-straight-eagle-592.mypinata.cloud/ipfs/QmXqGSZvrgGkVviBJirnBtT9krTHHsjPYX1UM8EWExFxCM?_gl=1*1hd2izc*rs_ga*MzkyOTE0Mjc4LjE2ODY4NjgxODc.*rs_ga_5RMPXG14TE*MTY4NjkzOTYyNC40LjAuMTY4NjkzOTYyNC42MC4wLjA."
-            ></UpvoteIcon>
-          </UpvoteButtonDisabled>
+        {data.nominations.video.length > 0 && (
+          <Widget
+            src={widgets.styledComponents}
+            props={{
+              Link: {
+                text: `Watch Video`,
+                className: "primary dark",
+                href: props.data.nominations.video,
+              },
+            }}
+          />
         )}
+        <Widget
+          src={widgets.styledComponents}
+          props={{
+            Button: {
+              text: `+${data.comments[0].upvotes ?? 0}`,
+              disabled: !state.verified || context.accountId === candidate,
+              className: "secondary dark",
+              onClick: handleUpVote,
+              icon: <i className="bi bi-hand-thumbs-up"></i>,
+            },
+          }}
+        />
       </DetailHeader>
       <PlatformCard>
         <PlatformContent>
@@ -601,59 +620,22 @@ return (
           </PlatformHeaderDiv>
           <PlatformInfoDiv>
             <PlatformInfoHeader>
-              <PlatInforHeadText>
-                Key Issues and Candidate's Position
-              </PlatInforHeadText>
-              <PlatInfoHeadSeparator></PlatInfoHeadSeparator>
+              <KeyIssueTitle>Key Issues and Candidate's Position</KeyIssueTitle>
+              <HR></HR>
             </PlatformInfoHeader>
-            <KeyIssuesContainer>
-              <KeyIssueTitle>
-                Involvement in the NEAR ecosystem, qualifications to be a
-                candidate and reasons for being voted
-              </KeyIssueTitle>
-              <KeyIssueDescription>
-                {CandidateProps.HAYInvolve}
-              </KeyIssueDescription>
-            </KeyIssuesContainer>
-            <KeyIssuesContainer>
-              <KeyIssueTitle>
-                Strategy to develop the NEAR ecosystem
-              </KeyIssueTitle>
-              <KeyIssueDescription>
-                {CandidateProps.WIYStrategy}
-              </KeyIssueDescription>
-            </KeyIssuesContainer>
-            <KeyIssuesContainer>
-              <KeyIssueTitle>Key Issue 1</KeyIssueTitle>
-              <KeyIssueDescription>
-                {CandidateProps.Key_Issue_1}
-              </KeyIssueDescription>
-            </KeyIssuesContainer>
-            <KeyIssuesContainer>
-              <KeyIssueTitle>Key Issue 2</KeyIssueTitle>
-              <KeyIssueDescription>
-                {CandidateProps.Key_Issue_2}
-              </KeyIssueDescription>
-            </KeyIssuesContainer>
-            <KeyIssuesContainer>
-              <KeyIssueTitle>Key Issue 3</KeyIssueTitle>
-              <KeyIssueDescription>
-                {CandidateProps.Key_Issue_3}
-              </KeyIssueDescription>
-            </KeyIssuesContainer>
-            <KeyIssuesContainer>
-              <KeyIssueTitle>Other Platform</KeyIssueTitle>
-              <KeyIssueDescription>
-                {CandidateProps.addition_platform}
-              </KeyIssueDescription>
-            </KeyIssuesContainer>
+            {issues.map((issue, i) => (
+              <KeyIssuesContainer>
+                <KeyIssueTitle>{issue.title}</KeyIssueTitle>
+                <KeyIssueDescription>{issue.description}</KeyIssueDescription>
+              </KeyIssuesContainer>
+            ))}
           </PlatformInfoDiv>
         </PlatformContent>
       </PlatformCard>
       <CandidateCard>
         <CandidateContent>
           <CandidateHeader>
-            <CandidateHeaderText>Candidate Affiliations</CandidateHeaderText>
+            <PlatformHeaderText>Candidate Affiliations</PlatformHeaderText>
           </CandidateHeader>
           {afilations.map((affiliation) => {
             return (
@@ -666,22 +648,21 @@ return (
                     alt="pic"
                   ></CandidateImage>
                   <CandidateInfoData>
-                    <CandidateTagDiv>
-                      <CandidateTagText>
-                        {affiliation.company_name}
-                      </CandidateTagText>
-                    </CandidateTagDiv>
+                    <Widget
+                      src={widgets.styledComponents}
+                      props={{
+                        Tag: { title: affiliation.company_name },
+                      }}
+                    />
                     <CandidateTime>
                       {affiliation.start_date} - {affiliation.end_date}
                     </CandidateTime>
                   </CandidateInfoData>
                 </CandidateInfoHeader>
-                <CandidateTextInfo>
-                  <CandidateTitle>Role Description</CandidateTitle>
-                  <CandidateDescription>
-                    {affiliation.role}
-                  </CandidateDescription>
-                </CandidateTextInfo>
+                <KeyIssuesContainer>
+                  <KeyIssueTitle>Role Description</KeyIssueTitle>
+                  <KeyIssueDescription>{affiliation.role}</KeyIssueDescription>
+                </KeyIssuesContainer>
               </CandidateInfoDiv>
             );
           })}
@@ -689,55 +670,85 @@ return (
       </CandidateCard>
       <DeclarationCard>
         <DeclarationContent>
-          <DeclarationHeader>
+          <DeclarationHeader className="d-flex justify-content-between">
             <DeclarationHeaderText>
               Declaration of Transparency and Accountability
             </DeclarationHeaderText>
+            <Widget
+              src={widgets.styledComponents}
+              props={{
+                Button: {
+                  text: "View",
+                  size: "sm",
+                  disabled: !state.verified,
+                  className: "secondary dark justify-content-center",
+                  onClick: () =>
+                    State.update({ showDeclaration: !state.showDeclaration }),
+                  icon: <i className="bi bi-eye"></i>,
+                },
+              }}
+            />
           </DeclarationHeader>
-          <DeclarationInfo>
-            <DeclarationDescription>
-              I hereby declare my unwavering commitment to transparency,
-              accountability, and the resolution of critical ecosystem
-              challenges as a candidate seeking election to the NEAR Digital
-              Collective. It is my utmost goal to instill faith and prosperity
-              in our ecosystem. In the event of my election, I pledge to support
-              and promote the operation and development of the NEAR Digital
-              Collective.
-              <br /> <br /> Transparency stands as the cornerstone of a thriving
-              governance framework and as a candidate, I strongly believe in
-              leading by example. I vow to disclose comprehensive information
-              about my previous affiliations, partnerships, and associations
-              that may influence my decision-making or impact the public
-              interest. This includes openly sharing any conflicts of interest,
-              financial relationships, or external influences that could
-              compromise my ability to serve with impartiality and integrity.
-              <br /> <br />
-              Moreover, I fully recognize the numerous challenges that our NEAR
-              ecosystem currently faces, demanding immediate attention and
-              effective solutions. As a responsible candidate, I am deeply
-              committed to identifying, addressing, and resolving these issues
-              to the best of my abilities. I acknowledge the gravity of these
-              problems and understand that superficial fixes and empty promises
-              are insufficient. Therefore, I pledge to conduct thorough
-              research, seek input from experts, and engage with stakeholders to
-              devise sustainable, equitable strategies. In the event of my
-              election, my top priorities will be focused on addressing critical
-              ecosystem challenges.
-              <br /> <br />I recognize that this declaration is not merely a
-              symbolic gesture, but a solemn commitment to the NEAR ecosystem. I
-              understand the weight of the expectations. I pledge to honor the
-              trust placed in me with unwavering dedication, determination, and
-              integrity. Through this declaration, I affirm my commitment to
-              transparency, accountability, and the resolve to actualize my
-              pledges to the best of my abilities if elected. Together, let us
-              embark on a journey towards a brighter future of the NEAR
-              ecosystem.
-            </DeclarationDescription>
-          </DeclarationInfo>
+          {state.showDeclaration && (
+            <DeclarationInfo>
+              <DeclarationDescription>
+                I hereby declare my unwavering commitment to transparency,
+                accountability, and the resolution of critical ecosystem
+                challenges as a candidate seeking election to the NEAR Digital
+                Collective. It is my utmost goal to instill faith and prosperity
+                in our ecosystem. In the event of my election, I pledge to
+                support and promote the operation and development of the NEAR
+                Digital Collective. Transparency stands as the cornerstone of a
+                thriving governance framework and as a candidate, I strongly
+                believe in leading by example. I vow to disclose comprehensive
+                information about my previous affiliations, partnerships, and
+                associations that may influence my decision-making or impact the
+                public interest. This includes openly sharing any conflicts of
+                interest, financial relationships, or external influences that
+                could compromise my ability to serve with impartiality and
+                integrity. Moreover, I fully recognize the numerous challenges
+                that our NEAR ecosystem currently faces, demanding immediate
+                attention and effective solutions. As a responsible candidate, I
+                am deeply committed to identifying, addressing, and resolving
+                these issues to the best of my abilities. I acknowledge the
+                gravity of these problems and understand that superficial fixes
+                and empty promises are insufficient. Therefore, I pledge to
+                conduct thorough research, seek input from experts, and engage
+                with stakeholders to devise sustainable, equitable strategies.
+                In the event of my election, my top priorities will be focused
+                on addressing critical ecosystem challenges. I recognize that
+                vote buying is considered a harmful practice because it
+                undermines the fundamental principles of democracy and fair
+                elections. Vote buying manipulates and influences voters by
+                offering financial incentives or other material benefits in
+                exchange for their votes. This undermines the free will and
+                independent decision-making of individuals, as their choices
+                become influenced solely by personal gain rather than informed
+                judgment or shared values. Vote buying distorts the true
+                preferences and opinions of the electorate, and reinforces
+                inequality. Finally vote buying erodes trust and confidence. By
+                engaging in vote buying, candidates and political actors are
+                more likely to prioritize the interests of those who provided
+                financial support over the interests of the wider public. This
+                diminishes accountability and weakens the democratic principle
+                of serving the common good. I promise that I will not engage in
+                this and other nefarious acts during the election process. I
+                recognize that this declaration is not merely a symbolic
+                gesture, but a solemn commitment to the NEAR ecosystem. I
+                understand the weight of the expectations. I pledge to honor the
+                trust placed in me with unwavering dedication, determination,
+                and integrity. Through this declaration, I affirm my commitment
+                to transparency, accountability, and the resolve to actualize my
+                pledges to the best of my abilities if elected. Together, let us
+                embark on a journey towards a brighter future of the NEAR
+                ecosystem.
+              </DeclarationDescription>
+            </DeclarationInfo>
+          )}
         </DeclarationContent>
       </DeclarationCard>
     </DetailCard>
-    <CommentSection>
+    <CommentSection className="w-100">
       {state.showModal && (
         <Widget
           src={widgets.addComment}
@@ -750,25 +761,21 @@ return (
           }}
         />
       )}
-      <CommentHeader>
+      <CommentHeader className="w-100">
         <CommentHeaderText>Comments</CommentHeaderText>
-
-        {state.verified ? (
-          <CommentButton
-            style={{ "justify-content": "center" }}
-            onClick={async () => {
-              State.update({ showModal: true });
-            }}
-          >
-            <CommentText>Add a Comment +</CommentText>
-          </CommentButton>
-        ) : (
-          <CommentButtonDisabled style={{ "justify-content": "center" }}>
-            <CommentText style={{ color: "var(--primary-gray-dark, #828688)" }}>
-              Add a Comment +
-            </CommentText>
-          </CommentButtonDisabled>
-        )}
+        <Widget
+          src={widgets.styledComponents}
+          props={{
+            Button: {
+              text: "Add a Comment",
+              size: "sm",
+              disabled: !state.verified,
+              className: "primary justify-content-center",
+              onClick: () => State.update({ showModal: true }),
+              icon: <i className="bi bi-plus-lg"></i>,
+            },
+          }}
+        />
       </CommentHeader>
       {comments
         .map((data) => {

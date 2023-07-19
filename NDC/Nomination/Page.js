@@ -1,17 +1,16 @@
 // TODO: Should be grabbed from contract side
-let {
-  ids,
-  election_contract,
-  registry_contract,
-  nomination_contract,
-  api_key,
-} = props;
+let { ids, dev } = props;
 ids = props.ids ? ids : [1, 2, 3]; // for testing purposes
 
-const electionContract = election_contract ?? "elections-v1.gwg-testing.near";
-const registryContract = registry_contract ?? "registry.i-am-human.near";
-const nominationContract = nomination_contract ?? "nominations.ndc-gwg.near";
-const apiKey = api_key ?? "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
+const electionContract = "elections-v1.gwg-testing.near";
+const registryContract = dev
+  ? "registry-v1.gwg-testing.near"
+  : "registry.i-am-human.near";
+const issuer = dev ? "fractal.i-am-human.near" : "community.i-am-human.near";
+const nominationContract = dev
+  ? "nominations-v1.gwg-testing.near"
+  : "nominations.ndc-gwg.near";
+const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 
 function handleSelfRevoke() {
   Near.call(nominationContract, "self_revoke");
@@ -47,49 +46,52 @@ State.init({
   candidateId: "",
   originNominations: [],
   notFound: "There are no active nominations at the moment",
+  loading: false,
 });
+
+const time = Near.view(nominationContract, "active_time", {});
 
 const httpRequestOpt = {
   headers: { "x-api-key": apiKey },
 };
 
+const baseApi = "https://api.pikespeak.ai";
+
+const endpoints = {
+  sbt: `${baseApi}/sbt/sbt-by-owner?holder=${context.accountId}&class_id=1&issuer=fractal.i-am-human.near&with_expired=false&registry=${registryContract}`,
+  og: `${baseApi}/sbt/sbt-by-owner?holder=${context.accountId}&class_id=${
+    dev ? 2 : 1
+  }&issuer=${issuer}&with_expired=false&registry=${registryContract}`,
+  candidateComments: `${baseApi}/nominations/candidates-comments-and-upvotes?candidate=${context.accountId}&contract=${nominationContract}`,
+  houseNominations: (house) =>
+    `${baseApi}/nominations/house-nominations?house=${house}&contract=${nominationContract}`,
+};
+
 function getVerifiedHuman() {
-  asyncFetch(
-    `https://api.pikespeak.ai/sbt/sbt-by-owner?holder=${context.accountId}&class_id=1&issuer=fractal.i-am-human.near&with_expired=false&registry=${registryContract}`,
-    httpRequestOpt
-  ).then((res) => {
+  asyncFetch(endpoints.sbt, httpRequestOpt).then((res) => {
     if (res.body.length > 0) {
       State.update({ sbt: true });
     }
   });
-  asyncFetch(
-    `https://api.pikespeak.ai/sbt/sbt-by-owner?holder=${context.accountId}&class_id=1&issuer=community.i-am-human.near&with_expired=false&registry=${registryContract}`,
-    httpRequestOpt
-  ).then((res) => {
+  asyncFetch(endpoints.og, httpRequestOpt).then((res) => {
     if (res.body.length > 0) {
       State.update({ og: true });
     }
   });
-  asyncFetch(
-    `https://api.pikespeak.ai/nominations/candidates-comments-and-upvotes?candidate=${context.accountId}&contract=${nominationContract}`,
-    httpRequestOpt
-  ).then((res) => {
+  asyncFetch(endpoints.candidateComments, httpRequestOpt).then((res) => {
     if (res.body.length > 0) {
       State.update({ selfNomination: true });
     }
   });
 }
 
-function getNominationInfo() {
+function getNominationInfo(house) {
   let nominationsArr = [];
-  asyncFetch(
-    `https://api.pikespeak.ai/nominations/house-nominations?house=${state.house}&contract=${electionContract}`,
-    httpRequestOpt
-  ).then((res) => {
-    console.log(res.body);
 
+  State.update({loading: true})
+  asyncFetch(endpoints.houseNominations(house), httpRequestOpt).then((res) => {
     if (res.body.length <= 0) {
-      State.update({ nominations: [] });
+      State.update({ nominations: [], loading: false });
       return;
     }
 
@@ -98,7 +100,7 @@ function getNominationInfo() {
       let nominee = data.nominee;
 
       asyncFetch(
-        `https://api.pikespeak.ai/nominations/candidates-comments-and-upvotes?candidate=${data.nominee}`,
+        `${baseApi}/nominations/candidates-comments-and-upvotes?candidate=${data.nominee}&contract=${nominationContract}`,
         httpRequestOpt
       ).then((info) => {
         let upVoteInfo = info.body[0];
@@ -112,7 +114,10 @@ function getNominationInfo() {
         }, 1000);
 
         setTimeout(() => {
-          if (data.is_revoked || !profileData || !nominationData) return;
+          if (data.is_revoked || !profileData || !nominationData) {
+            State.update({ loading: false });
+            return;
+          }
 
           objCard = {
             profileData: profileData,
@@ -120,10 +125,9 @@ function getNominationInfo() {
             upVoteData: upVoteInfo,
             ...objCard,
           };
-
           nominationsArr.push(objCard);
 
-          State.update({ nominations: nominationsArr });
+          State.update({ nominations: nominationsArr, loading: false });
         }, 1000);
       });
     }
@@ -131,7 +135,7 @@ function getNominationInfo() {
 }
 
 if (state.start) {
-  getNominationInfo();
+  getNominationInfo("HouseOfMerit");
   getVerifiedHuman();
   State.update({
     start: false,
@@ -139,18 +143,16 @@ if (state.start) {
 }
 
 const handleSelect = (item) => {
+  console.log("id", item.id);
   switch (item.id) {
-    case 2:
-      State.update({ house: "CouncilOfAdvisors" });
-      getNominationInfo();
-      break;
     case 1:
-      State.update({ house: "HouseOfMerit" });
-      getNominationInfo();
+      getNominationInfo("HouseOfMerit");
+      break;
+    case 2:
+      getNominationInfo("CouncilOfAdvisors");
       break;
     case 3:
-      State.update({ house: "TransparencyCommission" });
-      getNominationInfo();
+      getNominationInfo("TransparencyCommission");
       break;
   }
   State.update({ selectedHouse: item.id });
@@ -325,18 +327,26 @@ const Toolbar = styled.div`
   }
 `;
 
+const Loader = () => (
+  <span
+    className="spinner-grow spinner-grow-sm me-1"
+    role="status"
+    aria-hidden="true"
+  />
+);
+
 return (
   <>
     <div>
-      {houses.map((group) => (
+      {houses.map((house) => (
         <>
-          {group.id === state.selectedHouse && (
+          {house.id === state.selectedHouse && (
             <Widget
               key={i}
               src={widgets.header}
               props={{
-                startTime: group.start,
-                endTime: group.end,
+                startTime: time[0],
+                endTime: time[1],
                 type: "Nomination",
               }}
             />
@@ -412,7 +422,9 @@ return (
           </div>
         </Left>
         <Center className="col-lg-9 px-2 px-md-3 d-flex flex-row flex-wrap">
-          {state.nominations.length > 0 ? (
+          {state.loading ? (
+            <Loader />
+          ) : state.nominations.length > 0 ? (
             state.nominations.map((data) => (
               <Widget
                 src={widgets.card}
@@ -422,6 +434,7 @@ return (
                   nomination_contract: nominationContract,
                   election_contract: electionContract,
                   api_key: apiKey,
+                  dev,
                 }}
               />
             ))

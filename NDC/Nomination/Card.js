@@ -125,11 +125,11 @@ const HeaderTagP = styled.p`
   color: white;
   margin: 0;
 `;
-const HeaderContentText = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 0px;
+const UserLink = styled.a`
+  cursor: pointer;
+  &:hover {
+    text-decoration: none;
+  }
 `;
 const NominationName = styled.p`
   font-weight: 500;
@@ -483,12 +483,6 @@ const Wrapper = styled.div`
 const canUpvote = () =>
   state.verified && context.accountId != data.indexerData?.nominee;
 
-const getShortUserName = (userId) => {
-  if (userId.length === 64) return `${userId.slice(0, 4)}..${userId.slice(-4)}`;
-
-  return userId
-};
-
 const trimText = (text, limit) => {
   if (!text) return "";
 
@@ -547,7 +541,7 @@ return (
           <Widget
             src="mob.near/widget/ProfileImage"
             props={{
-              accountId: data.nominationData?.profileAccount,
+              accountId: data.nominationData?.profileAccount.substring(1),
               imageClassName: "rounded-circle w-100 h-100",
               style: { width: "45px", height: "45px" },
             }}
@@ -567,12 +561,12 @@ return (
                 },
               }}
             />
-            <HeaderContentText>
+            <UserLink
+              href={`${widgets.candidatePage}?house=${data.indexerData.house}&accountId=${data.indexerData.nominee}${dev ? "&dev=true" : ""}`}
+            >
               <NominationName>{data.profileData?.name}</NominationName>
-              <NominationUser>
-                {getShortUserName(data.nominationData?.profileAccount)}
-              </NominationUser>
-            </HeaderContentText>
+              <NominationUser>{data.indexerData.nominee}</NominationUser>
+            </UserLink>
           </HeaderContent>
         </div>
         {canUpvote() && (
@@ -696,7 +690,7 @@ return (
                       text: "View",
                       size: "sm",
                       className: "primary w-100 justify-content-center",
-                      href: `${widgets.candidatePage}?house=${data.indexerData.house}&candidate=${data.indexerData.nominee}&dev=${dev}`,
+                      href: `${widgets.candidatePage}?house=${data.indexerData.house}&accountId=${data.indexerData.nominee}${dev ? "&dev=true" : ""}`,
                       icon: <i className="bi bi-eye fs-6"></i>,
                     },
                   }}

@@ -50,21 +50,21 @@ const Styled = {
     &.secondary {
       background: transparent;
       border: 1px solid;
-      border-color: #ffd50d;
-      color: #ffd50d;
+      border-color: ${(props) => (Button.inverse ? "#fff" : "#ffd50d")};
+      color: ${(props) => (Button.inverse ? "#fff" : "#ffd50d")};
 
       &:hover {
-        border-color: #e7c211;
-        color: #e7c211;
+        border-color: ${(props) => (Button.inverse ? "#fff" : "#e7c211")};
+        color: ${(props) => (Button.inverse ? "#fff" : "#e7c211")};
       }
 
       &.dark {
-        color: #4f46e5;
-        border-color: #4f46e5;
+        border-color: ${(props) => (Button.inverse ? "#fff" : "#4f46e5")};
+        color: ${(props) => (Button.inverse ? "#fff" : "#4f46e5")};
 
         &:hover {
-          border-color: #2f2a87;
-          color: #2f2a87;
+          border-color: ${(props) => (Button.inverse ? "#fff" : "#2f2a87")};
+          color: ${(props) => (Button.inverse ? "#fff" : "#2f2a87")};
         }
       }
 
@@ -135,21 +135,21 @@ const Styled = {
     &.secondary {
       background: transparent;
       border: 1px solid;
-      border-color: #ffd50d;
-      color: #ffd50d;
+      border-color: ${(props) => (Link.inverse ? "#fff" : "#ffd50d")};
+      color: ${(props) => (Link.inverse ? "#fff" : "#ffd50d")};
 
       &:hover {
-        border-color: #e7c211;
-        color: #e7c211;
+        border-color: ${(props) => (Link.inverse ? "#fff" : "#e7c211")};
+        color: ${(props) => (Link.inverse ? "#fff" : "#e7c211")};
       }
 
       &.dark {
-        color: #4f46e5;
-        border-color: #4f46e5;
+        border-color: ${(props) => (Link.inverse ? "#fff" : "#4f46e5")};
+        color: ${(props) => (Link.inverse ? "#fff" : "#4f46e5")};
 
         &:hover {
-          border-color: #2f2a87;
-          color: #2f2a87;
+          border-color: ${(props) => (Link.inverse ? "#fff" : "#2f2a87")};
+          color: ${(props) => (Link.inverse ? "#fff" : "#2f2a87")};
         }
       }
 
@@ -245,7 +245,9 @@ if (Link)
       size={Link.size}
       className={`align-items-center d-flex ${Link.className ?? "primary"}`}
       href={Link.href}
+      target="_blank"
       disabled={Link.disabled}
+      inverse={Link.inverse}
     >
       <div>{Link.text}</div>
       {Link.icon && (
@@ -264,6 +266,7 @@ if (Button)
       onClick={Button.onClick}
       disabled={Button.disabled}
       text={Button.text}
+      inverse={Button.inverse}
     >
       <div>{Button.text}</div>
       {Button.icon && (
@@ -349,7 +352,15 @@ if (Input)
     </div>
   );
 
-const WidgetButton = ({ type, size, className, disabled, text, icon }) => (
+const WidgetButton = ({
+  type,
+  size,
+  className,
+  disabled,
+  text,
+  icon,
+  inverse,
+}) => (
   <Widget
     src={"nomination.ndctools.near/widget/NDC.StyledComponents"}
     props={{
@@ -357,6 +368,7 @@ const WidgetButton = ({ type, size, className, disabled, text, icon }) => (
         size,
         className,
         disabled,
+        inverse,
         text,
         icon,
       },
@@ -465,6 +477,14 @@ return (
     <div className="d-flex align-items-end flex-wrap gap-2">
       <WidgetButton type="Link" text="Primary" className="primary dark" />
       <WidgetButton type="Link" text="Secondary" className="secondary dark" />
+      <div className="bg-dark">
+        <WidgetButton
+          type="Link"
+          text="Secondary"
+          inverse={true}
+          className="secondary dark"
+        />
+      </div>
     </div>
 
     <h4>Tag</h4>

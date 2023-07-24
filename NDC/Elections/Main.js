@@ -1,11 +1,11 @@
-let { ids, org, election_contract, registry_contract } = props;
+let { ids, org } = props;
 
 ids = props.ids ? ids : [1, 2, 3]; // for testing purposes
 org = props.org ? org : "test"; // for testing purposes
 
-const electionContract = election_contract ?? "elections-v1.gwg-testing.near";
-const registryContract = registry_contract ?? "registry.i-am-human.near";
-const apiKey = api_key ?? "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
+const electionContract = "elections-v1.gwg-testing.near";
+const registryContract = "registry-v1.gwg-testing.near";
+const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 
 let houses = [
   Near.view(electionContract, "proposal", { prop_id: ids[0] }),
@@ -25,7 +25,7 @@ const isHuman = Near.view(registryContract, "is_human", {
   account: context.accountId,
 });
 
-const getWinner = () => {
+const getWinnerIds = () => {
   const house = houses.find((h) => h.id === state.selectedHouse);
   const now = new Date().getTime();
   const end = new Date(parseInt(house.end)).getTime();
@@ -35,7 +35,7 @@ const getWinner = () => {
   const res = house.result.sort((a, b) => b[1] - a[1]);
   const winners = house.result.filter((item) => item[1] === res[0][1]);
 
-  return winners.slice(0, house.quorum);
+  return winners.slice(0, house.quorum).map((w) => w[0]);
 };
 
 State.update({ isIAmHuman: isHuman[0][1].length > 0 });
@@ -43,23 +43,15 @@ State.update({ isIAmHuman: isHuman[0][1].length > 0 });
 const totalHumal = 3000;
 
 asyncFetch(
-  `https://api.pikespeak.ai/election/total-voters?contract=${electionContract}&registry=${registryContract}`,
-  {
-    headers: {
-      "x-api-key": apiKey,
-    },
-  }
+  `https://api.pikespeak.ai/election/total-voters?contract=${electionContract}`,
+  { headers: { "x-api-key": apiKey } }
 ).then((resp) => {
   if (resp.body) State.update({ humanVoted: resp.body });
 });
 
 asyncFetch(
-  `https://api.pikespeak.ai/election/votes-by-voter?voter=${context.accountId}&contract=${electionContract}&registry=${registryContract}`,
-  {
-    headers: {
-      "x-api-key": apiKey,
-    },
-  }
+  `https://api.pikespeak.ai/election/votes-by-voter?voter=${context.accountId}&contract=${electionContract}`,
+  { headers: { "x-api-key": apiKey } }
 ).then((resp) => {
   if (resp.body) State.update({ myVotes: resp.body });
 });
@@ -175,7 +167,7 @@ return (
                   isIAmHuman: state.isIAmHuman,
                   myVotes: state.myVotes,
                   candidateId: state.candidateId,
-                  winnerIds: getWinner(),
+                  winnerIds: getWinnerIds(),
                   ...house,
                 }}
               />

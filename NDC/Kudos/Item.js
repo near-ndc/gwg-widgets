@@ -235,7 +235,7 @@ const Content = () => (
             }}
           />
           <UserLink
-            src={`https://wallet.near.org/profile/${kudo.accountId}`}
+            src={`https://www.near.org/near/widget/ProfilePage?accountId=${kudo.accountId}`}
             title={kudo.accountId}
           />
         </div>
@@ -313,7 +313,7 @@ return (
               }}
             />
             <UserLink
-              src={`https://wallet.near.org/profile/${kudo.accountId}`}
+              src={`https://www.near.org/near/widget/ProfilePage?accountId=${kudo.accountId}`}
               title={kudo.accountId}
             />
           </div>

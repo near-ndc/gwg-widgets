@@ -1,4 +1,4 @@
-const { nomination_contract, registry_contract, api_key, data, candidate } =
+const { nomination_contract, registry_contract, api_key, data, accountId } =
   props;
 
 State.init({
@@ -26,7 +26,7 @@ function getVerifiedHuman() {
     State.update({ verified: res.body });
   });
   asyncFetch(
-    `https://api.pikespeak.ai/nominations/is-upvoted-by?candidate=${props.candidate}&upvoter=${context.accountId}&contract=${nomination_contract}`,
+    `https://api.pikespeak.ai/nominations/is-upvoted-by?candidate=${accountId}&upvoter=${context.accountId}&contract=${nomination_contract}`,
     {
       headers: {
         "x-api-key": api_key,
@@ -47,7 +47,7 @@ function handleUpVote() {
     nomination_contract,
     state.voted ? "remove_upvote" : "upvote",
     {
-      candidate: props.candidate,
+      candidate: accountId,
     },
     300000000000000,
     state.voted ? 0 : 1000000000000000000000
@@ -71,12 +71,6 @@ const DetailHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-`;
-const ProfilePicture = styled.img`
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  flex-shrink: 0;
 `;
 const HeaderDetailContent = styled.div`
   display: flex;
@@ -145,6 +139,13 @@ const NominationTitleContainer = styled.div`
   flex-direction: column;
   align-items: flex-start;
   margin: 5px 0;
+`;
+
+const UserLink = styled.a`
+  cursor: pointer;
+  &:hover {
+    text-decoration: none;
+  }
 `;
 const NominationTitle = styled.p`
   display: flex;
@@ -542,14 +543,14 @@ return (
   <DetailContent>
     <DetailCard className="justify-content-center">
       <DetailHeader>
-        <ProfilePicture
-          src={
-            isNFTURL
-              ? isNFTURL
-              : "https://apricot-straight-eagle-592.mypinata.cloud/ipfs/QmZBPPMKLdZG2zVpYaf9rcbtNfAp7c3BtsvzxzBb9pNihm?_gl=1*6avmrp*rs_ga*MzkyOTE0Mjc4LjE2ODY4NjgxODc.*rs_ga_5RMPXG14TE*MTY4NjkzMzM2NC4zLjEuMTY4NjkzMzM4Ni4zOC4wLjA."
-          }
-          alt="pic"
-        ></ProfilePicture>
+        <Widget
+          src="mob.near/widget/ProfileImage"
+          props={{
+            accountId,
+            imageClassName: "rounded-circle w-100 h-100",
+            style: { width: "70px", height: "70px", },
+          }}
+        />
         <HeaderDetailContent>
           <TagContainer>
             <HouseTagDiv>
@@ -563,14 +564,12 @@ return (
             </HouseTagDiv>
           </TagContainer>
           <NominationTitleContainer>
-            <NominationTitle>
-              {CandidateProps.name ? CandidateProps.name : "candidate name"}
-            </NominationTitle>
-            <NominationUser>
-              {CandidateProps.profileAccount
-                ? CandidateProps.profileAccount
-                : "@candidate.near"}
-            </NominationUser>
+            <UserLink
+              href={`https://www.near.org/near/widget/ProfilePage?accountId=${accountId}`}
+            >
+              <NominationTitle>{CandidateProps.name}</NominationTitle>
+              <NominationUser>{accountId}</NominationUser>
+            </UserLink>
           </NominationTitleContainer>
           <TagContainer>
             {CandidateProps.tags
@@ -754,7 +753,7 @@ return (
           src={widgets.addComment}
           props={{
             candidateOrReplay: true,
-            username: props.candidate,
+            username: accountId,
             onClickConfirm: () => State.update({ showModal: false }),
             onClickCancel: () => State.update({ showModal: false }),
             nomination_contract,

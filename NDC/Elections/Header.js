@@ -8,6 +8,10 @@ State.init({
   title: "",
 });
 
+const widgets = {
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
+};
+
 const formatTime = (time) => (time < 10 ? `0${time}` : time);
 
 const timer = setInterval(() => {
@@ -127,6 +131,10 @@ const SmallTimerContainer = styled.div`
   }
 `;
 
+const Info = styled.div`
+  background: #ffd50d;
+`;
+
 const TitleContainer = () => (
   <>
     <Logo src="https://pbs.twimg.com/profile_images/1622941553839816707/nmf3MWw1_400x400.jpg" />
@@ -155,23 +163,48 @@ const TimerContent = () => {
   );
 };
 
+const InfoBlock = () => (
+  <Info className="py-2 d-flex justify-content-center align-items-center gap-2 rounded-bottom">
+    <b className="mb-0">NDC NOMINATION AND ELECTION EDUCATION</b>
+    <div>
+      <Widget
+        src={widgets.styledComponents}
+        props={{
+          Link: {
+            text: "Learn More",
+            size: "sm",
+            className: "primary dark",
+            href: "https://pages.near.org/blog/ndc-v1-governance-elections-faq",
+          },
+        }}
+      />
+    </div>
+  </Info>
+);
+
 return (
-  <>
-    <div className="p-4 bg-black text-white d-none d-lg-flex rounded justify-content-between align-items-center">
-      <div className="d-flex align-items-center">
-        <TitleContainer />
+  <div>
+    <div className="d-none d-lg-flex flex-column">
+      <div className="p-4 bg-black text-white d-lg-flex rounded-top justify-content-between align-items-center">
+        <div className="d-flex align-items-center">
+          <TitleContainer />
+        </div>
+        <TimerContainer className="d-flex align-items-center">
+          <TimerContent />
+        </TimerContainer>
       </div>
-      <TimerContainer className="d-flex align-items-center">
-        <TimerContent />
-      </TimerContainer>
+      <InfoBlock />
     </div>
-    <div className="d-md-flex row d-lg-none d-xl-none rounded bg-black">
-      <div className="d-flex align-items-center justify-content-center rounded-top bg-black text-white">
-        <TitleContainer />
+    <div className="d-md-flex d-lg-none d-xl-none">
+      <div className="row">
+        <div className="d-flex bg-black rounded-top align-items-center justify-content-center bg-black text-white">
+          <TitleContainer />
+        </div>
+        <SmallTimerContainer className="d-flex p-3 align-items-center justify-content-between">
+          <TimerContent />
+        </SmallTimerContainer>
+        <InfoBlock />
       </div>
-      <SmallTimerContainer className="d-flex p-3 align-items-center rounded-bottom justify-content-between">
-        <TimerContent />
-      </SmallTimerContainer>
     </div>
-  </>
+  </div>
 );

@@ -20,8 +20,6 @@ const widgets = {
   verifyHuman: "nomination.ndctools.near/widget/NDC.VerifyHuman",
 };
 
-const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
-
 const currentUser = context.accountId;
 
 const housesMapping = {
@@ -79,21 +77,6 @@ const StyledLink = styled.a`
   text-overflow: ellipsis;
   font-size: 14px;
   padding-top: 2px;
-`;
-
-const NominationLink = styled.a`
-  font-size: 12px;
-  line-height: 24px;
-  background: ${(props) =>
-    props.selected || props.winnerId ? "#fff" : "#4F46E5"};
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  border: 1px solid;
-  border-color: ${(props) =>
-    props.selected || props.winnerId ? "#fff" : "#4F46E5"};
-  padding: 0 10px;
-  border-radius: 5px;
 `;
 
 const CandidateItem = styled.div`
@@ -231,7 +214,9 @@ const Winner = styled.i`
 
 const UserLink = ({ title, src }) => (
   <>
-    <StyledLink href={src}>{title}</StyledLink>
+    <StyledLink href={src} target="_blank">
+      {title}
+    </StyledLink>
     <div>
       <Icon className="bi bi-arrow-up-right" />
     </div>
@@ -394,7 +379,7 @@ const CandidateList = ({ candidateId, votes }) => (
             }}
           />
           <UserLink
-            src={`https://wallet.near.org/profile/${candidateId}`}
+            src={`https://www.near.org/near/widget/ProfilePage?accountId=${candidateId}`}
             title={candidateId}
           />
           {winnerIds.includes(candidateId) && (
@@ -403,19 +388,19 @@ const CandidateList = ({ candidateId, votes }) => (
         </div>
       </div>
       <div className="d-flex">
-        <NominationLink
-          className="d-flex"
-          href={ref_link}
-          target="_blank"
-          selected={state.selected === candidateId}
-          winnerId={winnerIds.includes(candidateId)}
-        >
-          <span id="link" className="d-none d-md-block">
-            Nomination
-          </span>
-
-          <i id="link" className="bi bi-arrow-up-right" />
-        </NominationLink>
+        <Widget
+          src={widgets.button}
+          props={{
+            Link: {
+              size: "sm",
+              className: "secondary dark",
+              text: "Nomination",
+              icon: <i id="link" className="bi bi-arrow-up-right" />,
+              href: ref_link,
+              inverse: state.selected === candidateId,
+            },
+          }}
+        />
         <Votes>{votes}</Votes>
         {isIAmHuman && (
           <Votes>

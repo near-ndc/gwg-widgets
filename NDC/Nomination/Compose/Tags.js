@@ -77,7 +77,7 @@ return (
         <P>
           I agree to the
           <A
-            href="https://bafkreiarbw2noibmrvb2zexgsgbff23lhe5dzwjdepglsad3rp6fhvbhua.ipfs.nftstorage.link/"
+            href="https://bafkreid3vx2tivdlwkivezalhkscxnxakirw5nuunxce3b6ivtx4j6ac44.ipfs.nftstorage.link/"
             target={"_blank"}
             rel={"noopener"}
           >

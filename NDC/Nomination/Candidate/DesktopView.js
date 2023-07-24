@@ -1,7 +1,7 @@
 const {
   data,
   house,
-  candidate,
+  accountId,
   nomination_contract,
   registry_contract,
   api_key,
@@ -32,7 +32,7 @@ function getVerifiedHuman() {
     State.update({ verified: res.body });
   });
   asyncFetch(
-    `https://api.pikespeak.ai/nominations/is-upvoted-by?candidate=${candidate}&upvoter=${context.accountId}&contract=${nomination_contract}`,
+    `https://api.pikespeak.ai/nominations/is-upvoted-by?candidate=${accountId}&upvoter=${context.accountId}&contract=${nomination_contract}`,
     {
       headers: {
         "x-api-key": api_key,
@@ -55,7 +55,7 @@ function handleUpVote() {
     nomination_contract,
     state.voted ? "remove_upvote" : "upvote",
     {
-      candidate: candidate,
+      candidate: accountId,
     },
     300000000000000,
     state.voted ? 0 : 1000000000000000000000
@@ -83,13 +83,6 @@ const DetailCard = styled.div`
   gap: 16px;
   border-radius: 10px;
   background: #f8f8f9;
-`;
-
-const ProfilePicture = styled.img`
-  width: 40px;
-  height: 40px;
-  margin-right: 20px;
-  flex-shrink: 0;
 `;
 
 const TagContainer = styled.div`
@@ -156,20 +149,25 @@ const NominationTitle = styled.p`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin: 0px;
+  margin: 7px 0 0 0;
   color: #000;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 500;
   line-height: 120%;
 `;
-
+const UserLink = styled.a`
+  cursor: pointer;
+  &:hover {
+    text-decoration: none;
+  }
+`;
 const NominationUser = styled.p`
   display: flex;
   flex-direction: column;
   justify-content: center;
   color: #828688;
-  margin: 0px;
-  font-size: 12px;
+  margin: 0 0 7px 0;
+  font-size: 14px;
   line-height: 120%;
 `;
 
@@ -490,19 +488,14 @@ return (
         >
           <div className="w-100 p-3 d-flex justify-content-between align-items-start">
             <div className="d-flex">
-              <ProfilePicture
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  "border-radius": "20px",
+              <Widget
+                src="mob.near/widget/ProfileImage"
+                props={{
+                  accountId,
+                  imageClassName: "rounded-circle w-100 h-100",
+                  style: { width: "100px", height: "100px", marginRight: "15px" },
                 }}
-                src={
-                  data.nominations.img.url
-                    ? data.nominations.img.url
-                    : "https://ipfs.near.social/ipfs/bafkreibmiy4ozblcgv3fm3gc6q62s55em33vconbavfd2ekkuliznaq3zm"
-                }
-                alt="pic"
-              ></ProfilePicture>
+              />
               <div className="d-flex flex-column">
                 <TagContainer>
                   <Widget
@@ -521,16 +514,12 @@ return (
                   />
                 </TagContainer>
                 <NominationTitleContainer>
-                  <NominationTitle
-                    style={{ margin: "5px 0", "font-size": "18px" }}
+                  <UserLink
+                    href={`https://www.near.org/near/widget/ProfilePage?accountId=${accountId}`}
                   >
-                    {data.nominations.name}
-                  </NominationTitle>
-                  <NominationUser
-                    style={{ "margin-bottom": "5px", "font-size": "14px" }}
-                  >
-                    {candidate}
-                  </NominationUser>
+                    <NominationTitle>{data.nominations.name}</NominationTitle>
+                    <NominationUser>{accountId}</NominationUser>
+                  </UserLink>
                   <TagContainer>
                     {data.nominations.tags
                       .trim()
@@ -568,7 +557,7 @@ return (
                   Button: {
                     text: `+${data.comments[0].upvotes ?? 0}`,
                     disabled:
-                      !state.verified || context.accountId === candidate,
+                      !state.verified || context.accountId === accountId,
                     className: "secondary dark",
                     onClick: handleUpVote,
                     icon: <i className="bi bi-hand-thumbs-up"></i>,
@@ -799,7 +788,7 @@ return (
                   src={widgets.addComment}
                   props={{
                     candidateOrReplay: true,
-                    username: candidate,
+                    username: accountId,
                     onClickConfirm: () => State.update({ showModal: false }),
                     onClickCancel: () => State.update({ showModal: false }),
                     nomination_contract,

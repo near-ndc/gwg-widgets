@@ -254,17 +254,14 @@ return (
   <CommentCard>
     <CommentCardHeader>
       <CommentUserContent>
-        <ProfileImageComment
-          src={
-            data.removed
-              ? "https://apricot-straight-eagle-592.mypinata.cloud/ipfs/QmZBPPMKLdZG2zVpYaf9rcbtNfAp7c3BtsvzxzBb9pNihm?_gl=1*6avmrp*rs_ga*MzkyOTE0Mjc4LjE2ODY4NjgxODc.*rs_ga_5RMPXG14TE*MTY4NjkzMzM2NC4zLjEuMTY4NjkzMzM4Ni4zOC4wLjA."
-              : state.nominationData.img.cid
-              ? "https://nativonft.mypinata.cloud/ipfs/" +
-                state.nominationData.img.cid
-              : "https://apricot-straight-eagle-592.mypinata.cloud/ipfs/QmZBPPMKLdZG2zVpYaf9rcbtNfAp7c3BtsvzxzBb9pNihm?_gl=1*6avmrp*rs_ga*MzkyOTE0Mjc4LjE2ODY4NjgxODc.*rs_ga_5RMPXG14TE*MTY4NjkzMzM2NC4zLjEuMTY4NjkzMzM4Ni4zOC4wLjA."
-          }
-          alt="pic"
-        ></ProfileImageComment>
+        <Widget
+          src="mob.near/widget/ProfileImage"
+          props={{
+            accountId: data.commentator,
+            imageClassName: "rounded-circle w-100 h-100",
+            style: { width: "25px", height: "25px" },
+          }}
+        />
         <CommentUser>
           {data.removed ? "@[deleted]" : data.commentator}
         </CommentUser>
@@ -353,15 +350,19 @@ return (
         }}
       />
     )}
-    {state.hasReply ? (
+    {state.hasReply && (
       <div>
         <CommentReplySeparator></CommentReplySeparator>
         <ReplyContainer>
           <ReplyHeader>
-            <ProfileImageComment
-              src="https://apricot-straight-eagle-592.mypinata.cloud/ipfs/QmZBPPMKLdZG2zVpYaf9rcbtNfAp7c3BtsvzxzBb9pNihm?_gl=1*6avmrp*rs_ga*MzkyOTE0Mjc4LjE2ODY4NjgxODc.*rs_ga_5RMPXG14TE*MTY4NjkzMzM2NC4zLjEuMTY4NjkzMzM4Ni4zOC4wLjA."
-              alt="pic"
-            ></ProfileImageComment>
+            <Widget
+              src="mob.near/widget/ProfileImage"
+              props={{
+                accountId: data.commentator,
+                imageClassName: "rounded-circle w-100 h-100",
+                style: { width: "20px", height: "20px" },
+              }}
+            />
             <CommentUser>user.near</CommentUser>
           </ReplyHeader>
           <ReplyContent>
@@ -396,8 +397,6 @@ return (
           </ReplyLowerSection>
         </ReplyContainer>
       </div>
-    ) : (
-      <></>
     )}
   </CommentCard>
 );

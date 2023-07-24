@@ -60,7 +60,7 @@ return (
           />
           <div className="row">
             <StyledLink
-              href={`https://wallet.near.org/profile/${vote.candidate}`}
+              href={`https://www.near.org/near/widget/ProfilePage?accountId=${vote.candidate}`}
             >
               {vote.candidate}
             </StyledLink>

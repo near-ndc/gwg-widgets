@@ -89,7 +89,6 @@ const HeaderCard = styled.div`
   flex-direction: row;
   align-items: center;
   padding: 0px;
-  gap: 12px;
   width: 100%;
 `;
 const ProfilePicture = styled.img`
@@ -154,39 +153,7 @@ const NominationUser = styled.p`
   overflow: hidden;
   text-overflow: ellipsis;
 `;
-const UpvoteButtonDisabled = styled.button`
-  display: flex;
-  padding: 2px 12px;
-  align-items: center;
-  gap: 6px;
-  border-radius: 4px;
-  background: var(--buttons-disable, #c3cace);
-  cursor: default !important;
-`;
 
-const UpvoteButton = styled.button`
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 24px;
-  color: ${(props) => (props.disabled ? "#C3CACE" : "#9333EA")};
-  border: 1px solid #9333ea;
-  border-color: ${(props) => (props.disabled ? "#C3CACE" : "")};
-`;
-
-const UpvoteCount = styled.p`
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 24px;
-  margin: 0px;
-  background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
-`;
 const Icon = styled.img`
   width: 17px;
   height: 17px;
@@ -266,11 +233,9 @@ const KeyIssuesContainer = styled.div`
 `;
 const KeyIssueTitle = styled.p`
   font-weight: 500;
-  font-size: 11px;
-  margin-bottom: 0px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 12px;
+  margin-bottom: 5px;
+  white-space: pre-wrap;
 `;
 const KeyIssueDescription = styled.p`
   font-weight: 400;
@@ -365,56 +330,9 @@ const TagSection = styled.div`
   flex-wrap: wrap;
   overflow: hidden;
 `;
-
-const CommentButtonDisabled = styled.button`
-  display: flex;
-  padding: 2px 12px;
-  align-items: center;
-  gap: 6px;
-  border-radius: 4px;
-  b
-  background: var(--buttons-disable, #c3cace);
-  cursor: default !important;
-`;
-const CommentButtonDiv = styled.button`
-  display: flex;
-  padding: 2px 12px;
-  align-items: center;
-  gap: 6px;
-  b
-  border-radius: 80px;
-  background-image: linear-gradient(#f8f8f9, #f8f8f9),
-    radial-gradient(circle at top left, #9333ea 0%, #4f46e5 100%);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  border-radius: 4px;
-`;
-const CommentButtonCounter = styled.p`
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 24px;
-  margin: 0px;
-  background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
-`;
-const CommentButtonIcon = styled.img`
-  width: 14px;
-  height: 14px;
-`;
-
 const DropdownContainer = styled.div`
   position: relative;
   display: inline-block;
-`;
-
-const Dropbtn = styled.button`
-  background-color: #4caf50;
-  color: white;
-  padding: 16px;
-  font-size: 16px;
 `;
 
 const DropdownContent = styled.div`
@@ -481,7 +399,9 @@ const Wrapper = styled.div`
 `;
 
 const canUpvote = () =>
-  state.verified && context.accountId != data.indexerData?.nominee;
+  state.verified &&
+  context.accountId &&
+  context.accountId != data.indexerData?.nominee;
 
 const trimText = (text, limit) => {
   if (!text) return "";
@@ -504,15 +424,15 @@ const keyIssues = [
     desc: data.nominationData.WIYStrategy,
   },
   {
-    title: "Key Issue 1",
+    title: "View and pledge on the issue of User Experience and Accessibility",
     desc: data.nominationData.Key_Issue_1,
   },
   {
-    title: "Key Issue 2",
+    title: "View and pledge on the issue of Economic Growth and Innovation",
     desc: data.nominationData.Key_Issue_2,
   },
   {
-    title: "Key Issue 3",
+    title: "View and pledge on the issue of Marketing and Outreach",
     desc: data.nominationData.Key_Issue_3,
   },
   {
@@ -562,27 +482,28 @@ return (
               }}
             />
             <UserLink
-              href={`${widgets.candidatePage}?house=${data.indexerData.house}&accountId=${data.indexerData.nominee}${dev ? "&dev=true" : ""}`}
+              href={`${widgets.candidatePage}?house=${
+                data.indexerData.house
+              }&accountId=${data.indexerData.nominee}${dev ? "&dev=true" : ""}`}
             >
               <NominationName>{data.profileData?.name}</NominationName>
               <NominationUser>{data.indexerData.nominee}</NominationUser>
             </UserLink>
           </HeaderContent>
         </div>
-        {canUpvote() && (
-          <Widget
-            src={widgets.styledComponents}
-            props={{
-              Button: {
-                text: `+${data.upVoteData?.upvotes ?? 0}`,
-                className: "secondary dark",
-                size: "sm",
-                onClick: handleUpVote,
-                icon: <i className="bi bi-hand-thumbs-up"></i>,
-              },
-            }}
-          />
-        )}
+        <Widget
+          src={widgets.styledComponents}
+          props={{
+            Button: {
+              disabled: !canUpvote(),
+              text: `+${data.upVoteData?.upvotes ?? 0}`,
+              className: `${context.accountId && state.voted ? "primary" : "secondary"} dark`,
+              size: "sm",
+              onClick: handleUpVote,
+              icon: <i className="bi bi-hand-thumbs-up"></i>,
+            },
+          }}
+        />
       </HeaderCard>
       <CollapseCandidate className="w-100">
         <CollapseCandidateContent>
@@ -613,7 +534,10 @@ return (
               <div className="w-100" key={i}>
                 <KeyIssueTitle>{issue.title}</KeyIssueTitle>
                 <KeyIssueDescription className="text-secondary">
-                  {trimText(issue.desc)}
+                  <Widget
+                    src="mob.near/widget/SocialMarkdown"
+                    props={{ text: trimText(issue.desc) }}
+                  />
                 </KeyIssueDescription>
                 <KeyIssueSeparator />
               </div>
@@ -690,7 +614,11 @@ return (
                       text: "View",
                       size: "sm",
                       className: "primary w-100 justify-content-center",
-                      href: `${widgets.candidatePage}?house=${data.indexerData.house}&accountId=${data.indexerData.nominee}${dev ? "&dev=true" : ""}`,
+                      href: `${widgets.candidatePage}?house=${
+                        data.indexerData.house
+                      }&accountId=${data.indexerData.nominee}${
+                        dev ? "&dev=true" : ""
+                      }`,
                       icon: <i className="bi bi-eye fs-6"></i>,
                     },
                   }}

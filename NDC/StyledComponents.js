@@ -194,6 +194,7 @@ const Styled = {
   `,
   Tag: styled.div`
     display: flex;
+    width: 100%;
     flex-direction: row;
     justify-content: center;
     align-items: center;
@@ -273,6 +274,22 @@ if (Button)
         <div className={`${Button.size === "sm" ? "fs-7" : "fs-6"}`}>
           {Button.icon}
         </div>
+      )}
+      {Button.image && (
+        <Widget
+          src="mob.near/widget/Image"
+          props={{
+            image: { url: Button.image.url },
+            alt: Button.image.alt ?? "",
+            style: {
+              height: "20px",
+              objectFit: "cover",
+              margin: "0 0 3px 5px",
+            },
+            fallbackUrl:
+              "https://ipfs.near.social/ipfs/bafkreibmiy4ozblcgv3fm3gc6q62s55em33vconbavfd2ekkuliznaq3zm",
+          }}
+        />
       )}
     </Styled.Button>
   );
@@ -359,6 +376,7 @@ const WidgetButton = ({
   disabled,
   text,
   icon,
+  image,
   inverse,
 }) => (
   <Widget
@@ -371,6 +389,7 @@ const WidgetButton = ({
         inverse,
         text,
         icon,
+        image,
       },
     }}
   />
@@ -422,6 +441,11 @@ return (
         text="Secondary"
         className="secondary"
         icon={<i class="bi bi-check-lg"></i>}
+      />
+      <WidgetButton
+        text="Secondary"
+        className="secondary"
+        image={{ url: "https://bafkreieynbjyuycbo7naqp5dtiajcsmpiwyt7n2mk35746463nkcjte2yy.ipfs.nftstorage.link/" }}
       />
       <WidgetButton disabled text="Primary" />
       <WidgetButton disabled className="secondary" text="Secondary" />

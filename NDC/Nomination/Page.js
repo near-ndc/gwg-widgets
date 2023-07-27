@@ -88,7 +88,7 @@ function getVerifiedHuman() {
 function getNominationInfo(house) {
   let nominationsArr = [];
 
-  State.update({loading: true})
+  State.update({ loading: true });
   asyncFetch(endpoints.houseNominations(house), httpRequestOpt).then((res) => {
     if (res.body.length <= 0) {
       State.update({ nominations: [], loading: false });
@@ -127,7 +127,11 @@ function getNominationInfo(house) {
           };
           nominationsArr.push(objCard);
 
-          State.update({ nominations: nominationsArr, loading: false });
+          State.update({
+            nominations: nominationsArr,
+            originNominations: nominationsArr,
+            loading: false,
+          });
         }, 1000);
       });
     }
@@ -163,26 +167,28 @@ function handleFilter(e) {
 
   State.update({ candidateId: text });
 
-  if (!state.search) {
-    State.update({ originNominations: state.nominations, search: true });
-  }
   if (text.length > 0) {
-    if (state.nominations.length) {
-      State.update({
-        notFound: "There are no such nominations",
-      });
-    }
-    let filtered = state.nominations.filter((data) =>
-      data.profileData.name.toLowerCase().includes(text.toLowerCase())
-    );
-    State.update({ nominations: filtered });
-  } else {
-    State.update({ notFound: "There are no active nominations at the moment" });
-    State.update({
-      nominations: state.originNominations,
-      originNominations: [],
-      search: false,
+    let filtered = state.originNominations.filter((data) => {
+      const affiliations = JSON.parse(data.nominationData.afiliation);
+      const companyNames =
+        affiliations?.length > 0 &&
+        affiliations.map((af) => af.company_name.toLowerCase());
+
+      return (
+        data.profileData.name.toLowerCase().includes(text.toLowerCase()) ||
+        (companyNames &&
+          companyNames.some((c) => c.includes(text.toLowerCase())))
+      );
     });
+
+    if (filtered.length > 0) State.update({ nominations: filtered });
+    else
+      State.update({
+        notFound: "There are no such candidates or affiliations",
+        nominations: [],
+      });
+  } else {
+    State.update({ nominations: state.originNominations });
   }
 }
 

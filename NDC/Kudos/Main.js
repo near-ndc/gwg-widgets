@@ -2,11 +2,11 @@ const kudosContract = "dev-1688676408230-76568802486659";
 const registryContract = "registry-unstable.i-am-human.testnet";
 
 const widgets = {
-  header: "rubycoptest.testnet/widget/Kudos.Header",
-  filter: "rubycoptest.testnet/widget/Kudos.Filter",
-  navigation: "rubycoptest.testnet/widget/Kudos.Navigation",
-  item: "rubycoptest.testnet/widget/Kudos.Kudo.Item",
-  mintSBT: "rubycoptest.testnet/widget/Kudos.MintSBT",
+  header: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Header",
+  filter: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Filter",
+  navigation: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Navigation",
+  card: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Card",
+  mintSBT: "kudos-v1.gwg.testnet/widget/NDC.Kudos.MintSBT",
 };
 
 State.init({
@@ -126,6 +126,48 @@ return (
       src={widgets.header}
       props={{ isIAmHuman: state.isIAmHuman, kudosContract }}
     />
+    <Filter className="d-flex">
+      <div className="w-100">
+        <Widget
+          src={widgets.filter}
+          props={{
+            handleFilter,
+            candidateId: state.candidateId,
+            placeholder: "Search by candidate name and affiliation",
+          }}
+        />
+      </div>
+      <Toolbar>
+        {state.og && (
+          <ButtonNominateContainer>
+            {state.selfNomination ? (
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Button: {
+                    className: "danger",
+                    text: "Delete Self Nomination",
+                    onClick: () => State.update({ showModalDelete: true }),
+                    icon: <i class="bi bi-trash"></i>,
+                  },
+                }}
+              />
+            ) : (
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Button: {
+                    text: "Self Nominate",
+                    onClick: () => State.update({ showModal: true }),
+                    icon: <i class="bi bi-plus-lg"></i>,
+                  },
+                }}
+              />
+            )}
+          </ButtonNominateContainer>
+        )}
+      </Toolbar>
+    </Filter>
     <Container className="d-flex row">
       <Section className="col-lg-3">
         <H5>Home</H5>
@@ -151,7 +193,7 @@ return (
               <div className="col p-3">
                 <h4 className="pb-3">Kudo</h4>
                 <Widget
-                  src={widgets.item}
+                  src={widgets.card}
                   props={{
                     isIAmHuman: state.isIAmHuman,
                     kudosContract,
@@ -164,7 +206,7 @@ return (
                   <h4>Comments</h4>
                   {state.selectedKudo.comments.map((comment) => (
                     <Widget
-                      src={widgets.item}
+                      src={widgets.card}
                       props={{
                         isIAmHuman: state.isIAmHuman,
                         kudosContract,
@@ -189,7 +231,7 @@ return (
                 <div className="col col-lg-6 p-2">
                   <Widget
                     key={index}
-                    src={widgets.item}
+                    src={widgets.card}
                     props={{
                       isIAmHuman: state.isIAmHuman,
                       kudosContract,

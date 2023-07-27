@@ -1,7 +1,7 @@
 const { kudo, isIAmHuman, kudosContract, onClick } = props;
 
 const widget = {
-  button: "rubycoptest.testnet/widget/NDC.StyledComponents",
+  styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
 };
 
 const Container = styled.div`
@@ -264,7 +264,7 @@ const Content = () => (
     </div>
     <div className="d-grid gap-3 d-flex align-items-center justify-content-end">
       <Widget
-        src={widget.button}
+        src={widget.styledComponents}
         props={{
           Button: {
             text: "Cancel",
@@ -274,7 +274,7 @@ const Content = () => (
         }}
       />
       <Widget
-        src={widget.button}
+        src={widget.styledComponents}
         props={{
           Button: {
             text: "Submit",
@@ -365,7 +365,7 @@ return (
           <div className="d-flex justify-content-between align-items-center gap-2">
             {onClick && <ViewButton onClick={onClick}>View</ViewButton>}
             <Widget
-              src="rubycoptest.testnet/widget/NDC.StyledComponents"
+              src={widget.styledComponents}
               props={{
                 Button: {
                   text: "Reply",

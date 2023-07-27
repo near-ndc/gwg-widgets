@@ -1,31 +1,24 @@
 const { isIAmHuman, kudosContract } = props;
 
 const widget = {
-  button: "rubycoptest.testnet/widget/NDC.StyledComponents",
+  styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
 };
 
 const Header = styled.div`
   background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
 `;
 
-const PrimaryButton = styled.button`
-  padding: 8px 20px;
-  background: #ffd50d;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 24px;
-  border: 0;
-`;
-
 const Modal = styled.div`
   position: fixed;
-  z-index: 101;
-  top: 0px;
-  left: 0px;
+  z-index: 1;
+  left: 0;
+  top: 0;
   width: 100%;
-  height: 100vh;
-  background: rgba(128, 128, 128, 0.65);
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.7);
 `;
 
 const ComponentWrapper = styled.div`
@@ -61,19 +54,8 @@ const InputField = styled.div`
   margin: 20px 0;
 `;
 
-const PrimaryLink = styled.a`
-  padding: 4px 20px;
-  background: #ffd50d;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 24px;
-  color: inherit;
-
-  &:hover {
-    text-decoration: none;
-    color: inherit;
-  }
+const Section = styled.div`
+  margin: 12px 0;
 `;
 
 State.init({
@@ -104,46 +86,57 @@ const Content = () => (
   <ModalContent>
     <h4>Give a Kudo</h4>
     <div className="content">
-      <h6>NEAR account</h6>
-      <InputField>
-        <input
-          className="form-control w-100"
-          value={state.receiverId}
-          onChange={(e) => State.update({ receiverId: e.target.value })}
+      <Section>
+        <Widget
+          src={widget.styledComponents}
+          props={{
+            Input: {
+              label: "NEAR account",
+              value: state.receiverId,
+              handleChange: (e) => State.update({ receiverId: e.target.value }),
+            },
+          }}
         />
-      </InputField>
-      <h6>Add a Kudo Description</h6>
-      <InputField>
-        <textarea
-          className="form-control w-100"
-          rows="5"
-          value={state.comment}
-          onChange={(e) => State.update({ comment: e.target.value })}
+      </Section>
+      <Section>
+        <Widget
+          src={widget.styledComponents}
+          props={{
+            TextArea: {
+              label: "Add a Kudo Description",
+              value: state.comment,
+              handleChange: (e) => State.update({ comment: e.target.value }),
+            },
+          }}
         />
-      </InputField>
-      <h6>Tags</h6>
-      <InputField>
-        <input
-          placeholder="Enter tags using comma separator"
-          className="form-control w-100"
-          value={state.tags}
-          onChange={(e) => State.update({ tags: e.target.value })}
+      </Section>
+      <Section>
+        <Widget
+          src={widget.styledComponents}
+          props={{
+            Input: {
+              label: "Tags",
+              placeholder: "Enter tags using comma separator",
+              value: state.tags,
+              handleChange: (e) => State.update({ tags: e.target.value }),
+            },
+          }}
         />
-      </InputField>
+      </Section>
     </div>
     <div className="d-grid gap-3 d-flex align-items-center justify-content-end">
       <Widget
-        src={widget.button}
+        src={widget.styledComponents}
         props={{
           Button: {
             text: "Cancel",
-            className: "secondary",
+            className: "secondary dark",
             onClick: () => State.update({ isOpen: false }),
           },
         }}
       />
       <Widget
-        src={widget.button}
+        src={widget.styledComponents}
         props={{
           Button: {
             text: "Submit",
@@ -157,7 +150,7 @@ const Content = () => (
 
 return (
   <>
-    <Header className="d-flex p-3 px-4 align-items-center justify-content-between">
+    <Header className="d-flex p-3 px-4 align-items-center rounded justify-content-between">
       <Widget
         src="rubycoptest.testnet/widget/Image"
         props={{
@@ -175,37 +168,27 @@ return (
       />
       {isIAmHuman ? (
         <Widget
-          src="rubycoptest.testnet/widget/NDC.StyledComponents"
+          src={widget.styledComponents}
           props={{
             Button: {
               text: "Give a Kudo",
-              size: "sm",
-              icon: (
-                <Widget
-                  src="rubycoptest.testnet/widget/Image"
-                  props={{
-                    image: {
-                      url: "https://bafkreieynbjyuycbo7naqp5dtiajcsmpiwyt7n2mk35746463nkcjte2yy.ipfs.nftstorage.link/",
-                    },
-                    alt: "kudos",
-                    style: {
-                      height: "20px",
-                      objectFit: "cover",
-                      margin: "0 0 3px 5px",
-                    },
-                    fallbackUrl:
-                      "https://ipfs.near.social/ipfs/bafkreibmiy4ozblcgv3fm3gc6q62s55em33vconbavfd2ekkuliznaq3zm",
-                  }}
-                />
-              ),
+              image: {
+                url: "https://bafkreieynbjyuycbo7naqp5dtiajcsmpiwyt7n2mk35746463nkcjte2yy.ipfs.nftstorage.link/",
+              },
               onClick: () => State.update({ isOpen: true }),
             },
           }}
         />
       ) : (
-        <PrimaryLink href="https://i-am-human.app/">
-          Verify as Human
-        </PrimaryLink>
+        <Widget
+          src={widget.styledComponents}
+          props={{
+            Link: {
+              text: "Verify as Human",
+              href: "https://i-am-human.app/",
+            },
+          }}
+        />
       )}
     </Header>
 

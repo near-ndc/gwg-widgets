@@ -1,4 +1,4 @@
-const kudosContract = "dev-1688676408230-76568802486659";
+const kudosContract = "kudos-v1.gwg.testnet";
 const registryContract = "registry-unstable.i-am-human.testnet";
 
 const widgets = {
@@ -6,95 +6,69 @@ const widgets = {
   filter: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Filter",
   navigation: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Navigation",
   card: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Card",
-  mintSBT: "kudos-v1.gwg.testnet/widget/NDC.Kudos.MintSBT",
+  addKudo: "kudos-v1.gwg.testnet/widget/NDC.Kudos.AddKudo",
+  styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
 };
 
 State.init({
   selectedItem: "My",
-  selectedKudo: null,
   isIAmHuman: false,
   kudos: [],
+  isOpen: false,
+  kind: "",
 });
 
-const data = Social.getr(`${kudosContract}/kudos`);
+let data = Social.getr(`${kudosContract}/kudos`);
 const hashtags = Social.getr(`${kudosContract}/hashtags`);
-console.log(data);
-
 const formattedKudos = [];
 
-asyncFetch("https://rpc.testnet.near.org", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    jsonrpc: "2.0",
-    id: "dontcare",
-    method: "query",
-    params: {
-      request_type: "view_account",
-      finality: "final",
-      account_id: context.accountId,
-    },
-  }),
-}).then((data) =>
-  asyncFetch("https://rpc.testnet.near.org", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: "dontcare",
-      method: "tx",
-      params: [data.body.result.block_hash, context.accountId],
-    }),
-  }).then((data) => console.log(data.body))
-);
-
-if (data)
-  Object.entries(data).map(([receiverId, id]) => {
-    const kudo = Object.values(id)[0];
+if (data) {
+  Object.entries(data).map(([receiverId, kudoId], index) => {
+    const kudo = Object.values(kudoId)[0];
+    console.log(kudo);
 
     formattedKudos.push({
-      id: Object.keys(id)[0],
-      accountId: receiverId,
-      requesterId: kudo.sender_id,
-      upvotes: kudo.upvotes ?? 0,
-      description: kudo.text,
-      tags: [],
-      createdAt: kudo.created_at,
-      comments: Object.entries(kudo.comments ?? {}),
+      created_at: kudo.created_at,
+      icon: kudo.icon,
+      kind: kudo.kind,
+      message: kudo.message,
+      sender_id: kudo.sender_id,
+      receiver_id: receiverId,
+      tags: kudo.tags,
+      id: Object.keys(kudoId)[0],
+      comments: kudo.comments ? Object.entries(kudo.comments) : {},
+      upvotes: kudo.upvotes ? Object.keys(kudo.upvotes).length : 0,
     });
   });
+}
 
-console.log(data);
 State.update({ kudos: formattedKudos });
 
 const handleSelect = (itemType) => {
   let _kudos;
   if (itemType === "My")
-    _kudos = state.kudos.filter((kudo) => kudo.accountId === context.accountId);
+    _kudos = state.kudos.filter(
+      (kudo) => kudo.receiver_id === context.accountId
+    );
   if (itemType === "Trending")
     _kudos = state.kudos.sort((a, b) => b.upvotes - a.upvotes);
 
   State.update({ selectedItem: itemType, kudos: _kudos });
 };
 
-// uncomment in mainnet
-//
-// const isHuman = Near.view(registryContract, "is_human", {
-//   account: context.accountId,
-// });
-const isHuman = [[[1], [1]]];
+const isHuman = Near.view(registryContract, "is_human", {
+  account: context.accountId,
+});
+
+console.log(isHuman);
 
 State.update({ isIAmHuman: isHuman[0][1].length > 0 });
 
 const Container = styled.div`
-  margin: 20px;
+  margin: 20px 0;
 `;
 
-const Section = styled.div`
+const LeftSection = styled.div`
   padding: 20px;
   background: #f8f8f9;
   border-radius: 10px;
@@ -115,17 +89,35 @@ const H5 = styled.h5`
   margin-bottom: 20px;
 `;
 
-const base64decode = (encodedValue) => {
-  let buff = Buffer.from(encodedValue, "base64");
-  return JSON.parse(buff.toString("utf-8"));
-};
+const FilterButtonContainer = styled.div`
+  padding: 16px;
+  width: 340px;
+  border-radius: 8px;
+  background: #f8f8f9;
+
+  @media only screen and (max-width: 1061px) {
+    width: 100%;
+  }
+`;
+
+const Filter = styled.div`
+  margin-top: 20px;
+
+  @media only screen and (max-width: 1061px) {
+    flex-direction: column;
+  }
+`;
+
+const Toolbar = styled.div`
+  margin-left: 20px;
+  @media only screen and (max-width: 1061px) {
+    margin: 10px 0 0 0;
+  }
+`;
 
 return (
   <div>
-    <Widget
-      src={widgets.header}
-      props={{ isIAmHuman: state.isIAmHuman, kudosContract }}
-    />
+    <Widget src={widgets.header} props={{ isIAmHuman: state.isIAmHuman }} />
     <Filter className="d-flex">
       <div className="w-100">
         <Widget
@@ -133,43 +125,54 @@ return (
           props={{
             handleFilter,
             candidateId: state.candidateId,
-            placeholder: "Search by candidate name and affiliation",
+            placeholder: "Search by account name",
           }}
         />
       </div>
       <Toolbar>
-        {state.og && (
-          <ButtonNominateContainer>
-            {state.selfNomination ? (
-              <Widget
-                src={widgets.styledComponents}
-                props={{
-                  Button: {
-                    className: "danger",
-                    text: "Delete Self Nomination",
-                    onClick: () => State.update({ showModalDelete: true }),
-                    icon: <i class="bi bi-trash"></i>,
-                  },
-                }}
-              />
-            ) : (
-              <Widget
-                src={widgets.styledComponents}
-                props={{
-                  Button: {
-                    text: "Self Nominate",
-                    onClick: () => State.update({ showModal: true }),
-                    icon: <i class="bi bi-plus-lg"></i>,
-                  },
-                }}
-              />
-            )}
-          </ButtonNominateContainer>
-        )}
+        <FilterButtonContainer className="d-flex gap-2">
+          <Widget
+            src={widgets.styledComponents}
+            disabled={!state.isIAmHuman}
+            props={{
+              Button: {
+                text: "Give a Kudo",
+                className: "primary justify-content-center w-100",
+                image: {
+                  url: "https://bafkreieynbjyuycbo7naqp5dtiajcsmpiwyt7n2mk35746463nkcjte2yy.ipfs.nftstorage.link/",
+                },
+                onClick: () => State.update({ isOpen: true, kind: "k" }),
+              },
+            }}
+          />
+          <Widget
+            src={widgets.styledComponents}
+            disabled={!state.isIAmHuman}
+            props={{
+              Button: {
+                text: "Give a Ding",
+                className: "justify-content-center w-100 primary danger",
+                image: {
+                  url: "https://bafkreigkzvete56d25gwabrb3msxegxley4t6csppqdik4mh45amimjubq.ipfs.nftstorage.link/",
+                },
+                onClick: () => State.update({ isOpen: true, kind: "d" }),
+              },
+            }}
+          />
+        </FilterButtonContainer>
       </Toolbar>
+      {state.isOpen && (
+        <Widget
+          src={widgets.addKudo}
+          props={{
+            onHide: () => State.update({ isOpen: false }),
+            kind: state.kind,
+          }}
+        />
+      )}
     </Filter>
     <Container className="d-flex row">
-      <Section className="col-lg-3">
+      <LeftSection className="col-lg-3">
         <H5>Home</H5>
         <Widget
           src={widgets.navigation}
@@ -178,72 +181,26 @@ return (
             handleSelect,
           }}
         />
-      </Section>
+      </LeftSection>
       <CenterSection className="col-lg-9">
-        {state.selectedKudo ? (
-          <>
-            <span
-              type="button"
-              onClick={() => State.update({ selectedKudo: null })}
-            >
-              <i class="bi bi-chevron-left"></i>
-              Go Back
-            </span>
-            <div className="d-flex flex-wrap">
-              <div className="col p-3">
-                <h4 className="pb-3">Kudo</h4>
+        <>
+          <h4>{state.selectedItem} Kudos</h4>
+          <div className="d-flex flex-wrap">
+            {state.kudos.map((kudo, index) => (
+              <div className="col col-lg-6 p-2">
                 <Widget
+                  key={index}
                   src={widgets.card}
                   props={{
                     isIAmHuman: state.isIAmHuman,
                     kudosContract,
-                    kudo: state.selectedKudo,
+                    kudo,
                   }}
                 />
               </div>
-              {state.selectedKudo && (
-                <div className="col p-3 d-grid gap-3">
-                  <h4>Comments</h4>
-                  {state.selectedKudo.comments.map((comment) => (
-                    <Widget
-                      src={widgets.card}
-                      props={{
-                        isIAmHuman: state.isIAmHuman,
-                        kudosContract,
-                        kudo: {
-                          id: comment[0],
-                          description: base64decode(comment[1]).t,
-                          accountId: base64decode(comment[1]).s,
-                          createdAt: null,
-                        },
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            <h4>{state.selectedItem} Kudos</h4>
-            <div className="d-flex flex-wrap">
-              {state.kudos.map((kudo, index) => (
-                <div className="col col-lg-6 p-2">
-                  <Widget
-                    key={index}
-                    src={widgets.card}
-                    props={{
-                      isIAmHuman: state.isIAmHuman,
-                      kudosContract,
-                      kudo,
-                      onClick: () => State.update({ selectedKudo: kudo }),
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+            ))}
+          </div>
+        </>
       </CenterSection>
     </Container>
   </div>

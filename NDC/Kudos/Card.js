@@ -1,7 +1,9 @@
-const { kudo, isIAmHuman, kudosContract, onClick } = props;
-
-const widget = {
+const { kudo, isIAmHuman, kudosContract, hideFooter } = props;
+console.log(kudo);
+const widgets = {
   styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
+  kudoPage: "#/kudos-v1.gwg.testnet/widget/NDC.Kudos.Kudo.Page",
+  addComment: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Kudo.AddComment",
 };
 
 const Container = styled.div`
@@ -37,18 +39,6 @@ const Mint = styled.div`
   }
 `;
 
-const UpvoteButton = styled.button`
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 24px;
-  color: ${(props) => (props.disabled ? "#C3CACE" : "#9333EA")};
-  border: 1px solid #9333ea;
-  border-color: ${(props) => (props.disabled ? "#C3CACE" : "")};
-`;
-
 const ViewButton = styled.button`
   padding: 2px 12px;
   border-radius: 8px;
@@ -69,6 +59,15 @@ const Description = styled.div`
   font-weight: 400;
   font-size: 14px;
   margin: 12px 0;
+`;
+
+const ImageTag = styled.div`
+  height: 250px;
+  width: 100%;
+  background: url(${(props) => props.src}) no-repeat center center;
+  background-size: cover;
+  overflow: hidden;
+  margin: 0 0 12px 0;
 `;
 
 const Tags = styled.div`
@@ -101,7 +100,7 @@ const Tag = styled.div`
 
 const StyledLink = styled.a`
   color: inherit !important;
-  width: 100px;
+  width: 80%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -149,14 +148,12 @@ const ModalContent = styled.div`
 `;
 
 const UserLink = ({ title, src }) => (
-  <>
-    <StyledLink href={src}>{title}</StyledLink>
-  </>
+  <StyledLink href={src}>{title}</StyledLink>
 );
 
 const getDateAgo = () => {
   const now = new Date().getTime();
-  const current = new Date(parseInt(kudo.createdAt)).getTime();
+  const current = new Date(parseInt(kudo.created_at)).getTime();
 
   const diff = now - current;
   let days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -190,7 +187,7 @@ const handleLeaveComment = (kudo, comment) => {
     kudosContract,
     "leave_comment",
     {
-      receiver_id: kudo.accountId,
+      receiver_id: kudo.receiver_id,
       kudos_id: kudo.id,
       text: comment.slice(0, 1000),
     },
@@ -203,11 +200,11 @@ const handleUpvote = (kudo) => {
     kudosContract,
     "upvote_kudos",
     {
-      receiver_id: kudo.accountId,
+      receiver_id: kudo.receiver_id,
       kudos_id: kudo.id,
     },
     "300000000000000",
-    10000000000000000000000
+    40000000000000000000000000
   );
 };
 
@@ -220,74 +217,7 @@ State.init({
   comment: "",
 });
 
-const Content = () => (
-  <ModalContent>
-    <h4>Comment to Reply</h4>
-    <div className="content">
-      <div className="d-flex justify-content-between align-items-center">
-        <div>
-          <Widget
-            src="rubycoptest.testnet/widget/ProfileImage"
-            props={{
-              accountId: kudo.accountId,
-              imageClassName: "rounded-circle w-100 h-100",
-              style: { width: "32px", height: "32px", marginRight: 5 },
-            }}
-          />
-          <UserLink
-            src={`https://www.near.org/near/widget/ProfilePage?accountId=${kudo.accountId}`}
-            title={kudo.accountId}
-          />
-        </div>
-        <CreatedAt>
-          <i className="bi bi-clock" />
-          {getDateAgo()}
-        </CreatedAt>
-      </div>
-      <Description className="text-secondary">{kudo.description}</Description>
-      <hr className="text-secondary" />
-      <h6>Reply</h6>
-      <InputField>
-        <textarea
-          className="form-control w-100"
-          rows="5"
-          value={state.comment}
-          onChange={(e) => {
-            const text = e.target.value;
-            if (text.length > 1000) return;
-
-            State.update({ comment: text });
-          }}
-        />
-      </InputField>
-      <small>{1000 - state.comment.length} characters left</small>
-    </div>
-    <div className="d-grid gap-3 d-flex align-items-center justify-content-end">
-      <Widget
-        src={widget.styledComponents}
-        props={{
-          Button: {
-            text: "Cancel",
-            className: "secondary",
-            onClick: () => State.update({ isOpen: false }),
-          },
-        }}
-      />
-      <Widget
-        src={widget.styledComponents}
-        props={{
-          Button: {
-            text: "Submit",
-            onClick: () => {
-              State.update({ isOpen: false });
-              handleLeaveComment(kudo, state.comment);
-            },
-          },
-        }}
-      />
-    </div>
-  </ModalContent>
-);
+const kudoTags = kudo.tags ? JSON.parse(kudo.tags).filter((el) => el) : [];
 
 return (
   <>
@@ -303,90 +233,112 @@ return (
       )}
       <div className="p-3">
         <div className="d-flex justify-content-between align-items-center">
-          <div className="d-flex justify-content-between align-items-center">
-            <Widget
-              src="rubycoptest.testnet/widget/ProfileImage"
-              props={{
-                accountId: kudo.accountId,
-                imageClassName: "rounded-circle w-100 h-100",
-                style: { width: "32px", height: "32px", marginRight: 5 },
-              }}
-            />
-            <UserLink
-              src={`https://www.near.org/near/widget/ProfilePage?accountId=${kudo.accountId}`}
-              title={kudo.accountId}
-            />
-          </div>
-          {kudo.upvotes !== undefined && (
-            <div className="d-flex justify-content-between align-items-center gap-2">
-              <UpvoteButton
-                value="action"
-                onClick={(e) => {
-                  handleUpvote(kudo);
+          <div className="d-flex justify-content-between align-items-center w-100">
+            <div className="d-flex gap-2 align-items-center">
+              <Widget
+                src="rubycoptest.testnet/widget/ProfileImage"
+                props={{
+                  accountId: kudo.receiver_id,
+                  imageClassName: "rounded-circle w-100 h-100",
+                  style: { width: "32px", height: "32px", marginRight: 5 },
                 }}
-                disabled={!isIAmHuman}
-              >
-                {kudo.upvotes}
-                <Widget
-                  src="rubycoptest.testnet/widget/Image"
-                  props={{
-                    image: {
-                      url: isIAmHuman
-                        ? "https://bafkreihtxbozr3tpmzyijzvgmnzjhfnvfudu5twxi5e736omfor6rrbcde.ipfs.nftstorage.link"
-                        : "https://bafkreiew3fr6fxxw6p5zibr7my7ykdqyppblaldsudsnropawfkghjkhuu.ipfs.nftstorage.link",
-                    },
-                    style: {
-                      height: "15px",
-                      marginBottom: "3px",
-                    },
-                    alt: "kudos",
-                    fallbackUrl:
-                      "https://ipfs.near.social/ipfs/bafkreibmiy4ozblcgv3fm3gc6q62s55em33vconbavfd2ekkuliznaq3zm",
-                  }}
-                />
-              </UpvoteButton>
+              />
+              <UserLink
+                src={`https://www.near.org/near/widget/ProfilePage?accountId=${kudo.receiver_id}`}
+                title={`To ${kudo.receiver_id}`}
+              />
             </div>
-          )}
-        </div>
-        <Description className="text-secondary">{kudo.description}</Description>
-        <Tags className="d-flex gap-2">
-          {kudo.tags && kudo.tags.map((tag) => <Tag>#{tag}</Tag>)}
-        </Tags>
-        <div className="d-flex justify-content-between align-items-center">
-          <CreatedAt>
-            <i className="bi bi-clock" />
-            {getDateAgo()}
-            {kudo.requesterId && (
-              <>
-                by <b>{kudo.requesterId}</b>
-              </>
-            )}
-          </CreatedAt>
-          <div className="d-flex justify-content-between align-items-center gap-2">
-            {onClick && <ViewButton onClick={onClick}>View</ViewButton>}
             <Widget
-              src={widget.styledComponents}
+              src={widgets.styledComponents}
               props={{
                 Button: {
-                  text: "Reply",
                   disabled: !isIAmHuman,
-                  size: "sm",
-                  icon: <i className="bi bi-arrow-90deg-left" />,
-                  onClick: () => State.update({ isOpen: true }),
+                  text: kudo.upvotes,
+                  className:
+                    kudo.kind === "k" ? "secondary dark" : "secondary danger",
+                  onClick: (e) => handleUpvote(kudo),
+                  image: {
+                    url: isIAmHuman
+                      ? kudo.kind === "k"
+                        ? "https://bafkreihtxbozr3tpmzyijzvgmnzjhfnvfudu5twxi5e736omfor6rrbcde.ipfs.nftstorage.link"
+                        : "https://bafkreia6ux4wzaktmwxxnkzd7tbhpuxhlp352twzsunc6vetza76u6clwy.ipfs.nftstorage.link/"
+                      : "https://bafkreiew3fr6fxxw6p5zibr7my7ykdqyppblaldsudsnropawfkghjkhuu.ipfs.nftstorage.link",
+                  },
                 },
               }}
             />
           </div>
         </div>
+        <Description className="text-secondary">{kudo.message}</Description>
+        {kudo.icon && <ImageTag src={`https://ipfs.io/ipfs/${kudo.icon}`} />}
+        {kudoTags.length > 0 && (
+          <Tags className="d-flex gap-2">
+            {kudoTags.map((tag) => (
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Tag: { title: tag },
+                }}
+              />
+            ))}
+          </Tags>
+        )}
+
+        {!hideFooter && (
+          <div className="d-flex justify-content-between align-items-center">
+            <CreatedAt className="gap-1">
+              <i className="bi bi-clock" />
+              {getDateAgo()}
+              {kudo.sender_id && (
+                <div>
+                  by <b>{kudo.sender_id}</b>
+                </div>
+              )}
+            </CreatedAt>
+            <div className="d-flex justify-content-between align-items-center gap-2">
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Link: {
+                    text: "View",
+                    size: "sm",
+                    className: "secondary dark w-100 justify-content-center",
+                    href: `${widgets.kudoPage}?accountId=${kudo.receiver_id}&kudoId=${kudo.id}`,
+                    icon: <i className="bi bi-eye fs-6"></i>,
+                  },
+                }}
+              />
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Button: {
+                    text: "Reply",
+                    disabled: !isIAmHuman,
+                    size: "sm",
+                    icon: <i className="bi bi-arrow-90deg-left" />,
+                    onClick: () => State.update({ isOpen: true }),
+                  },
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </Container>
 
     {state.isOpen && (
-      <Modal isOpen={state.isOpen}>
-        <ComponentWrapper>
-          <Content />
-        </ComponentWrapper>
-      </Modal>
+      <Widget
+        src={widgets.addComment}
+        props={{
+          kudo,
+          comment: {
+            owner_id: kudo.receiver_id,
+            message: kudo.message,
+            created_at: kudo.created_at
+          },
+          onHide: () => State.update({ isOpen: false }),
+        }}
+      />
     )}
   </>
 );

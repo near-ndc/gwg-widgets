@@ -1,6 +1,12 @@
 const { selectedItem, handleSelect } = props;
 
 const items = {
+  Latest: {
+    title: "Recent Kudos",
+    src: "https://bafkreidoyevrc2jtisbvh5ii4l4siiflwr7d42vgj52tknwcnpjcjt72sa.ipfs.nftstorage.link",
+    srcSelected:
+      "https://bafkreieeoqtjoyp64oxwvzu2qtjdxzapbpug5l6kgwfsnb7y43mpjhm52e.ipfs.nftstorage.link",
+  },
   Trending: {
     title: "Trending Kudos",
     src: "https://bafkreidoyevrc2jtisbvh5ii4l4siiflwr7d42vgj52tknwcnpjcjt72sa.ipfs.nftstorage.link",
@@ -79,6 +85,7 @@ const GroupItem = ({ itemType }) => (
 return (
   <>
     <div className="d-sm-block d-flex gap-3 justify-content-between">
+      <GroupItem itemType={"Latest"} />
       <GroupItem itemType={"Trending"} />
       <GroupItem itemType={"My"} />
     </div>

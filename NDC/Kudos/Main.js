@@ -11,7 +11,7 @@ const widgets = {
 };
 
 State.init({
-  selectedItem: "My",
+  selectedItem: "Latest",
   isIAmHuman: false,
   kudos: [],
   isOpen: false,
@@ -20,12 +20,11 @@ State.init({
 
 let data = Social.getr(`${kudosContract}/kudos`);
 const hashtags = Social.getr(`${kudosContract}/hashtags`);
-const formattedKudos = [];
+let formattedKudos = [];
 
 if (data) {
   Object.entries(data).map(([receiverId, kudoId], index) => {
     const kudo = Object.values(kudoId)[0];
-    console.log(kudo);
 
     formattedKudos.push({
       created_at: kudo.created_at,
@@ -36,22 +35,35 @@ if (data) {
       receiver_id: receiverId,
       tags: kudo.tags,
       id: Object.keys(kudoId)[0],
-      comments: kudo.comments ? Object.entries(kudo.comments) : {},
+      comments: kudo.comments ? Object.entries(kudo.comments) : [],
       upvotes: kudo.upvotes ? Object.keys(kudo.upvotes).length : 0,
     });
   });
 }
 
+formattedKudos = formattedKudos.sort((a, b) => b.created_at - a.created_at);
+const latestDing = formattedKudos.filter((k) => k.kind === "d")[0];
+
 State.update({ kudos: formattedKudos });
 
 const handleSelect = (itemType) => {
   let _kudos;
-  if (itemType === "My")
-    _kudos = state.kudos.filter(
-      (kudo) => kudo.receiver_id === context.accountId
-    );
-  if (itemType === "Trending")
-    _kudos = state.kudos.sort((a, b) => b.upvotes - a.upvotes);
+
+  switch (itemType) {
+    case "My":
+      _kudos = state.kudos.filter(
+        (kudo) =>
+          kudo.receiver_id === context.accountId ||
+          kudo.sender_id === context.accountId
+      );
+      break;
+    case "Trending":
+      _kudos = state.kudos.sort((a, b) => b.upvotes - a.upvotes);
+      break;
+    case "Latest":
+      _kudos = state.kudos.sort((a, b) => b.created_at - a.created_at);
+      break;
+  }
 
   State.update({ selectedItem: itemType, kudos: _kudos });
 };
@@ -59,8 +71,6 @@ const handleSelect = (itemType) => {
 const isHuman = Near.view(registryContract, "is_human", {
   account: context.accountId,
 });
-
-console.log(isHuman);
 
 State.update({ isIAmHuman: isHuman[0][1].length > 0 });
 
@@ -129,38 +139,40 @@ return (
           }}
         />
       </div>
-      <Toolbar>
-        <FilterButtonContainer className="d-flex gap-2">
-          <Widget
-            src={widgets.styledComponents}
-            disabled={!state.isIAmHuman}
-            props={{
-              Button: {
-                text: "Give a Kudo",
-                className: "primary justify-content-center w-100",
-                image: {
-                  url: "https://bafkreieynbjyuycbo7naqp5dtiajcsmpiwyt7n2mk35746463nkcjte2yy.ipfs.nftstorage.link/",
+      {state.isIAmHuman && (
+        <Toolbar>
+          <FilterButtonContainer className="d-flex gap-2">
+            <Widget
+              src={widgets.styledComponents}
+              disabled={!state.isIAmHuman}
+              props={{
+                Button: {
+                  text: "Give a Kudo",
+                  className: "primary justify-content-center w-100",
+                  image: {
+                    url: "https://bafkreieynbjyuycbo7naqp5dtiajcsmpiwyt7n2mk35746463nkcjte2yy.ipfs.nftstorage.link/",
+                  },
+                  onClick: () => State.update({ isOpen: true, kind: "k" }),
                 },
-                onClick: () => State.update({ isOpen: true, kind: "k" }),
-              },
-            }}
-          />
-          <Widget
-            src={widgets.styledComponents}
-            disabled={!state.isIAmHuman}
-            props={{
-              Button: {
-                text: "Give a Ding",
-                className: "justify-content-center w-100 primary danger",
-                image: {
-                  url: "https://bafkreigkzvete56d25gwabrb3msxegxley4t6csppqdik4mh45amimjubq.ipfs.nftstorage.link/",
+              }}
+            />
+            <Widget
+              src={widgets.styledComponents}
+              disabled={!state.isIAmHuman}
+              props={{
+                Button: {
+                  text: "Give a Ding",
+                  className: "justify-content-center w-100 primary danger",
+                  image: {
+                    url: "https://bafkreigkzvete56d25gwabrb3msxegxley4t6csppqdik4mh45amimjubq.ipfs.nftstorage.link/",
+                  },
+                  onClick: () => State.update({ isOpen: true, kind: "d" }),
                 },
-                onClick: () => State.update({ isOpen: true, kind: "d" }),
-              },
-            }}
-          />
-        </FilterButtonContainer>
-      </Toolbar>
+              }}
+            />
+          </FilterButtonContainer>
+        </Toolbar>
+      )}
       {state.isOpen && (
         <Widget
           src={widgets.addKudo}
@@ -195,6 +207,7 @@ return (
                     isIAmHuman: state.isIAmHuman,
                     kudosContract,
                     kudo,
+                    latestDing,
                   }}
                 />
               </div>

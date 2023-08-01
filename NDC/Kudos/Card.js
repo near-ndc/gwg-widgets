@@ -1,19 +1,30 @@
-const { kudo, isIAmHuman, kudosContract, hideFooter } = props;
-console.log(kudo);
+const {
+  kudo,
+  isIAmHuman,
+  kudosContract,
+  hideMintBtn,
+  latestDing,
+  inverseColor,
+} = props;
+
+const MIN_UPVOTE = 3;
+
 const widgets = {
   styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
   kudoPage: "#/kudos-v1.gwg.testnet/widget/NDC.Kudos.Kudo.Page",
   addComment: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Kudo.AddComment",
+  mintSbt: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Kudo.MintSbt",
 };
 
 const Container = styled.div`
   border-radius: 10px;
-  background: #f8f8f9;
-  border: ${(props) => (props.canMint ? "2px solid #9333EA" : "")};
-
-  @media (max-width: 768px) {
-    background: #fff;
-  }
+  background: ${(props) => (props.inverseColor ? "#fff" : "#f8f8f9")};
+  border: ${(props) =>
+    props.canMint
+      ? "2px solid #9333EA"
+      : props.ding
+      ? "2px solid #DD5E56"
+      : ""};
 `;
 
 const InputField = styled.div`
@@ -29,6 +40,23 @@ const Mint = styled.div`
   span.gift {
     font-size: 20px;
   }
+  b {
+    margin-left: 5px;
+    font-size: 16px;
+  }
+
+  p {
+    margin-bottom: 0;
+  }
+`;
+
+const Ding = styled.div`
+  padding: 10px 0;
+  background: #c23f38;
+  border-radius: 8px 8px 0 0;
+  font-size: 14px;
+  color: #fff;
+
   b {
     margin-left: 5px;
     font-size: 16px;
@@ -98,14 +126,22 @@ const Tag = styled.div`
   );
 `;
 
-const StyledLink = styled.a`
-  color: inherit !important;
-  width: 80%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 16px;
-  margin-left: 5px;
+const KudoLink = styled.a`
+  color: black;
+
+  &:hover {
+    text-decoration: none !important;
+  }
+
+  span {
+    color: inherit !important;
+    width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    margin-left: 5px;
+  }
 `;
 
 const Modal = styled.div`
@@ -147,10 +183,6 @@ const ModalContent = styled.div`
   }
 `;
 
-const UserLink = ({ title, src }) => (
-  <StyledLink href={src}>{title}</StyledLink>
-);
-
 const getDateAgo = () => {
   const now = new Date().getTime();
   const current = new Date(parseInt(kudo.created_at)).getTime();
@@ -169,31 +201,17 @@ const getDateAgo = () => {
   return "";
 };
 
-const canMint = kudo.upvotes >= 1;
+const canMint =
+  isIAmHuman &&
+  kudo.kind === "k" &&
+  kudo.upvotes >= MIN_UPVOTE &&
+  kudo.receiver_id === context.accountId &&
+  !hideMintBtn;
 
-const handleMintSBT = (kudo) => {
-  Near.call(
-    kudosContract,
-    "exchange_kudos_for_sbt",
-    {
-      kudos_id: kudo.id,
-    },
-    "300000000000000"
-  );
-};
-
-const handleLeaveComment = (kudo, comment) => {
-  Near.call(
-    kudosContract,
-    "leave_comment",
-    {
-      receiver_id: kudo.receiver_id,
-      kudos_id: kudo.id,
-      text: comment.slice(0, 1000),
-    },
-    "300000000000000"
-  );
-};
+const receivedDing =
+  kudo.kind === "d" &&
+  kudo.id === latestDing.id &&
+  kudo.receiver_id === context.accountId;
 
 const handleUpvote = (kudo) => {
   Near.call(
@@ -204,7 +222,7 @@ const handleUpvote = (kudo) => {
       kudos_id: kudo.id,
     },
     "300000000000000",
-    40000000000000000000000000
+    4000000000000000000000
   );
 };
 
@@ -213,7 +231,8 @@ const handleShare = (e) => {
 };
 
 State.init({
-  isOpen: false,
+  addCommentIsOpen: false,
+  mintKudoIsOpen: false,
   comment: "",
 });
 
@@ -221,48 +240,69 @@ const kudoTags = kudo.tags ? JSON.parse(kudo.tags).filter((el) => el) : [];
 
 return (
   <>
-    <Container canMint={canMint}>
-      {canMint && (
-        <Mint id="mint" onClick={() => handleMintSBT(kudo)}>
+    <Container
+      canMint={canMint}
+      ding={receivedDing}
+      inverseColor={inverseColor}
+    >
+      {canMint ? (
+        <Mint id="mint" onClick={() => State.update({ mintKudoIsOpen: true })}>
           <p className="text-white text-center align-items-center">
             <span className="gift">🎁</span>
             <b>Congratulations!</b>{" "}
+          </p>
+          <p className="text-white text-center align-items-center">
             <i>Click on the gift box to mint your Proof of Kudos</i>
           </p>
         </Mint>
+      ) : (
+        receivedDing && (
+          <Ding id="mint">
+            <p className="text-white text-center align-items-center">
+              <b>Attention!</b> <i>You have received a Ding</i>
+            </p>
+          </Ding>
+        )
       )}
       <div className="p-3">
         <div className="d-flex justify-content-between align-items-center">
           <div className="d-flex justify-content-between align-items-center w-100">
             <div className="d-flex gap-2 align-items-center">
-              <Widget
-                src="rubycoptest.testnet/widget/ProfileImage"
-                props={{
-                  accountId: kudo.receiver_id,
-                  imageClassName: "rounded-circle w-100 h-100",
-                  style: { width: "32px", height: "32px", marginRight: 5 },
-                }}
-              />
-              <UserLink
-                src={`https://www.near.org/near/widget/ProfilePage?accountId=${kudo.receiver_id}`}
-                title={`To ${kudo.receiver_id}`}
-              />
+              <KudoLink
+                href={`${widgets.kudoPage}?accountId=${kudo.receiver_id}&kudoId=${kudo.id}`}
+              >
+                <Widget
+                  src="rubycoptest.testnet/widget/ProfileImage"
+                  props={{
+                    accountId: kudo.receiver_id,
+                    imageClassName: "rounded-circle w-100 h-100",
+                    style: { width: "32px", height: "32px", marginRight: 5 },
+                  }}
+                />
+                <span>To {kudo.receiver_id}</span>
+              </KudoLink>
             </div>
             <Widget
               src={widgets.styledComponents}
               props={{
                 Button: {
-                  disabled: !isIAmHuman,
+                  disabled:
+                    !isIAmHuman ||
+                    kudo.receiver_id === context.accountId ||
+                    kudo.sender_id === context.accountId,
                   text: kudo.upvotes,
                   className:
                     kudo.kind === "k" ? "secondary dark" : "secondary danger",
                   onClick: (e) => handleUpvote(kudo),
                   image: {
-                    url: isIAmHuman
-                      ? kudo.kind === "k"
-                        ? "https://bafkreihtxbozr3tpmzyijzvgmnzjhfnvfudu5twxi5e736omfor6rrbcde.ipfs.nftstorage.link"
-                        : "https://bafkreia6ux4wzaktmwxxnkzd7tbhpuxhlp352twzsunc6vetza76u6clwy.ipfs.nftstorage.link/"
-                      : "https://bafkreiew3fr6fxxw6p5zibr7my7ykdqyppblaldsudsnropawfkghjkhuu.ipfs.nftstorage.link",
+                    url:
+                      kudo.kind === "k"
+                        ? isIAmHuman &&
+                          kudo.receiver_id !== context.accountId &&
+                          kudo.sender_id !== context.accountId
+                          ? "https://bafkreihtxbozr3tpmzyijzvgmnzjhfnvfudu5twxi5e736omfor6rrbcde.ipfs.nftstorage.link"
+                          : "https://bafkreiew3fr6fxxw6p5zibr7my7ykdqyppblaldsudsnropawfkghjkhuu.ipfs.nftstorage.link"
+                        : "https://bafkreia6ux4wzaktmwxxnkzd7tbhpuxhlp352twzsunc6vetza76u6clwy.ipfs.nftstorage.link/",
                   },
                 },
               }}
@@ -284,59 +324,55 @@ return (
           </Tags>
         )}
 
-        {!hideFooter && (
-          <div className="d-flex justify-content-between align-items-center">
-            <CreatedAt className="gap-1">
-              <i className="bi bi-clock" />
-              {getDateAgo()}
-              {kudo.sender_id && (
-                <div>
-                  by <b>{kudo.sender_id}</b>
-                </div>
-              )}
-            </CreatedAt>
-            <div className="d-flex justify-content-between align-items-center gap-2">
-              <Widget
-                src={widgets.styledComponents}
-                props={{
-                  Link: {
-                    text: "View",
-                    size: "sm",
-                    className: "secondary dark w-100 justify-content-center",
-                    href: `${widgets.kudoPage}?accountId=${kudo.receiver_id}&kudoId=${kudo.id}`,
-                    icon: <i className="bi bi-eye fs-6"></i>,
-                  },
-                }}
-              />
-              <Widget
-                src={widgets.styledComponents}
-                props={{
-                  Button: {
-                    text: "Reply",
-                    disabled: !isIAmHuman,
-                    size: "sm",
-                    icon: <i className="bi bi-arrow-90deg-left" />,
-                    onClick: () => State.update({ isOpen: true }),
-                  },
-                }}
-              />
-            </div>
+        <div className="d-flex justify-content-between align-items-center">
+          <CreatedAt className="gap-1">
+            <i className="bi bi-clock" />
+            {getDateAgo()}
+            {kudo.sender_id && (
+              <div>
+                by <b>{kudo.sender_id}</b>
+              </div>
+            )}
+          </CreatedAt>
+          <div className="d-flex justify-content-between align-items-center gap-2">
+            <Widget
+              src={widgets.styledComponents}
+              props={{
+                Button: {
+                  text: "Reply",
+                  disabled: !isIAmHuman,
+                  size: "sm",
+                  icon: <i className="bi bi-arrow-90deg-left" />,
+                  onClick: () => State.update({ addCommentIsOpen: true }),
+                },
+              }}
+            />
           </div>
-        )}
+        </div>
       </div>
     </Container>
 
-    {state.isOpen && (
+    {state.addCommentIsOpen && (
       <Widget
         src={widgets.addComment}
         props={{
           kudo,
           comment: {
+            id: null,
             owner_id: kudo.receiver_id,
             message: kudo.message,
-            created_at: kudo.created_at
+            created_at: kudo.created_at,
           },
-          onHide: () => State.update({ isOpen: false }),
+          onHide: () => State.update({ addCommentIsOpen: false }),
+        }}
+      />
+    )}
+    {state.mintKudoIsOpen && (
+      <Widget
+        src={widgets.mintSbt}
+        props={{
+          kudoId: kudo.id,
+          onHide: () => State.update({ mintKudoIsOpen: false }),
         }}
       />
     )}

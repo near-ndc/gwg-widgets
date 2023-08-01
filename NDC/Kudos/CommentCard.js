@@ -7,7 +7,7 @@ const widgets = {
 
 const Container = styled.div`
   border-radius: 10px;
-  background: #f8f8f9;
+  background: #fff;
 
   @media (max-width: 768px) {
     background: #fff;
@@ -16,13 +16,13 @@ const Container = styled.div`
 
 const Description = styled.div`
   max-height: 100px;
-  white-space: pre-line;
+  white-space: ${(props) => (props.secondary ? "" : "pre-line")};
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 400;
-  font-size: 14px;
-  margin: 12px 0;
+  font-size: ${(props) => (props.secondary ? "12px" : "14px")};
+  margin: ${(props) => (props.secondary ? "5px 0 0 0" : "12px 0")};
 `;
 
 const ImageTag = styled.div`
@@ -45,18 +45,29 @@ const CreatedAt = styled.div`
 `;
 
 const StyledLink = styled.a`
-  color: inherit !important;
+  color: ${(props) =>
+    props.secondary ? "grey !important" : "black !important"};
   width: 80%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 16px;
-  margin-left: 5px;
+  font-size: ${(props) => (props.secondary ? "14px" : "16px")};
 `;
 
-const UserLink = ({ title, src }) => (
-  <StyledLink href={src}>{title}</StyledLink>
-);
+const ReplyTo = styled.div`
+  margin-bottom: 20px;
+  background: #f8f8f9;
+  padding: 10px;
+  border-radius: 6px;
+`;
+
+const Hr = styled.div`
+  background: #d0d6d9;
+  border-radius: 3px;
+  width: 2px;
+  height: 40px;
+  margin-right: 10px;
+`;
 
 const getDateAgo = () => {
   const now = new Date().getTime();
@@ -76,50 +87,66 @@ const getDateAgo = () => {
   return "";
 };
 
-const handleLeaveComment = (kudo, comment) => {
-  Near.call(
-    kudosContract,
-    "leave_comment",
-    {
-      receiver_id: kudo.receiver_id,
-      kudos_id: kudo.id,
-      text: comment.slice(0, 1000),
-    },
-    "300000000000000"
+const handleShare = (e) => e.preventDefault();
+
+State.init({ isOpen: false });
+
+const UserProfile = ({ secondary, ownerId }) => {
+  const size = secondary ? "24px" : "32px";
+
+  return (
+    <div className="d-flex justify-content-between align-items-center">
+      <div className="d-flex justify-content-between align-items-center w-100">
+        <div className="d-flex gap-2 align-items-center">
+          <Widget
+            src="rubycoptest.testnet/widget/ProfileImage"
+            props={{
+              accountId: ownerId,
+              imageClassName: "rounded-circle w-100 h-100",
+              style: { width: size, height: size, marginRight: 5 },
+            }}
+          />
+          <StyledLink
+            secondary={secondary}
+            href={`https://www.near.org/near/widget/ProfilePage?accountId=${ownerId}`}
+          >
+            {ownerId}
+          </StyledLink>
+        </div>
+      </div>
+    </div>
   );
 };
 
-const handleShare = (e) => {
-  e.preventDefault();
+const trimMessage = (message) => {
+  const postfix = message.length > 20 ? "..." : "";
+  return `${message.slice(0, 20)}${postfix}`;
 };
 
-State.init({
-  isOpen: false,
-  comment: "",
-});
+const base64decode = (encodedValue) => {
+  let buff = Buffer.from(encodedValue, "base64");
+  return JSON.parse(buff.toString("utf-8"));
+};
 
 return (
   <>
     <Container>
       <div className="p-3">
-        <div className="d-flex justify-content-between align-items-center">
-          <div className="d-flex justify-content-between align-items-center w-100">
-            <div className="d-flex gap-2 align-items-center">
-              <Widget
-                src="rubycoptest.testnet/widget/ProfileImage"
-                props={{
-                  accountId: comment.owner_id,
-                  imageClassName: "rounded-circle w-100 h-100",
-                  style: { width: "32px", height: "32px", marginRight: 5 },
-                }}
+        {comment.parent_comment && (
+          <ReplyTo className="d-flex align-items-center">
+            <Hr />
+            <div>
+              <UserProfile
+                secondary
+                ownerId={base64decode(comment.parent_comment).s}
               />
-              <UserLink
-                src={`https://www.near.org/near/widget/ProfilePage?accountId=${comment.owner_id}`}
-                title={`${comment.owner_id}`}
-              />
+              <Description secondary className="text-secondary">
+                {trimMessage(base64decode(comment.parent_comment).m)}
+              </Description>
             </div>
-          </div>
-        </div>
+          </ReplyTo>
+        )}
+        <UserProfile ownerId={comment.owner_id} />
         <Description className="text-secondary">{comment.message}</Description>
         <div className="d-flex justify-content-between align-items-center">
           <CreatedAt className="gap-1">
@@ -160,6 +187,7 @@ return (
         props={{
           kudo,
           comment: {
+            id: comment.id,
             owner_id: comment.owner_id,
             message: comment.message,
             created_at: comment.created_at,

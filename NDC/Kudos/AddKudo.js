@@ -8,7 +8,7 @@ const widgets = {
 State.init({
   receiverId: "",
   message: "",
-  imageCid: null,
+  img: null,
   tags: "",
 });
 
@@ -69,7 +69,7 @@ const handleAddKudo = () => {
     {
       receiver_id: state.receiverId,
       message: state.message,
-      icon_cid: state.imageCid,
+      icon_cid: state.img.cid,
       kind,
       hashtags: state.tags.replace(/\s/g, "").split(","),
     },
@@ -111,18 +111,9 @@ return (
             />
           </Section>
           <Section>
-            <Widget
-              src={widgets.styledComponents}
-              props={{
-                Input: {
-                  label: "Add Image CID",
-                  placeholder: "Enter image CID",
-                  value: state.imageCid,
-                  handleChange: (e) =>
-                    State.update({ imageCid: e.target.value }),
-                },
-              }}
-            />
+            <div className="h-25">
+              <IpfsImageUpload image={state.img} />
+            </div>
           </Section>
           <Section>
             <Widget

@@ -7,7 +7,7 @@ const widgets = {
 
 State.init({
   receiverId: "",
-  comment: "",
+  message: "",
   imageCid: "",
   tags: "",
 });
@@ -92,15 +92,16 @@ const Description = styled.div`
   font-size: 14px;
   margin: 12px 0;
 `;
-
+console.log(comment);
 const handleAddComment = () => {
   Near.call(
     kudosContract,
     "leave_comment",
     {
-      comment: kudo.comment,
+      parent_comment_id: comment.id,
+      receiver_id: kudo.receiver_id,
       kudos_id: kudo.id,
-      message: state.comment.slice(0, 1000),
+      message: state.message.slice(0, 1000),
     },
     "300000000000000",
     "17000000000000000000000"
@@ -155,19 +156,21 @@ return (
               {getDateAgo()}
             </CreatedAt>
           </div>
-          <Description className="text-secondary">{comment.message.replace(/\n/g, '<br/>')}</Description>
+          <Description className="text-secondary">
+            {comment.message.replace(/\n/g, "<br/>")}
+          </Description>
           <hr className="text-secondary" />
           <h6>Reply</h6>
           <InputField>
             <textarea
               className="form-control w-100"
               rows="5"
-              value={state.comment}
+              value={state.message}
               onChange={(e) => {
                 const text = e.target.value;
                 if (text.length > 1000) return;
 
-                State.update({ comment: text });
+                State.update({ message: text });
               }}
             />
           </InputField>

@@ -68,20 +68,22 @@ const endpoints = {
 };
 
 function getVerifiedHuman() {
-  asyncFetch(endpoints.sbt, httpRequestOpt).then((res) => {
-    if (res.body.length > 0) {
-      State.update({ sbt: true });
-    }
+  let selfNomination = false;
+  const sbtTokens = Near.view(registryContract, "sbt_tokens", {
+    issuer: "fractal.i-am-human.near",
   });
-  asyncFetch(endpoints.og, httpRequestOpt).then((res) => {
-    if (res.body.length > 0) {
-      State.update({ og: true });
-    }
+  const ogTokens = Near.view(registryContract, "sbt_tokens", {
+    issuer,
   });
+
   asyncFetch(endpoints.candidateComments, httpRequestOpt).then((res) => {
-    if (res.body.length > 0) {
-      State.update({ selfNomination: true });
-    }
+    if (res.body.length > 0) selfNomination = true;
+  });
+
+  State.update({
+    og: ogTokens.some((sbt) => sbt.owner === context.accountId),
+    sbt: sbtTokens.some((sbt) => sbt.owner === context.accountId),
+    selfNomination,
   });
 }
 
@@ -89,6 +91,7 @@ function getNominationInfo(house) {
   let nominationsArr = [];
 
   State.update({ loading: true });
+
   asyncFetch(endpoints.houseNominations(house), httpRequestOpt).then((res) => {
     if (res.body.length <= 0) {
       State.update({ nominations: [], loading: false });
@@ -138,14 +141,6 @@ function getNominationInfo(house) {
   });
 }
 
-if (state.start) {
-  getNominationInfo("HouseOfMerit");
-  getVerifiedHuman();
-  State.update({
-    start: false,
-  });
-}
-
 const handleSelect = (item) => {
   console.log("id", item.id);
   switch (item.id) {
@@ -162,7 +157,7 @@ const handleSelect = (item) => {
   State.update({ selectedHouse: item.id });
 };
 
-function handleFilter(e) {
+const handleFilter = (e) => {
   const text = e.target.value;
 
   State.update({ candidateId: text });
@@ -190,7 +185,10 @@ function handleFilter(e) {
   } else {
     State.update({ nominations: state.originNominations });
   }
-}
+};
+
+getNominationInfo("HouseOfMerit");
+getVerifiedHuman();
 
 const Container = styled.div`
   padding: 30px 0;
@@ -209,107 +207,8 @@ const Left = styled.div`
 
 const Center = styled.div``;
 
-const Right = styled.div`
-  padding: 20px;
-  margin-bottom: 20px;
-  background: #f8f8f9;
-  border-radius: 8px;
-`;
-
 const H5 = styled.h5`
   margin-bottom: 20px;
-`;
-
-const VerifiedDiv = styled.div`
-  display: flex;
-  width: 100%;
-  padding: 16px;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 20px;
-  border-radius: 8px;
-  background: var(--ffffff, #fff);
-  box-shadow: 0px 0px 30px 0px rgba(0, 0, 0, 0.1);
-`;
-
-const VerifiedHeader = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  align-self: stretch;
-`;
-
-const VerifiedHeaderContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  flex: 1 0 0;
-`;
-
-const VerfiedTitle = styled.p`
-  display: flex;
-  width: 176px;
-  flex-direction: column;
-  justify-content: center;
-  color: var(--000000, #000);
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 120%;
-  margin: 0px;
-`;
-
-const VerifedDesc = styled.p`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-self: stretch;
-  color: var(--primary-gray-dark, #828688);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 120%;
-  margin: 0px;
-`;
-
-const VerifyButton = styled.a`
-  display: flex;
-  padding: 8px 20px;
-  justify-content: center;
-  width: 100%;
-  align-items: center;
-  gap: 10px;
-  align-self: stretch;
-  border-radius: 10px;
-  background: var(--ffd-50-d, #ffd50d);
-  border: 0px;
-  text-decoration: none;
-`;
-
-const VerifyButtonText = styled.p`
-  color: var(--primary-black, #000);
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 24px;
-  margin: 0px;
-`;
-
-const SortButton = styled.button`
-  display: flex;
-  width: 38px;
-  height: 38px;
-  padding: 8px 12px;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  border-radius: 6px;
-  background: var(
-    --buttons-gradient-default,
-    linear-gradient(90deg, #9333ea 0%, #4f46e5 100%)
-  );
-  border: 0px;
 `;
 
 const ButtonNominateContainer = styled.div`
@@ -370,8 +269,8 @@ return (
             }}
           />
         </div>
-        <Toolbar>
-          {state.og && (
+        {state.og && (
+          <Toolbar>
             <ButtonNominateContainer>
               {state.selfNomination ? (
                 <Widget
@@ -398,8 +297,8 @@ return (
                 />
               )}
             </ButtonNominateContainer>
-          )}
-        </Toolbar>
+          </Toolbar>
+        )}
       </Filter>
       <Container className="d-flex row justify-content-between w-100">
         <Left className="col-lg">

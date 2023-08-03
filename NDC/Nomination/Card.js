@@ -228,7 +228,7 @@ const KeyIssuesContainer = styled.div`
   padding: 0px;
   gap: 8px;
   overflow-y: scroll;
-  height: 250px;
+  height: 140px;
   width: 100%;
 `;
 const KeyIssueTitle = styled.p`

@@ -43,20 +43,11 @@ const CompletedIcon = styled.i`
 const ItemContainer = styled.div`
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.05);
   border-radius: 8px;
-  border: 1px solid;
-  background: ${(props) =>
-    props.selected
-      ? "linear-gradient(90deg, #9333EA 0%, #4F46E5 100%)"
-      : "#FFFFFF"};
-  border-color: ${(props) => (props.selected ? "#4F46E5" : "#ffffff")};
+  background: ${(props) => (props.selected ? "#4BA6EE" : "#fff")};
   color: ${(props) => (props.selected ? "white" : "inherit")};
 
   &:hover {
-    border: 1px solid #4f46e5;
-    background: ${(props) =>
-      props.selected
-        ? "linear-gradient(90deg, #9333EA 0%, #4F46E5 100%)"
-        : "linear-gradient(90deg, rgba(147, 51, 234, 0.08) 0%, rgba(79, 70, 229, 0.08) 100%)"};
+    background: ${(props) => (props.selected ? "#4BA6EE" : "#fff")};
     box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.05);
   }
 `;

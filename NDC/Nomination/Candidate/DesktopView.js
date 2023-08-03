@@ -550,6 +550,7 @@ return (
                     Link: {
                       text: `Watch Video`,
                       className: "primary dark",
+                      icon: <i class="bi bi-play-circle ml-2"></i>,
                       href: data.nominations.video,
                     },
                   }}
@@ -564,7 +565,9 @@ return (
                       !context.accountId ||
                       !state.verified ||
                       context.accountId === accountId,
-                    className: `${context.accountId && state.voted ? "primary" : "secondary"} dark`,
+                    className: `${
+                      context.accountId && state.voted ? "primary" : "secondary"
+                    } dark`,
                     onClick: handleUpVote,
                     icon: <i className="bi bi-hand-thumbs-up"></i>,
                   },

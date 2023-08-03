@@ -23,10 +23,10 @@ const Styled = {
 
       &.dark {
         color: #fff;
-        background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
+        background: #4ba6ee;
 
         &:hover {
-          background: linear-gradient(90deg, #792ac0 0%, #423abd 100%);
+          background: #3b86cb;
         }
       }
 
@@ -45,6 +45,10 @@ const Styled = {
       &.danger {
         background: #dd5e56;
         color: #fff;
+
+        &:hover {
+          background: #c23f38;
+        }
       }
     }
 
@@ -60,19 +64,23 @@ const Styled = {
       }
 
       &.dark {
-        border-color: ${(props) => (Button.inverse ? "#fff" : "#4f46e5")};
-        color: ${(props) => (Button.inverse ? "#fff" : "#4f46e5")};
+        border-color: ${(props) => (Button.inverse ? "#fff" : "#4BA6EE")};
+        color: ${(props) => (Button.inverse ? "#fff" : "#4BA6EE")};
 
         &:hover {
-          border-color: ${(props) => (Button.inverse ? "#fff" : "#2f2a87")};
-          color: ${(props) => (Button.inverse ? "#fff" : "#2f2a87")};
+          border-color: ${(props) => (Button.inverse ? "#fff" : "#3B86CB")};
+          color: ${(props) => (Button.inverse ? "#fff" : "#3B86CB")};
         }
       }
 
       &.danger {
-        border: 1px solid #c23f38;
-        background: #f1d6d5;
-        color: #c23f38;
+        border: 1px solid #dd5e56;
+        color: #dd5e56;
+
+        &:hover {
+          border-color: #c23f38;
+          color: #c23f38;
+        }
       }
 
       &:disabled {
@@ -89,7 +97,6 @@ const Styled = {
 
     i {
       margin: 0;
-      margin-left: ${(props) => (props.text ? "5px" : "0")};
     }
   `,
 
@@ -119,16 +126,20 @@ const Styled = {
 
       &.dark {
         color: #fff;
-        background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
+        background: #4ba6ee;
 
         &:hover {
-          background: linear-gradient(90deg, #792ac0 0%, #423abd 100%);
+          background: #3b86cb;
         }
       }
 
       &.danger {
         background: #dd5e56;
         color: #fff;
+
+        &:hover {
+          background: #c23f38;
+        }
       }
 
       &:disabled {
@@ -150,25 +161,34 @@ const Styled = {
       }
 
       &.dark {
-        border-color: ${(props) => (Link.inverse ? "#fff" : "#4f46e5")};
-        color: ${(props) => (Link.inverse ? "#fff" : "#4f46e5")};
+        border-color: ${(props) => (Link.inverse ? "#fff" : "#4BA6EE")};
+        color: ${(props) => (Link.inverse ? "#fff" : "#4BA6EE")};
 
         &:hover {
-          border-color: ${(props) => (Link.inverse ? "#fff" : "#2f2a87")};
-          color: ${(props) => (Link.inverse ? "#fff" : "#2f2a87")};
+          border-color: ${(props) => (Link.inverse ? "#fff" : "#3B86CB")};
+          color: ${(props) => (Link.inverse ? "#fff" : "#3B86CB")};
         }
       }
 
       &.danger {
-        border: 1px solid #c23f38;
-        background: #f1d6d5;
-        color: #c23f38;
+        border: 1px solid #dd5e56;
+        color: #dd5e56;
+
+        &:hover {
+          border-color: #c23f38;
+          color: #c23f38;
+        }
       }
 
       &:disabled {
         border-color: #c3cace;
         color: #828688;
       }
+    }
+
+    i {
+      margin: 0;
+      margin-left: ${(props) => (Link.text ? "5px" : "0")};
     }
   `,
 
@@ -206,18 +226,13 @@ const Styled = {
     justify-content: center;
     align-items: center;
     padding: 4px 8px;
-    border: 1px solid #9333ea;
-    color: #9333ea;
-    background: linear-gradient(
-      90deg,
-      rgba(147, 51, 234, 0.1) 0%,
-      rgba(79, 70, 229, 0.1) 100%
-    );
+    border: 1px solid #4ba6ee;
+    color: #4ba6ee;
     border-radius: 100px;
 
     &.dark {
       color: #fff;
-      background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
+      background: #4ba6ee;
     }
 
     p {
@@ -251,7 +266,9 @@ if (Link)
   return (
     <Styled.Link
       size={Link.size}
-      className={`align-items-center d-flex ${Link.className ?? "primary"} gap-1`}
+      className={`align-items-center d-flex ${
+        Link.className ?? "primary"
+      } gap-1`}
       href={Link.href}
       target="_blank"
       disabled={Link.disabled}
@@ -270,7 +287,9 @@ if (Button)
   return (
     <Styled.Button
       size={Button.size}
-      className={`align-items-center d-flex ${Button.className ?? "primary"} gap-1`}
+      className={`align-items-center d-flex ${
+        Button.className ?? "primary"
+      } gap-1`}
       onClick={Button.onClick}
       disabled={Button.disabled}
       text={Button.text}

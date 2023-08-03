@@ -1,3 +1,5 @@
+const { transactionHashes } = props;
+
 const kudosContract = "kudos-v1.gwg.testnet";
 const registryContract = "registry-unstable.i-am-human.testnet";
 
@@ -7,72 +9,119 @@ const widgets = {
   navigation: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Navigation",
   card: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Card",
   addKudo: "kudos-v1.gwg.testnet/widget/NDC.Kudos.AddKudo",
+  congratsMintModal: "kudos-v1.gwg.testnet/widget/NDC.Kudos.CongratsMintModal",
   styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
 };
 
 State.init({
   selectedItem: "Latest",
+  searchAccId: "",
+  emptyResult: false,
   isIAmHuman: false,
   kudos: [],
   isOpen: false,
   kind: "",
+  congratsMintModal: false,
+  init: true,
 });
 
-let data = Social.getr(`${kudosContract}/kudos`);
-const hashtags = Social.getr(`${kudosContract}/hashtags`);
-let formattedKudos = [];
+const getKudos = () => {
+  let data = Social.getr(`${kudosContract}/kudos`);
+  let formattedKudos = [];
 
-if (data) {
-  Object.entries(data).map(([receiverId, kudoId], index) => {
-    const kudo = Object.values(kudoId)[0];
-
-    formattedKudos.push({
-      created_at: kudo.created_at,
-      icon: kudo.icon,
-      kind: kudo.kind,
-      message: kudo.message,
-      sender_id: kudo.sender_id,
-      receiver_id: receiverId,
-      tags: kudo.tags,
-      id: Object.keys(kudoId)[0],
-      comments: kudo.comments ? Object.entries(kudo.comments) : [],
-      upvotes: kudo.upvotes ? Object.keys(kudo.upvotes).length : 0,
+  if (data) {
+    Object.entries(data).map(([receiverId, kudoObject], index) => {
+      Object.entries(kudoObject).map(([id, kudo]) => {
+        formattedKudos.push({
+          id,
+          created_at: kudo.created_at,
+          icon: kudo.icon,
+          kind: kudo.kind,
+          message: kudo.message,
+          sender_id: kudo.sender_id,
+          receiver_id: receiverId,
+          tags: kudo.tags,
+          comments: kudo.comments ? Object.entries(kudo.comments) : [],
+          upvotes: kudo.upvotes ? Object.keys(kudo.upvotes) : [],
+        });
+      });
     });
-  });
-}
+  }
 
-formattedKudos = formattedKudos.sort((a, b) => b.created_at - a.created_at);
-const latestDing = formattedKudos.filter((k) => k.kind === "d")[0];
+  if (formattedKudos.length === 0) {
+    State.update({ kudos: [], emptyResult: false });
+    return;
+  }
 
-State.update({ kudos: formattedKudos });
+  let filteredKudos = [];
 
-const handleSelect = (itemType) => {
-  let _kudos;
-
-  switch (itemType) {
+  switch (state.selectedItem) {
     case "My":
-      _kudos = state.kudos.filter(
+      filteredKudos = formattedKudos.filter(
         (kudo) =>
           kudo.receiver_id === context.accountId ||
           kudo.sender_id === context.accountId
       );
       break;
     case "Trending":
-      _kudos = state.kudos.sort((a, b) => b.upvotes - a.upvotes);
+      filteredKudos = formattedKudos.sort(
+        (a, b) => b.upvotes.length - a.upvotes.length
+      );
       break;
     case "Latest":
-      _kudos = state.kudos.sort((a, b) => b.created_at - a.created_at);
+      filteredKudos = formattedKudos.sort(
+        (a, b) => b.created_at - a.created_at
+      );
       break;
   }
 
-  State.update({ selectedItem: itemType, kudos: _kudos });
+  if (state.searchAccId) {
+    filteredKudos = filteredKudos.filter((kudo) =>
+      kudo.receiver_id.includes(state.searchAccId)
+    );
+  }
+
+  State.update({
+    kudos: filteredKudos,
+    emptyResult: filteredKudos.length === 0,
+  });
 };
 
 const isHuman = Near.view(registryContract, "is_human", {
   account: context.accountId,
 });
+const sbts = Near.view(registryContract, "sbt_tokens", {
+  issuer: kudosContract,
+});
 
-State.update({ isIAmHuman: isHuman[0][1].length > 0 });
+State.update({
+  isKudoMinted: sbts.some((sbt) => sbt.owner === context.accountId),
+  isIAmHuman: isHuman[0][1].length > 0,
+});
+
+getKudos();
+
+asyncFetch("https://rpc.testnet.near.org", {
+  method: "POST",
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    jsonrpc: "2.0",
+    id: "dontcare",
+    method: "tx",
+    params: [transactionHashes, context.accountId],
+  }),
+}).then((res) => {
+  const txn = res.body.result.transaction;
+  if (
+    res.body.result.status.SuccessValue &&
+    txn.signer_id === context.accountId &&
+    txn.actions[0].FunctionCall.method_name === "exchange_kudos_for_sbt"
+  )
+    State.update({ congratsMintModal: true });
+});
 
 const Container = styled.div`
   margin: 20px 0;
@@ -82,21 +131,47 @@ const LeftSection = styled.div`
   padding: 20px;
   background: #f8f8f9;
   border-radius: 10px;
+
+  @media (max-width: 768px) {
+    background: #f8f8f9;
+    padding: 16px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
 `;
 
 const CenterSection = styled.div`
   background: #fff;
-  padding: 20px;
-  border-radius: 10px;
+  min-height: 100%;
 
   @media (max-width: 768px) {
-    margin: 20px 0;
     background: #f8f8f9;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
   }
 `;
 
 const H5 = styled.h5`
-  margin-bottom: 20px;
+  padding-bottom: 10px;
+
+  &.thin {
+    font-weight: 400;
+  }
+`;
+
+const H4 = styled.h5`
+  padding-bottom: 10px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+const H3 = styled.h5`
+  padding: 20px 0px 0 10px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const FilterButtonContainer = styled.div`
@@ -133,8 +208,8 @@ return (
         <Widget
           src={widgets.filter}
           props={{
-            handleFilter,
-            candidateId: state.candidateId,
+            handleFilter: (e) => State.update({ searchAccId: e.target.value }),
+            candidateId: state.searchAccId,
             placeholder: "Search by account name",
           }}
         />
@@ -185,36 +260,58 @@ return (
     </Filter>
     <Container className="d-flex row">
       <LeftSection className="col-lg-3">
-        <H5>Home</H5>
+        <H4>Home</H4>
         <Widget
           src={widgets.navigation}
           props={{
             selectedItem: state.selectedItem,
-            handleSelect,
+            handleSelect: (itemType) =>
+              State.update({ selectedItem: itemType }),
           }}
         />
       </LeftSection>
       <CenterSection className="col-lg-9">
         <>
-          <h4>{state.selectedItem} Kudos</h4>
-          <div className="d-flex flex-wrap">
-            {state.kudos.map((kudo, index) => (
-              <div className="col col-lg-6 p-2">
-                <Widget
-                  key={index}
-                  src={widgets.card}
-                  props={{
-                    isIAmHuman: state.isIAmHuman,
-                    kudosContract,
-                    kudo,
-                    latestDing,
-                  }}
-                />
+          <H3>{state.selectedItem} Kudos</H3>
+          {state.emptyResult ? (
+            <div className="w-100 h-100 d-flex justify-content-center align-items-center">
+              <div className="text-center d-flex flex-column gap-2">
+                <i className="bi bi-search fs-1"></i>
+                <H5 className="text-secondary thin">
+                  There are no kudos <br />
+                  matches searching request
+                </H5>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="d-flex flex-wrap">
+              {state.kudos.map((kudo, index) => (
+                <div className="col col-lg-6 p-2">
+                  <Widget
+                    key={index}
+                    src={widgets.card}
+                    props={{
+                      isIAmHuman: state.isIAmHuman,
+                      isKudoMinted: state.isKudoMinted,
+                      kudosContract,
+                      kudo,
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </>
       </CenterSection>
     </Container>
+
+    {state.congratsMintModal && state.init && (
+      <Widget
+        src={widgets.congratsMintModal}
+        props={{
+          onHide: () => State.update({ congratsMintModal: false, init: false }),
+        }}
+      />
+    )}
   </div>
 );

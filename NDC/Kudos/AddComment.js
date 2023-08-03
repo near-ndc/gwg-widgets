@@ -90,9 +90,8 @@ const Description = styled.div`
   text-overflow: ellipsis;
   font-weight: 400;
   font-size: 14px;
-  margin: 12px 0;
 `;
-console.log(comment);
+
 const handleAddComment = () => {
   Near.call(
     kudosContract,
@@ -157,24 +156,26 @@ return (
             </CreatedAt>
           </div>
           <Description className="text-secondary">
-            {comment.message.replace(/\n/g, "<br/>")}
+            {comment.message}
           </Description>
           <hr className="text-secondary" />
-          <h6>Reply</h6>
-          <InputField>
-            <textarea
-              className="form-control w-100"
-              rows="5"
-              value={state.message}
-              onChange={(e) => {
-                const text = e.target.value;
-                if (text.length > 1000) return;
+          <Widget
+            src={widgets.styledComponents}
+            props={{
+              TextArea: {
+                label: "Reply",
+                value: state.message,
+                maxLength: 1000,
+                placeholder: "Left a comment",
+                handleChange: (e) => {
+                  const text = e.target.value;
+                  if (text.length > 1000) return;
 
-                State.update({ message: text });
-              }}
-            />
-          </InputField>
-          <small>{1000 - state.comment.length} characters left</small>
+                  State.update({ message: text });
+                },
+              },
+            }}
+          />
         </div>
         <div className="d-grid gap-3 d-flex align-items-center justify-content-end">
           <Widget

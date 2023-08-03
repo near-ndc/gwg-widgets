@@ -1,13 +1,14 @@
 const {
   kudo,
   isIAmHuman,
+  isKudoMinted,
   kudosContract,
   hideMintBtn,
-  latestDing,
   inverseColor,
 } = props;
 
 const MIN_UPVOTE = 3;
+const IMPORTANT_DING_UPVOTES = 2;
 
 const widgets = {
   styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
@@ -25,6 +26,10 @@ const Container = styled.div`
       : props.ding
       ? "2px solid #DD5E56"
       : ""};
+
+  @media (max-width: 768px) {
+    background: #fff;
+  }
 `;
 
 const InputField = styled.div`
@@ -36,6 +41,7 @@ const Mint = styled.div`
   background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
   border-radius: 8px 8px 0 0;
   font-size: 14px;
+  cursor: pointer;
 
   span.gift {
     font-size: 20px;
@@ -203,14 +209,15 @@ const getDateAgo = () => {
 
 const canMint =
   isIAmHuman &&
+  !isKudoMinted &&
   kudo.kind === "k" &&
-  kudo.upvotes >= MIN_UPVOTE &&
+  kudo.upvotes.length >= MIN_UPVOTE &&
   kudo.receiver_id === context.accountId &&
   !hideMintBtn;
 
-const receivedDing =
+const importantDing =
   kudo.kind === "d" &&
-  kudo.id === latestDing.id &&
+  kudo.upvotes.length >= IMPORTANT_DING_UPVOTES &&
   kudo.receiver_id === context.accountId;
 
 const handleUpvote = (kudo) => {
@@ -242,7 +249,7 @@ return (
   <>
     <Container
       canMint={canMint}
-      ding={receivedDing}
+      ding={importantDing}
       inverseColor={inverseColor}
     >
       {canMint ? (
@@ -256,7 +263,7 @@ return (
           </p>
         </Mint>
       ) : (
-        receivedDing && (
+        importantDing && (
           <Ding id="mint">
             <p className="text-white text-center align-items-center">
               <b>Attention!</b> <i>You have received a Ding</i>
@@ -282,31 +289,35 @@ return (
                 <span>To {kudo.receiver_id}</span>
               </KudoLink>
             </div>
-            <Widget
-              src={widgets.styledComponents}
-              props={{
-                Button: {
-                  disabled:
-                    !isIAmHuman ||
-                    kudo.receiver_id === context.accountId ||
-                    kudo.sender_id === context.accountId,
-                  text: kudo.upvotes,
-                  className:
-                    kudo.kind === "k" ? "secondary dark" : "secondary danger",
-                  onClick: (e) => handleUpvote(kudo),
-                  image: {
-                    url:
-                      kudo.kind === "k"
-                        ? isIAmHuman &&
-                          kudo.receiver_id !== context.accountId &&
-                          kudo.sender_id !== context.accountId
-                          ? "https://bafkreihtxbozr3tpmzyijzvgmnzjhfnvfudu5twxi5e736omfor6rrbcde.ipfs.nftstorage.link"
-                          : "https://bafkreiew3fr6fxxw6p5zibr7my7ykdqyppblaldsudsnropawfkghjkhuu.ipfs.nftstorage.link"
-                        : "https://bafkreia6ux4wzaktmwxxnkzd7tbhpuxhlp352twzsunc6vetza76u6clwy.ipfs.nftstorage.link/",
-                  },
-                },
-              }}
-            />
+            {isIAmHuman &&
+              kudo.receiver_id !== context.accountId &&
+              kudo.sender_id !== context.accountId && (
+                <Widget
+                  src={widgets.styledComponents}
+                  props={{
+                    Button: {
+                      text: kudo.upvotes.length,
+                      disabled: kudo.upvotes.includes(context.accountId),
+                      className:
+                        kudo.kind === "k"
+                          ? "secondary dark"
+                          : "secondary danger",
+                      onClick: (e) => handleUpvote(kudo),
+                      image: {
+                        url:
+                          kudo.kind === "k"
+                            ? isIAmHuman &&
+                              kudo.receiver_id !== context.accountId &&
+                              kudo.sender_id !== context.accountId &&
+                              !kudo.upvotes.includes(context.accountId)
+                              ? "https://bafkreihtxbozr3tpmzyijzvgmnzjhfnvfudu5twxi5e736omfor6rrbcde.ipfs.nftstorage.link"
+                              : "https://bafkreidz6ybnsss2ulwg236fvp3cm5ksdqpsfziwhvnx4ee7maqpcl2jde.ipfs.nftstorage.link/"
+                            : "https://bafkreia6ux4wzaktmwxxnkzd7tbhpuxhlp352twzsunc6vetza76u6clwy.ipfs.nftstorage.link/",
+                      },
+                    },
+                  }}
+                />
+              )}
           </div>
         </div>
         <Description className="text-secondary">{kudo.message}</Description>
@@ -324,7 +335,7 @@ return (
           </Tags>
         )}
 
-        <div className="d-flex justify-content-between align-items-center">
+        <div className="d-flex justify-content-between align-items-center pt-2">
           <CreatedAt className="gap-1">
             <i className="bi bi-clock" />
             {getDateAgo()}

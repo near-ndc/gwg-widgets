@@ -17,6 +17,7 @@ State.init({
   kudo: null,
   isIAmHuman: false,
   isOpen: false,
+  kind: "",
 });
 
 let kudo = Social.getr(`${kudosContract}/kudos/${accountId}/${kudoId}`);
@@ -99,6 +100,18 @@ const ComponentWrapper = styled.div`
   transform: translate(-50%, -50%);
 `;
 
+const KudoTitle = styled.h5`
+  padding-bottom: 10px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const CommentTitle = styled.h5`
+  padding-bottom: 10px;
+`;
+
 const base64decode = (encodedValue) => {
   let buff = Buffer.from(encodedValue, "base64");
   return JSON.parse(buff.toString("utf-8"));
@@ -145,6 +158,7 @@ return (
             src={widgets.addKudo}
             props={{
               onHide: () => State.update({ isOpen: false }),
+              kind: state.kind,
             }}
           />
         )}
@@ -158,7 +172,7 @@ return (
         </BackLink>
         <div className="d-flex flex-wrap mt-4 gap-2">
           <Section className="col p-3">
-            <h4 className="pb-3">Kudo</h4>
+            <KudoTitle>Kudo</KudoTitle>
             <Widget
               src={widgets.card}
               props={{
@@ -171,29 +185,32 @@ return (
             />
           </Section>
           <Section className="col p-3">
-            <h4 className="pb-3">Comments ({kudo.comments.length})</h4>
+            <CommentTitle>Comments ({kudo.comments.length})</CommentTitle>
             <div className="d-flex flex-column gap-3">
               {kudo.comments.map(([id, comment]) => (
-                <Widget
-                  src={widgets.commentCard}
-                  props={{
-                    isIAmHuman: state.isIAmHuman,
-                    kudosContract,
-                    kudo: {
-                      id: kudoId,
-                      receiver_id: accountId,
-                    },
-                    comment: {
-                      id,
-                      parent_comment: kudo.comments.find(
-                        ([id, _comment]) => id === base64decode(comment).p
-                      )[1],
-                      owner_id: base64decode(comment).s,
-                      created_at: base64decode(comment).t,
-                      message: base64decode(comment).m,
-                    },
-                  }}
-                />
+                <>
+                  {console.log(base64decode(comment).m.replace(/\/\/n/, "\n"))}
+                  <Widget
+                    src={widgets.commentCard}
+                    props={{
+                      isIAmHuman: state.isIAmHuman,
+                      kudosContract,
+                      kudo: {
+                        id: kudoId,
+                        receiver_id: accountId,
+                      },
+                      comment: {
+                        id,
+                        parent_comment: kudo.comments.find(
+                          ([id, _comment]) => id === base64decode(comment).p
+                        )[1],
+                        owner_id: base64decode(comment).s,
+                        created_at: base64decode(comment).t,
+                        message: base64decode(comment).m,
+                      },
+                    }}
+                  />
+                </>
               ))}
             </div>
           </Section>

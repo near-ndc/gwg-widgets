@@ -15,11 +15,7 @@ const Container = styled.div`
 `;
 
 const Description = styled.div`
-  max-height: 100px;
-  white-space: ${(props) => (props.secondary ? "" : "pre-line")};
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  width: 100%
   font-weight: 400;
   font-size: ${(props) => (props.secondary ? "12px" : "14px")};
   margin: ${(props) => (props.secondary ? "5px 0 0 0" : "12px 0")};
@@ -128,6 +124,12 @@ const base64decode = (encodedValue) => {
   return JSON.parse(buff.toString("utf-8"));
 };
 
+const FormatMsg = ({message}) => {
+  const lines = message.split("\\n");
+
+  return lines.map((l) => <p className="m-0">{l}</p>);
+};
+
 return (
   <>
     <Container>
@@ -147,7 +149,9 @@ return (
           </ReplyTo>
         )}
         <UserProfile ownerId={comment.owner_id} />
-        <Description className="text-secondary">{comment.message}</Description>
+        <Description className="text-secondary">
+          <FormatMsg message={comment.message} />
+        </Description>
         <div className="d-flex justify-content-between align-items-center">
           <CreatedAt className="gap-1">
             <i className="bi bi-clock" />

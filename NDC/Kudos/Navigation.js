@@ -2,19 +2,19 @@ const { selectedItem, handleSelect } = props;
 
 const items = {
   Latest: {
-    title: "Recent Kudos",
-    src: "https://bafkreidoyevrc2jtisbvh5ii4l4siiflwr7d42vgj52tknwcnpjcjt72sa.ipfs.nftstorage.link",
+    title: "Recent",
+    src: "https://bafkreiew4nucfvlgjy3tz7fop66zd7qz6g57j4uf4ufjcxokwjxefwqyim.ipfs.nftstorage.link/",
     srcSelected:
-      "https://bafkreieeoqtjoyp64oxwvzu2qtjdxzapbpug5l6kgwfsnb7y43mpjhm52e.ipfs.nftstorage.link",
+      "https://bafkreif4clvv3j4dyyxuowyosyklnh5c62emnh23e55gip3clsgkto3qi4.ipfs.nftstorage.link/",
   },
   Trending: {
-    title: "Trending Kudos",
+    title: "Trending",
     src: "https://bafkreidoyevrc2jtisbvh5ii4l4siiflwr7d42vgj52tknwcnpjcjt72sa.ipfs.nftstorage.link",
     srcSelected:
       "https://bafkreieeoqtjoyp64oxwvzu2qtjdxzapbpug5l6kgwfsnb7y43mpjhm52e.ipfs.nftstorage.link",
   },
   My: {
-    title: "My Kudos",
+    title: "My",
     src: "https://bafkreihtxbozr3tpmzyijzvgmnzjhfnvfudu5twxi5e736omfor6rrbcde.ipfs.nftstorage.link",
     srcSelected:
       "https://bafkreibchxu3obfelbn3dhwpucfvc4yqopodp2khlcnzyw2mcr7zpg2mpi.ipfs.nftstorage.link",
@@ -26,10 +26,10 @@ const Title = styled.h6`
 `;
 
 const ImgContainer = styled.div`
-  margin-right: 20px;
+  margin-right: ${(props) => (props.mobile ? "8px" : "20px")};
 `;
 
-const ItemContainer = styled.div`
+const DesktopNav = styled.div`
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.05);
   border-radius: 8px;
   border: 1px solid;
@@ -50,44 +50,89 @@ const ItemContainer = styled.div`
   }
 `;
 
-const GroupItem = ({ itemType }) => (
-  <ItemContainer
-    role="button"
-    className="d-flex w-100 p-3 px-4 align-items-center justify-content-between mb-2"
-    onClick={() => handleSelect(itemType)}
-    selected={selectedItem === itemType}
-  >
-    <div className="d-flex align-items-center">
-      <ImgContainer>
-        <Widget
-          src="rubycoptest.testnet/widget/Image"
-          props={{
-            image: {
-              url:
-                selectedItem === itemType
-                  ? items[itemType].srcSelected
-                  : items[itemType].src,
-            },
-            style: {
-              height: "24px",
-            },
-            alt: items[itemType].title,
-            fallbackUrl:
-              "https://ipfs.near.social/ipfs/bafkreibmiy4ozblcgv3fm3gc6q62s55em33vconbavfd2ekkuliznaq3zm",
-          }}
-        />
-      </ImgContainer>
-      <Title>{items[itemType].title}</Title>
-    </div>
-  </ItemContainer>
+const MobileNav = styled.div`
+  border-bottom: ${(props) =>
+    props.selected ? "2px solid #4F46E5" : "2px solid rgb(248, 248, 249)"};
+  color: ${(props) => (props.selected ? "#4F46E5" : "inherit")};
+`;
+
+const Desktop = styled.div`
+  display: flex;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const Mobile = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+`;
+
+const Nav = ({ itemType, mobile }) => (
+  <div className="d-flex align-items-center">
+    <ImgContainer mobile={mobile}>
+      <Widget
+        src="rubycoptest.testnet/widget/Image"
+        props={{
+          image: {
+            url:
+              selectedItem === itemType && !mobile
+                ? items[itemType].srcSelected
+                : items[itemType].src,
+          },
+          style: { height: "24px" },
+          alt: items[itemType].title,
+          fallbackUrl:
+            "https://ipfs.near.social/ipfs/bafkreibmiy4ozblcgv3fm3gc6q62s55em33vconbavfd2ekkuliznaq3zm",
+        }}
+      />
+    </ImgContainer>
+    <Title>
+      {items[itemType].title} {mobile ? "" : "Kudos"}
+    </Title>
+  </div>
+);
+
+const GroupItem = ({ itemType, mobile }) => (
+  <>
+    {mobile ? (
+      <MobileNav
+        role="button"
+        className="d-flex w-100 p-3 align-items-center justify-content-center"
+        onClick={() => handleSelect(itemType)}
+        selected={selectedItem === itemType}
+      >
+        <Nav itemType={itemType} mobile={mobile} />
+      </MobileNav>
+    ) : (
+      <DesktopNav
+        role="button"
+        className="d-flex w-100 p-3 px-4 align-items-center justify-content-between mb-2"
+        onClick={() => handleSelect(itemType)}
+        selected={selectedItem === itemType}
+      >
+        <Nav itemType={itemType} mobile={mobile} />
+      </DesktopNav>
+    )}
+  </>
 );
 
 return (
   <>
-    <div className="d-sm-block d-flex gap-3 justify-content-between">
-      <GroupItem itemType={"Latest"} />
-      <GroupItem itemType={"Trending"} />
-      <GroupItem itemType={"My"} />
-    </div>
+    <Desktop className="flex-column gap-1 justify-content-between">
+      <GroupItem itemType="Latest" />
+      <GroupItem itemType="Trending" />
+      <GroupItem itemType="My" />
+    </Desktop>
+
+    <Mobile className="flex-row justify-content-between">
+      <GroupItem mobile itemType="Latest" />
+      <GroupItem mobile itemType="Trending" />
+      <GroupItem mobile itemType="My" />
+    </Mobile>
   </>
 );

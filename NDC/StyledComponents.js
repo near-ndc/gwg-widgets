@@ -291,7 +291,7 @@ if (Button)
             style: {
               height: "20px",
               objectFit: "cover",
-              margin: "0 0 3px 5px",
+              margin: "0 0 3px 3px",
             },
             fallbackUrl:
               "https://ipfs.near.social/ipfs/bafkreibmiy4ozblcgv3fm3gc6q62s55em33vconbavfd2ekkuliznaq3zm",

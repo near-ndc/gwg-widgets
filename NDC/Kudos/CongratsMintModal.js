@@ -1,6 +1,5 @@
-const { onHide, kudoId } = props;
+const { onHide } = props;
 
-const kudosContract = "kudos-v1.gwg.testnet";
 const widgets = {
   styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
 };
@@ -56,17 +55,7 @@ const Gift = styled.div`
   font-size: 150px;
 `;
 
-const handleMintSBT = () => {
-  Near.call(
-    kudosContract,
-    "exchange_kudos_for_sbt",
-    {
-      kudos_id: kudoId,
-    },
-    "300000000000000",
-    8000000000000000000000
-  ).then((_data) => onHide());
-};
+const handleShare = () => {};
 
 return (
   <Modal>
@@ -78,20 +67,25 @@ return (
           </div>
         </div>
         <h3 className="text-center">
-          You can now mint a “Proof of Kudos” Soul Bound Token
+          You have received “Proof of Kudos” Soul Bound Token!
         </h3>
         <h6 className="text-secondary text-center px-2">
-          Congratulations, you have received enough social proof to mint a
-          “Proof of Kudos” Soul Bond Token. Don't wait!
+          Congratulations, check out you new “Proof of Kudos” Soul Bound Token!
         </h6>
-        <Gift className="text-center">🎁</Gift>
+        <div className="w-100 d-flex justify-content-center">
+          <img
+            className="rounded my-4"
+            src="https://bafkreiea7fbwne4k3e535ri2gw5tqqqnhmljdcyufat4d3r5alsev6pguu.ipfs.nftstorage.link/"
+          />
+        </div>
         <div className="d-flex justify-content-center w-100">
           <Widget
             src={widgets.styledComponents}
             props={{
               Button: {
-                text: "Mint your Proof of Kudos SBT!",
-                onClick: handleMintSBT,
+                text: "Tweet and Share",
+                icon: <i class="bi bi-twitter"></i>,
+                onClick: handleShare,
               },
             }}
           />

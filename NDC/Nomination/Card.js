@@ -102,7 +102,7 @@ const HeaderContent = styled.div`
   align-items: flex-start;
   padding: 0px;
   gap: 4px;
-  width: 70%;
+  width: 56%;
 `;
 const HeaderTag = styled.div`
   display: flex;
@@ -125,6 +125,7 @@ const HeaderTagP = styled.p`
   margin: 0;
 `;
 const UserLink = styled.a`
+  width: 100%;
   cursor: pointer;
   &:hover {
     text-decoration: none;
@@ -456,31 +457,33 @@ return (
           }}
         />
       )}
-      <HeaderCard className="d-flex justify-content-between">
-        <div className="d-flex align-items-center gap-2">
+      <HeaderCard className="d-flex justify-content-between w-100">
+        <div className="d-flex align-items-center gap-2 w-100 justify-content-between">
           <Widget
             src="mob.near/widget/ProfileImage"
             props={{
               accountId: data.nominationData?.profileAccount.substring(1),
               imageClassName: "rounded-circle w-100 h-100",
-              style: { width: "45px", height: "45px" },
+              style: { minWidth: "45px", height: "45px" },
             }}
           />
           <HeaderContent>
-            <Widget
-              src={widgets.styledComponents}
-              props={{
-                Tag: {
-                  title:
-                    data.indexerData.house == "HouseOfMerit"
-                      ? "House of Merit"
-                      : data.indexerData.house == "CouncilOfAdvisors"
-                      ? "Council of Advisors"
-                      : "Transparency Commission",
-                  className: "dark",
-                },
-              }}
-            />
+            <div className="mw-100">
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Tag: {
+                    title:
+                      data.indexerData.house == "HouseOfMerit"
+                        ? "House of Merit"
+                        : data.indexerData.house == "CouncilOfAdvisors"
+                        ? "Council of Advisors"
+                        : "Transparency Commission",
+                    className: "dark",
+                  },
+                }}
+              />
+            </div>
             <UserLink
               href={`${widgets.candidatePage}?house=${
                 data.indexerData.house
@@ -490,20 +493,23 @@ return (
               <NominationUser>{data.indexerData.nominee}</NominationUser>
             </UserLink>
           </HeaderContent>
+
+          <Widget
+            src={widgets.styledComponents}
+            props={{
+              Button: {
+                disabled: !canUpvote(),
+                text: `+${data.upVoteData?.upvotes ?? 0}`,
+                className: `${
+                  context.accountId && state.voted ? "primary" : "secondary"
+                } dark`,
+                size: "sm",
+                onClick: handleUpVote,
+                icon: <i className="bi bi-hand-thumbs-up"></i>,
+              },
+            }}
+          />
         </div>
-        <Widget
-          src={widgets.styledComponents}
-          props={{
-            Button: {
-              disabled: !canUpvote(),
-              text: `+${data.upVoteData?.upvotes ?? 0}`,
-              className: `${context.accountId && state.voted ? "primary" : "secondary"} dark`,
-              size: "sm",
-              onClick: handleUpVote,
-              icon: <i className="bi bi-hand-thumbs-up"></i>,
-            },
-          }}
-        />
       </HeaderCard>
       <CollapseCandidate className="w-100">
         <CollapseCandidateContent>
@@ -599,7 +605,8 @@ return (
                       text: `+${data.upVoteData.comments.length ?? 0} Comments`,
                       disabled: !state.verified,
                       size: "sm",
-                      className: "secondary dark w-100 justify-content-center",
+                      className:
+                        "secondary dark w-100 justify-content-center text-nowrap",
                       onClick: () => {
                         !data.preview ? State.update({ showModal: true }) : "";
                       },

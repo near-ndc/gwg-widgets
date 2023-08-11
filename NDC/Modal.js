@@ -1,4 +1,4 @@
-const { onHide } = props;
+const { title, description, content, Button } = props;
 
 const widgets = {
   styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
@@ -48,44 +48,41 @@ const ModalContent = styled.div`
 
   h6 {
     font-weight: 400;
+    font-size: 14px;
+    line-height: 120%;
   }
 `;
-
-const Gift = styled.div`
-  font-size: 150px;
-`;
-
-const handleShare = () => {};
 
 return (
   <Modal>
     <ComponentWrapper>
       <ModalContent>
         <div className="w-100 d-flex justify-content-end">
-          <div className="pb-3" onClick={onHide}>
+          <div className="pb-3" onClick={Button.onCancel}>
             <i class="bi bi-x-lg"></i>
           </div>
         </div>
-        <h3 className="text-center">
-          You have received “Proof of Kudos” Soul Bound Token!
-        </h3>
-        <h6 className="text-secondary text-center px-2">
-          Congratulations, check out you new “Proof of Kudos” Soul Bound Token!
-        </h6>
-        <div className="w-100 d-flex justify-content-center">
-          <img
-            className="rounded my-4"
-            src="https://bafkreiea7fbwne4k3e535ri2gw5tqqqnhmljdcyufat4d3r5alsev6pguu.ipfs.nftstorage.link/"
-          />
-        </div>
-        <div className="d-flex justify-content-center w-100">
+        <h3 className="text-center">{title}</h3>
+        <h6 className="text-secondary text-center px-2">{description}</h6>
+        {content}
+        <div className="d-flex justify-content-center gap-2 w-100">
           <Widget
             src={widgets.styledComponents}
             props={{
               Button: {
-                text: "Tweet and Share",
-                icon: <i class="bi bi-twitter"></i>,
-                onClick: handleShare,
+                className: "secondary dark",
+                text: "Cancel",
+                onClick: Button.onCancel,
+              },
+            }}
+          />
+          <Widget
+            src={widgets.styledComponents}
+            props={{
+              Button: {
+                disabled: Button.disabled,
+                text: Button.title,
+                onClick: Button.onSubmit,
               },
             }}
           />

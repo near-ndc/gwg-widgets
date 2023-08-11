@@ -1,8 +1,8 @@
 const { kudo, comment, isIAmHuman, kudosContract } = props;
 
 const widgets = {
-  styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
-  addComment: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Kudo.AddComment",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
+  addComment: "kudos.ndctools.near/widget/NDC.Kudos.AddComment",
 };
 
 const Container = styled.div`
@@ -19,15 +19,6 @@ const Description = styled.div`
   font-weight: 400;
   font-size: ${(props) => (props.secondary ? "12px" : "14px")};
   margin: ${(props) => (props.secondary ? "5px 0 0 0" : "12px 0")};
-`;
-
-const ImageTag = styled.div`
-  height: 250px;
-  width: 100%;
-  background: url(${(props) => props.src}) no-repeat center center;
-  background-size: cover;
-  overflow: hidden;
-  margin: 0 0 12px 0;
 `;
 
 const CreatedAt = styled.div`
@@ -65,6 +56,13 @@ const Hr = styled.div`
   margin-right: 10px;
 `;
 
+const UserProfileDiv = styled.div`
+  .userImg {
+    width: ${(props) => (!props.secondary ? "32px" : "24px")};
+    height: ${(props) => (!props.secondary ? "32px" : "24px")};
+  }
+`;
+
 const getDateAgo = () => {
   const now = new Date().getTime();
   const current = new Date(parseInt(comment.created_at)).getTime();
@@ -87,32 +85,34 @@ const handleShare = (e) => e.preventDefault();
 
 State.init({ isOpen: false });
 
-const UserProfile = ({ secondary, ownerId }) => {
-  const size = secondary ? "24px" : "32px";
-
-  return (
-    <div className="d-flex justify-content-between align-items-center">
-      <div className="d-flex justify-content-between align-items-center w-100">
-        <div className="d-flex gap-2 align-items-center">
-          <Widget
-            src="rubycoptest.testnet/widget/ProfileImage"
-            props={{
-              accountId: ownerId,
-              imageClassName: "rounded-circle w-100 h-100",
-              style: { width: size, height: size, marginRight: 5 },
-            }}
-          />
-          <StyledLink
-            secondary={secondary}
-            href={`https://www.near.org/near/widget/ProfilePage?accountId=${ownerId}`}
-          >
-            {ownerId}
-          </StyledLink>
-        </div>
+const UserProfile = ({ secondary, ownerId }) => (
+  <UserProfileDiv
+    secondary={secondary}
+    className="d-flex justify-content-between align-items-center"
+  >
+    <div className="d-flex justify-content-between align-items-center w-100">
+      <div className="d-flex gap-2 align-items-center">
+        <Widget
+          src="mob.near/widget/ProfileImage"
+          props={{
+            accountId: ownerId,
+            imageClassName: "userImg rounded-circle",
+            style: {
+              width: secondary ? "24px" : "32px",
+              height: secondary ? "24px" : "32px",
+            },
+          }}
+        />
+        <StyledLink
+          secondary={secondary}
+          href={`https://near.org/near/widget/ProfilePage?accountId=${ownerId}`}
+        >
+          {ownerId}
+        </StyledLink>
       </div>
     </div>
-  );
-};
+  </UserProfileDiv>
+);
 
 const trimMessage = (message) => {
   const postfix = message.length > 20 ? "..." : "";
@@ -124,10 +124,9 @@ const base64decode = (encodedValue) => {
   return JSON.parse(buff.toString("utf-8"));
 };
 
-const FormatMsg = ({message}) => {
-  const lines = message.split("\\n");
-
-  return lines.map((l) => <p className="m-0">{l}</p>);
+const formatMsg = (message) => {
+  let newStr = message.replace("\\\\", "\\");
+  return newStr.replace(/\\u([0-9A-F]{4})/gi, (_, g) => String.fromCharCode(`0x${g}`));
 };
 
 return (
@@ -150,7 +149,7 @@ return (
         )}
         <UserProfile ownerId={comment.owner_id} />
         <Description className="text-secondary">
-          <FormatMsg message={comment.message} />
+          {comment.message}
         </Description>
         <div className="d-flex justify-content-between align-items-center">
           <CreatedAt className="gap-1">

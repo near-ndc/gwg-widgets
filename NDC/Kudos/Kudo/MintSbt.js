@@ -1,8 +1,8 @@
 const { onHide, kudoId } = props;
 
-const kudosContract = "kudos-v1.gwg.testnet";
+const kudosContract = "kudos.ndctools.near";
 const widgets = {
-  styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
 };
 
 const Modal = styled.div`

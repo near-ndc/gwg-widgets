@@ -77,13 +77,16 @@ function getVerifiedHuman() {
   });
 
   asyncFetch(endpoints.candidateComments, httpRequestOpt).then((res) => {
-    if (res.body.length > 0) selfNomination = true;
+    if (res.body.length > 0) {
+      State.update({
+        selfNomination: true,
+      });
+    }
   });
 
   State.update({
     og: ogTokens.some((sbt) => sbt.owner === context.accountId),
     sbt: sbtTokens.some((sbt) => sbt.owner === context.accountId),
-    selfNomination,
   });
 }
 
@@ -141,8 +144,14 @@ function getNominationInfo(house) {
   });
 }
 
+if (state.start) {
+  getNominationInfo("HouseOfMerit");
+  getVerifiedHuman();
+
+  State.update({ start: false });
+}
+
 const handleSelect = (item) => {
-  console.log("id", item.id);
   switch (item.id) {
     case 1:
       getNominationInfo("HouseOfMerit");
@@ -186,9 +195,6 @@ const handleFilter = (e) => {
     State.update({ nominations: state.originNominations });
   }
 };
-
-getNominationInfo("HouseOfMerit");
-getVerifiedHuman();
 
 const Container = styled.div`
   padding: 30px 0;
@@ -277,7 +283,7 @@ return (
                   src={widgets.styledComponents}
                   props={{
                     Button: {
-                      className: "danger",
+                      className: "danger primary",
                       text: "Delete Self Nomination",
                       onClick: () => State.update({ showModalDelete: true }),
                       icon: <i class="bi bi-trash"></i>,

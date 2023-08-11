@@ -1,8 +1,8 @@
 const { onHide, kudo, comment } = props;
 
-const kudosContract = "kudos-v1.gwg.testnet";
+const kudosContract = "kudos.ndctools.near";
 const widgets = {
-  styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
 };
 
 State.init({
@@ -138,7 +138,7 @@ return (
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <Widget
-                src="rubycoptest.testnet/widget/ProfileImage"
+                src="mob.near/widget/ProfileImage"
                 props={{
                   accountId: comment.owner_id,
                   imageClassName: "rounded-circle w-100 h-100",
@@ -146,7 +146,7 @@ return (
                 }}
               />
               <UserLink
-                src={`https://www.near.org/near/widget/ProfilePage?accountId=${comment.owner_id}`}
+                src={`https://near.org/near/widget/ProfilePage?accountId=${comment.owner_id}`}
                 title={comment.owner_id}
               />
             </div>

@@ -11,10 +11,10 @@ const MIN_UPVOTE = 3;
 const IMPORTANT_DING_UPVOTES = 2;
 
 const widgets = {
-  styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
-  kudoPage: "#/kudos-v1.gwg.testnet/widget/NDC.Kudos.Kudo.Page",
-  addComment: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Kudo.AddComment",
-  mintSbt: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Kudo.MintSbt",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
+  kudoPage: "#/kudos.ndctools.near/widget/NDC.Kudos.Kudo.Page",
+  addComment: "kudos.ndctools.near/widget/NDC.Kudos.AddComment",
+  mintSbt: "kudos.ndctools.near/widget/NDC.Kudos.Kudo.MintSbt",
 };
 
 const Container = styled.div`
@@ -38,7 +38,7 @@ const InputField = styled.div`
 
 const Mint = styled.div`
   padding: 10px 0;
-  background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
+  background: #4ba6ee;
   border-radius: 8px 8px 0 0;
   font-size: 14px;
   cursor: pointer;
@@ -86,7 +86,6 @@ const ViewButton = styled.button`
 
 const Description = styled.div`
   max-height: 100px;
-  white-space: pre-line;
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -117,19 +116,6 @@ const CreatedAt = styled.div`
   b {
     font-weight: 500;
   }
-`;
-
-const Tag = styled.div`
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 100px;
-  color: #9333ea;
-  border: 1px solid #9333ea;
-  background: linear-gradient(
-    90deg,
-    rgba(147, 51, 234, 0.1) 0%,
-    rgba(79, 70, 229, 0.1) 100%
-  );
 `;
 
 const KudoLink = styled.a`
@@ -245,6 +231,23 @@ State.init({
 
 const kudoTags = kudo.tags ? JSON.parse(kudo.tags).filter((el) => el) : [];
 
+const formatMsg = (text) => {
+  // String.fromCharCode doesn't work on Near Social
+  // const newStr = text.replace(/\\u[\dA-F]{4}/gi, (match) => {
+  //   return String.fromCharCode(parseInt(match.replace(/\\u/g, ""), 16));
+  // });
+
+  return text;
+};
+
+const utf2Html = (str) => {
+  return [...newStr]
+    .map((char) => {
+      return char.codePointAt() > 127 ? `&#${char.codePointAt()};` : char;
+    })
+    .join("");
+};
+
 return (
   <>
     <Container
@@ -279,7 +282,7 @@ return (
                 href={`${widgets.kudoPage}?accountId=${kudo.receiver_id}&kudoId=${kudo.id}`}
               >
                 <Widget
-                  src="rubycoptest.testnet/widget/ProfileImage"
+                  src="mob.near/widget/ProfileImage"
                   props={{
                     accountId: kudo.receiver_id,
                     imageClassName: "rounded-circle w-100 h-100",
@@ -289,38 +292,39 @@ return (
                 <span>To {kudo.receiver_id}</span>
               </KudoLink>
             </div>
-            {isIAmHuman &&
-              kudo.receiver_id !== context.accountId &&
-              kudo.sender_id !== context.accountId && (
-                <Widget
-                  src={widgets.styledComponents}
-                  props={{
-                    Button: {
-                      text: kudo.upvotes.length,
-                      disabled: kudo.upvotes.includes(context.accountId),
-                      className:
+            {isIAmHuman && (
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Button: {
+                    text: kudo.upvotes.length,
+                    disabled:
+                      kudo.upvotes.includes(context.accountId) ||
+                      kudo.receiver_id === context.accountId ||
+                      kudo.sender_id === context.accountId,
+                    className:
+                      kudo.kind === "k" ? "secondary dark" : "secondary danger",
+                    onClick: (e) => handleUpvote(kudo),
+                    image: {
+                      url:
                         kudo.kind === "k"
-                          ? "secondary dark"
-                          : "secondary danger",
-                      onClick: (e) => handleUpvote(kudo),
-                      image: {
-                        url:
-                          kudo.kind === "k"
-                            ? isIAmHuman &&
-                              kudo.receiver_id !== context.accountId &&
-                              kudo.sender_id !== context.accountId &&
-                              !kudo.upvotes.includes(context.accountId)
-                              ? "https://bafkreihtxbozr3tpmzyijzvgmnzjhfnvfudu5twxi5e736omfor6rrbcde.ipfs.nftstorage.link"
-                              : "https://bafkreidz6ybnsss2ulwg236fvp3cm5ksdqpsfziwhvnx4ee7maqpcl2jde.ipfs.nftstorage.link/"
-                            : "https://bafkreia6ux4wzaktmwxxnkzd7tbhpuxhlp352twzsunc6vetza76u6clwy.ipfs.nftstorage.link/",
-                      },
+                          ? isIAmHuman &&
+                            kudo.receiver_id !== context.accountId &&
+                            kudo.sender_id !== context.accountId &&
+                            !kudo.upvotes.includes(context.accountId)
+                            ? "https://bafkreicdwy5kpbid7qn2q4yt4lx6oo24kosa7t2ravqg54pmpb62mp64eq.ipfs.nftstorage.link"
+                            : "https://bafkreidz6ybnsss2ulwg236fvp3cm5ksdqpsfziwhvnx4ee7maqpcl2jde.ipfs.nftstorage.link/"
+                          : "https://bafkreia6ux4wzaktmwxxnkzd7tbhpuxhlp352twzsunc6vetza76u6clwy.ipfs.nftstorage.link/",
                     },
-                  }}
-                />
-              )}
+                  },
+                }}
+              />
+            )}
           </div>
         </div>
-        <Description className="text-secondary">{kudo.message}</Description>
+        <Description className="text-secondary">
+          {kudo.message}
+        </Description>
         {kudo.icon && <ImageTag src={`https://ipfs.io/ipfs/${kudo.icon}`} />}
         {kudoTags.length > 0 && (
           <Tags className="d-flex gap-2">

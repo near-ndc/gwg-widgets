@@ -1,16 +1,16 @@
 const { transactionHashes } = props;
 
-const kudosContract = "kudos-v1.gwg.testnet";
-const registryContract = "registry-unstable.i-am-human.testnet";
+const kudosContract = "kudos.ndctools.near";
+const registryContract = "registry.i-am-human.near";
 
 const widgets = {
-  header: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Header",
-  filter: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Filter",
-  navigation: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Navigation",
-  card: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Card",
-  addKudo: "kudos-v1.gwg.testnet/widget/NDC.Kudos.AddKudo",
-  congratsMintModal: "kudos-v1.gwg.testnet/widget/NDC.Kudos.CongratsMintModal",
-  styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
+  header: "kudos.ndctools.near/widget/NDC.Kudos.Header",
+  filter: "election.ndctools.near/widget/NDC.Elections.Filter",
+  navigation: "kudos.ndctools.near/widget/NDC.Kudos.Navigation",
+  card: "kudos.ndctools.near/widget/NDC.Kudos.Card",
+  addKudo: "kudos.ndctools.near/widget/NDC.Kudos.AddKudo",
+  congratsMintModal: "kudos.ndctools.near/widget/NDC.Kudos.CongratsMintModal",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
 };
 
 State.init({
@@ -285,20 +285,31 @@ return (
             </div>
           ) : (
             <div className="d-flex flex-wrap">
-              {state.kudos.map((kudo, index) => (
-                <div className="col col-lg-6 p-2">
-                  <Widget
-                    key={index}
-                    src={widgets.card}
-                    props={{
-                      isIAmHuman: state.isIAmHuman,
-                      isKudoMinted: state.isKudoMinted,
-                      kudosContract,
-                      kudo,
-                    }}
-                  />
+              {state.kudos.length > 0 ? (
+                state.kudos.map((kudo, index) => (
+                  <div className="col col-lg-6 p-2">
+                    <Widget
+                      key={index}
+                      src={widgets.card}
+                      props={{
+                        isIAmHuman: state.isIAmHuman,
+                        isKudoMinted: state.isKudoMinted,
+                        kudosContract,
+                        kudo,
+                      }}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="w-100 h-100 d-flex justify-content-center align-items-center">
+                  <div className="text-center d-flex flex-column gap-2">
+                    <i className="bi bi-search fs-1"></i>
+                    <H5 className="text-secondary thin">
+                      There are no kudos
+                    </H5>
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           )}
         </>

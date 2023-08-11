@@ -1,30 +1,35 @@
 const { kudoId, accountId } = props;
 
-const kudosContract = "kudos-v1.gwg.testnet";
-const registryContract = "registry-unstable.i-am-human.testnet";
+const kudosContract = "kudos.ndctools.near";
+const registryContract = "registry.i-am-human.near";
 
 const widgets = {
-  header: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Header",
-  navigation: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Navigation",
-  card: "kudos-v1.gwg.testnet/widget/NDC.Kudos.Card",
-  commentCard: "kudos-v1.gwg.testnet/widget/NDC.Kudos.CommentCard",
-  styledComponents: "kudos-v1.gwg.testnet/widget/NDC.StyledComponents",
-  addKudo: "kudos-v1.gwg.testnet/widget/NDC.Kudos.AddKudo",
-  back: "#/kudos-v1.gwg.testnet/widget/NDC.Kudos.Main",
+  header: "kudos.ndctools.near/widget/NDC.Kudos.Header",
+  navigation: "kudos.ndctools.near/widget/NDC.Kudos.Navigation",
+  card: "kudos.ndctools.near/widget/NDC.Kudos.Card",
+  commentCard: "kudos.ndctools.near/widget/NDC.Kudos.CommentCard",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
+  addKudo: "kudos.ndctools.near/widget/NDC.Kudos.AddKudo",
+  back: "https://near.org/kudos.ndctools.near/widget/NDC.Kudos.Main",
 };
 
 State.init({
-  kudo: null,
   isIAmHuman: false,
   isOpen: false,
   kind: "",
+  loading: false,
+  kudo: null,
+});
+
+const isHuman = Near.view(registryContract, "is_human", {
+  account: context.accountId,
 });
 
 let kudo = Social.getr(`${kudosContract}/kudos/${accountId}/${kudoId}`);
 
 kudo = {
   created_at: kudo.created_at,
-  icon: kudo.icon,
+  icon: kudo.icon || null,
   kind: kudo.kind,
   message: kudo.message,
   sender_id: kudo.sender_id,
@@ -32,14 +37,10 @@ kudo = {
   tags: kudo.tags,
   id: kudoId,
   comments: kudo.comments ? Object.entries(kudo.comments) : [],
-  upvotes: kudo.upvotes ? Object.keys(kudo.upvotes).length : 0,
+  upvotes: kudo.upvotes ? Object.keys(kudo.upvotes) : [],
 };
 
-const isHuman = Near.view(registryContract, "is_human", {
-  account: context.accountId,
-});
-
-State.update({ isIAmHuman: isHuman[0][1].length > 0 });
+State.update({ isIAmHuman: isHuman[0][1].length > 0, kudo });
 
 const BackLink = styled.a`
   color: black;
@@ -117,6 +118,14 @@ const base64decode = (encodedValue) => {
   return JSON.parse(buff.toString("utf-8"));
 };
 
+const Loader = () => (
+  <span
+    className="spinner-grow spinner-grow-sm me-1"
+    role="status"
+    aria-hidden="true"
+  />
+);
+
 return (
   <div>
     <Widget src={widgets.header} props={{ isIAmHuman: state.isIAmHuman }} />
@@ -173,44 +182,45 @@ return (
         <div className="d-flex flex-wrap mt-4 gap-2">
           <Section className="col p-3">
             <KudoTitle>Kudo</KudoTitle>
-            <Widget
-              src={widgets.card}
-              props={{
-                isIAmHuman: state.isIAmHuman,
-                kudosContract,
-                kudo,
-                hideMintBtn: true,
-                inverseColor: true,
-              }}
-            />
+            {state.kudo ? (
+              <Widget
+                src={widgets.card}
+                props={{
+                  isIAmHuman: state.isIAmHuman,
+                  kudosContract,
+                  kudo: state.kudo,
+                  hideMintBtn: true,
+                  inverseColor: true,
+                }}
+              />
+            ) : (
+              <Loader />
+            )}
           </Section>
           <Section className="col p-3">
             <CommentTitle>Comments ({kudo.comments.length})</CommentTitle>
             <div className="d-flex flex-column gap-3">
               {kudo.comments.map(([id, comment]) => (
-                <>
-                  {console.log(base64decode(comment).m.replace(/\/\/n/, "\n"))}
-                  <Widget
-                    src={widgets.commentCard}
-                    props={{
-                      isIAmHuman: state.isIAmHuman,
-                      kudosContract,
-                      kudo: {
-                        id: kudoId,
-                        receiver_id: accountId,
-                      },
-                      comment: {
-                        id,
-                        parent_comment: kudo.comments.find(
-                          ([id, _comment]) => id === base64decode(comment).p
-                        )[1],
-                        owner_id: base64decode(comment).s,
-                        created_at: base64decode(comment).t,
-                        message: base64decode(comment).m,
-                      },
-                    }}
-                  />
-                </>
+                <Widget
+                  src={widgets.commentCard}
+                  props={{
+                    isIAmHuman: state.isIAmHuman,
+                    kudosContract,
+                    kudo: {
+                      id: kudoId,
+                      receiver_id: accountId,
+                    },
+                    comment: {
+                      id,
+                      parent_comment: kudo.comments.find(
+                        ([id, _comment]) => id === base64decode(comment).p
+                      )[1],
+                      owner_id: base64decode(comment).s,
+                      created_at: base64decode(comment).t,
+                      message: base64decode(comment).m,
+                    },
+                  }}
+                />
               ))}
             </div>
           </Section>

@@ -429,15 +429,15 @@ const H6 = styled.h6`
 const Tab = styled.div`
   font-weight: ${(props) => (props.active ? "600" : "500")};
   border-bottom: 2px solid;
-  border-color: ${(props) => (props.active ? "#4F46E5" : "#dee2e6")};
-  color: ${(props) => (props.active ? "#4F46E5" : "#ababab")};
+  border-color: ${(props) => (props.active ? "#4BA6EE" : "#dee2e6")};
+  color: ${(props) => (props.active ? "#4BA6EE" : "#ababab")};
   cursor: pointer;
   padding-bottom: 8px;
   font-size: 14px;
 
   i {
     &::before {
-      color: ${(props) => (props.active ? "#4F46E5" : "#ababab")};
+      color: ${(props) => (props.active ? "#4BA6EE" : "#ababab")};
     }
     margin-right: 5px;
   }
@@ -519,7 +519,7 @@ return (
                 </TagContainer>
                 <NominationTitleContainer>
                   <UserLink
-                    href={`https://www.near.org/near/widget/ProfilePage?accountId=${accountId}`}
+                    href={`https://near.org/near/widget/ProfilePage?accountId=${accountId}`}
                   >
                     <NominationTitle>{data.nominations.name}</NominationTitle>
                     <NominationUser>{accountId}</NominationUser>

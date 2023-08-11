@@ -1,4 +1,4 @@
-const { candidateId } = props;
+const { candidateId, isIAmHuman } = props;
 
 const electionContract = election_contract ?? "elections-v1.gwg-testing.near";
 const apiKey = api_key ?? "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
@@ -19,17 +19,27 @@ const VotersContainer = styled.div`
 `;
 
 const Bookmark = styled.div`
-  width: 100px;
+  width: 90px;
 
-  #bookmark.bi-bookmark-fill {
-    color: ${(props) => (props.selected ? "#fff" : "#4F46E5")};
+  @media (max-width: 400px) {
+    width: auto;
+    margin-right: 15px;
+  }
+`;
+
+const Expand = styled.div`
+  width: 35px;
+
+  @media (max-width: 400px) {
+    width: 20px;
+    margin-right: 10px;
   }
 `;
 
 const VoterItem = styled.div`
   font-size: 14px;
   padding: 0 20px;
-  height: 48px;
+  height: 44px;
   border-bottom: 1px solid #d0d6d9;
 
   &:last-child {
@@ -39,10 +49,21 @@ const VoterItem = styled.div`
 
 const StyledLink = styled.a`
   color: inherit !important;
-  width: 100px;
+  width: 90px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 14px;
+  padding-top: 2px;
+
+  @media (max-width: 400px) {
+    width: 60px;
+  }
+`;
+
+const TxnSection = styled.div`
+  white-space: nowrap;
+  overflow: hidden;
 `;
 
 const TxnLink = styled.a`
@@ -54,34 +75,35 @@ const TxnLink = styled.a`
 `;
 
 const UserLink = ({ title, src }) => (
-  <>
+  <div className="d-flex mr-3">
     <StyledLink href={src}>{title}</StyledLink>
     <span>
       <i class="bi bi-arrow-up-right" />
     </span>
-  </>
+  </div>
 );
 
 return (
   <VotersContainer>
     {state.voters.map((voter) => (
       <VoterItem className="d-flex align-items-center justify-content-between">
-        <div className="d-flex">
-          <Bookmark />
+        <div className="d-flex align-items-center w-100">
+          <Expand />
+          {isIAmHuman && <Bookmark />}
           <Widget
             src="mob.near/widget/ProfileImage"
             props={{
               accountId: voter.voter,
               imageClassName: "rounded-circle w-100 h-100",
-              style: { width: "24px", height: "24px", marginRight: 4 },
+              style: { width: "24px", height: "24px", marginRight: 5 },
             }}
           />
           <UserLink
-            src={`https://www.near.org/near/widget/ProfilePage?accountId=${voter.voter}`}
+            src={`https://near.org/near/widget/ProfilePage?accountId=${voter.voter}`}
             title={voter.voter}
           />
         </div>
-        <div className="d-flex align-items-center">
+        <TxnSection className="d-flex align-items-center w-100">
           <TxnLink
             role="button"
             target="_blank"
@@ -92,7 +114,7 @@ return (
           <span>
             <i class="bi bi-arrow-up-right" />
           </span>
-        </div>
+        </TxnSection>
       </VoterItem>
     ))}
   </VotersContainer>

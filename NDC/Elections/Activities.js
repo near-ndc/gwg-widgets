@@ -7,9 +7,6 @@ const VoteRow = styled.a`
     font-weight: 400;
     font-size: 12px;
   }
-  .row {
-    width: min-content;
-  }
 `;
 
 const StyledLink = styled.a`
@@ -60,11 +57,20 @@ return (
           />
           <div className="row">
             <StyledLink
-              href={`https://www.near.org/near/widget/ProfilePage?accountId=${vote.candidate}`}
+              href={`https://near.org/near/widget/ProfilePage?accountId=${vote.candidate}`}
             >
               {vote.candidate}
             </StyledLink>
-            <small className="text-secondary">{vote.timestamp}</small>
+            <small className="text-secondary">
+              {new Date(vote.timestamp).toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "short",
+              })}
+              &middot;
+              {new Date(vote.timestamp).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+              })}
+            </small>
           </div>
         </div>
         <Badge>{vote.house}</Badge>

@@ -16,44 +16,13 @@ const {
 
 const widgets = {
   voters: "election.ndctools.near/widget/NDC.Elections.Voters",
-  button: "nomination.ndctools.near/widget/NDC.StyledComponents",
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
+  modal: "nomination.ndctools.near/widget/NDC.Modal",
   verifyHuman: "nomination.ndctools.near/widget/NDC.VerifyHuman",
 };
 
-const currentUser = context.accountId;
-
-const housesMapping = {
-  CouncilOfAdvisors: "Council Of Advisors",
-  HouseOfMerit: "House of Merit",
-  TransparencyCommission: "Transparency Commission",
-};
-const myVotesForHouse = () => myVotes.filter((vote) => vote.house === typ);
-let _bookmarked = Social.index(currentUser, `${ndcOrganization}/${typ}`);
-
-State.init({
-  loading: false,
-  availableVotes: seats - myVotesForHouse().length,
-  selected: null,
-  bookmarked:
-    _bookmarked && _bookmarked[_bookmarked.length - 1]
-      ? _bookmarked[_bookmarked.length - 1].value
-      : [],
-  selectedCandidates: [],
-  candidates: result,
-  filter: {
-    bookmark: false,
-    candidate: false,
-    votes: false,
-    my_votes: false,
-  },
-  voters: [],
-});
-
-const filteredCandidates = result.filter(([candidate, _vote], _index) =>
-  candidate.toLowerCase().includes(candidateId.toLowerCase())
-);
-
-State.update({ candidates: filteredCandidates });
+const POLICY_HASH =
+  "f1c09f8686fe7d0d798517111a66675da0012d8ad1693a47e0e2a7d3ae1c69d4";
 
 const H4 = styled.h4`
   margin-bottom: 0;
@@ -77,6 +46,10 @@ const StyledLink = styled.a`
   text-overflow: ellipsis;
   font-size: 14px;
   padding-top: 2px;
+
+  @media (max-width: 400px) {
+    width: 60px;
+  }
 `;
 
 const CandidateItem = styled.div`
@@ -86,54 +59,58 @@ const CandidateItem = styled.div`
   margin-bottom: 8px;
   border: 1px solid;
   background: ${(props) =>
-    props.winnerId
-      ? "#239F28"
-      : props.selected
-      ? "linear-gradient(90deg, #9333EA 0%, #4F46E5 100%)"
-      : "#F8F8F9"};
+    props.winnerId ? "#239F28" : props.selected ? "#4aa6ee" : "#F8F8F9"};
   border-color: ${(props) =>
-    props.selected ? "#4F46E5" : props.winnerId ? "#239F28" : "#F8F8F9"};
+    props.winnerId ? "#239F28" : props.selected ? "#4aa6ee" : "#F8F8F9"};
   color: ${(props) => (props.selected || props.winnerId ? "white" : "inherit")};
 
   &:hover {
-    cursor: pointer;
     background: ${(props) =>
-      props.selected
-        ? "linear-gradient(90deg, #9333EA 0%, #4F46E5 100%)"
-        : props.winnerId
-        ? "#239F28"
-        : "linear-gradient(90deg, rgba(147, 51, 234, 0.08) 0%, rgba(79, 70, 229, 0.08) 100%)"};
+      props.winnerId ? "#239F28" : props.selected ? "#4aa6ee" : "#d4e4f461"};
+  
+  @media (max-width: 400px) {
+    padding: 0 10px;
   }
+`;
+
+const Candidates = styled.div`
+  cursor: pointer;
 `;
 
 const Bookmark = styled.div`
-  width: 100px;
+  width: 90px;
+  cursor: pointer;
 
   #bookmark.bi-bookmark-fill {
     color: ${(props) =>
-      props.selected || props.winnerId ? "#fff" : "#4F46E5"};
+      props.winnerId || props.selected ? "#fff" : "#4F46E5"};
+  }
+
+  @media (max-width: 400px) {
+    width: auto;
+    margin-right: 15px;
   }
 `;
 
-const Votes = styled.div`
-  width: 90px;
-  margin-left: 20px;
-  text-align: center;
+const Expand = styled.div`
+  width: 35px;
+  cursor: pointer;
+
+  @media (max-width: 400px) {
+    width: 20px;
+    margin-right: 10px;
+  }
 `;
 
-const Action = styled.div`
-  width: 90px;
-  min-width: 20px;
-  margin-left: 20px;
-  text-align: center;
-`;
+const Votes = styled.div``;
 
-const Nomination = styled.div`
-  width: 102px;
-`;
+const Action = styled.div``;
+
+const Nomination = styled.div``;
 
 const FilterRow = styled.div`
   padding: 15px 20px;
+  font-size: 13px;
 `;
 
 const Info = styled.i`
@@ -159,26 +136,27 @@ const Icon = styled.i`
   font-size: 14px;
 `;
 
-const PrimaryLink = styled.a`
-  padding: 8px 20px;
-  background: #ffd50d;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 24px;
-  color: inherit;
-
-  &:hover {
-    text-decoration: none;
-    color: inherit;
-  }
-`;
-
 const CastVotesSection = styled.div`
   background: #fdfeff;
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   padding: 16px;
+
+  @media (max-width: 400px) {
+    flex-direction: column;
+  }
+
+  .wrapper {
+    @media (max-width: 400px) {
+      width: 100%;
+    }
+  }
+
+  button {
+    @media (max-width: 400px) {
+      width: 100%;
+    }
+  }
 
   h3,
   h4 {
@@ -212,24 +190,59 @@ const Winner = styled.i`
   font-size: 14px;
 `;
 
-const UserLink = ({ title, src }) => (
-  <>
-    <StyledLink href={src} target="_blank">
-      {title}
-    </StyledLink>
-    <div>
-      <Icon className="bi bi-arrow-up-right" />
-    </div>
-  </>
-);
+const Section = styled.div`
+  gap: 8px;
+  margin-bottom: 10px;
+`;
 
-const Loader = () => (
-  <span
-    className="spinner-grow spinner-grow-sm me-1"
-    role="status"
-    aria-hidden="true"
-  />
-);
+const ActionSection = styled.div`
+  @media (max-width: 400px) {
+    width: 100%;
+  }
+`;
+
+const currentUser = context.accountId;
+const housesMapping = {
+  CouncilOfAdvisors: "Council Of Advisors",
+  HouseOfMerit: "House of Merit",
+  TransparencyCommission: "Transparency Commission",
+};
+
+const alreadyVoted = (candidateId) =>
+  myVotes.some((voter) => voter.candidate === candidateId);
+
+const filteredCandidates = () => {
+  let candidates = result;
+
+  if (state.filterOption === "bookmark")
+    candidates = state.filter.bookmark
+      ? state.candidates.filter(([candidateId, _votes], _index) =>
+          state.bookmarked.includes(candidateId)
+        )
+      : result;
+  if (state.filterOption === "candidates")
+    candidates = candidates.sort((a, b) =>
+      state.filter.candidates
+        ? a[0].localeCompare(b[0])
+        : b[0].localeCompare(a[0])
+    );
+  if (state.filterOption === "votes")
+    candidates = candidates.sort((a, b) =>
+      state.filter.votes ? a[1] - b[1] : b[1] - a[1]
+    );
+  if (state.filterOption === "my_votes")
+    candidates = state.filter.my_votes
+      ? state.candidates.filter(([candidateId, _votes], _index) =>
+          alreadyVoted(candidateId)
+        )
+      : result;
+  if (candidateId)
+    candidates = result.filter(([candidate, _vote], _index) =>
+      candidate.toLowerCase().includes(candidateId.toLowerCase())
+    );
+
+  return candidates;
+};
 
 const handleSelectCandidate = (candidateId) => {
   const selectedItems = state.selectedCandidates.includes(candidateId)
@@ -278,77 +291,150 @@ const handleBookmarkCandidate = (candidateId) => {
   );
 };
 
-const handleVote = () => {
+const handleVote = () =>
   Near.call(
     electionContract,
     "vote",
     { prop_id: id, vote: state.selectedCandidates },
     "70000000000000",
     2000000000000000000000
+  ).then((data) => State.update({ bountyProgramModal: false }));
+
+const handleAcceptToS = () => {
+  State.update({ loading: true });
+
+  Near.call(
+    electionContract,
+    "accept_fair_voting_policy",
+    { policy: POLICY_HASH },
+    "70000000000000",
+    1000000000000000000000
+  ).then((data) =>
+    State.update({
+      showToSModal: false,
+      tosAgreement: true,
+      bountyProgramModal: true,
+      loading: false,
+    })
   );
 };
 
-const alreadyVoted = (candidateId) =>
-  myVotes.some((voter) => voter.candidate === candidateId);
-
 const filterBy = (option) => {
-  if (option.bookmark)
-    if (!state.filter.bookmark)
-      State.update({
-        candidates: state.candidates.filter(([candidateId, _votes], _index) =>
-          state.bookmarked.includes(candidateId)
-        ),
-        filter: { bookmark: true },
-      });
-    else
-      State.update({
-        candidates: result,
-        filter: { bookmark: false },
-      });
-  else if (option.votes)
-    State.update({
-      candidates: state.candidates.sort((a, b) =>
-        state.filter.votes ? a[1] - b[1] : b[1] - a[1]
-      ),
-      filter: { votes: !state.filter.votes },
-    });
-  else if (option.my_votes)
-    if (!state.filter.my_votes)
-      State.update({
-        candidates: state.candidates.filter(([candidateId, _votes], _index) =>
-          alreadyVoted(candidateId)
-        ),
-        filter: { my_votes: true },
-      });
-    else
-      State.update({
-        candidates: result,
-        filter: { my_votes: false },
-      });
-  else
-    State.update({
-      candidates: result,
-      filter: { bookmark: false, my_votes: false },
-    });
+  let filterOption = "";
+  let filter = {};
+
+  if (option.bookmark) {
+    filterOption = "bookmark";
+    filter = { bookmark: !state.filter.bookmark };
+  }
+  if (option.candidates) {
+    filterOption = "candidates";
+    filter = { candidates: !state.filter.candidates };
+  }
+  if (option.votes) {
+    filterOption = "votes";
+    filter = { votes: !state.filter.votes };
+  }
+  if (option.my_votes) {
+    filterOption = "my_votes";
+    filter = { my_votes: !state.filter.my_votes };
+  }
+
+  State.update({ filterOption, filter });
 };
+
+const loadInitData = () => {
+  const policy = Near.view(electionContract, "accepted_policy", {
+    user: context.accountId,
+  });
+
+  State.update({
+    candidates: filteredCandidates(),
+    tosAgreement: !!policy,
+    bountyProgramModal: !!policy
+  });
+};
+
+const loadSocialDBData = () => {
+  let _bookmarked = Social.index(currentUser, `${ndcOrganization}/${typ}`);
+
+  State.update({
+    bookmarked:
+      _bookmarked && _bookmarked[_bookmarked.length - 1]
+        ? _bookmarked[_bookmarked.length - 1].value
+        : [],
+  });
+};
+
+const myVotesForHouse = () => myVotes.filter((vote) => vote.house === typ);
+
+State.init({
+  start: true,
+  loading: false,
+  availableVotes: seats - myVotesForHouse().length,
+  selected: null,
+  bookmarked: [],
+  tosAgreementInput: false,
+  tosAgreement: false,
+  selectedCandidates: [],
+  voters: [],
+  candidates: result,
+  filter: {
+    bookmark: false,
+    candidates: false,
+    votes: false,
+    my_votes: false,
+  },
+  filterOption: "",
+  showToSModal: false,
+  bountyProgramModal: false,
+});
+
+loadInitData();
+loadSocialDBData();
+
+const UserLink = ({ title, src }) => (
+  <div className="d-flex mr-3">
+    <StyledLink href={src} target="_blank">
+      {title}
+    </StyledLink>
+    <div>
+      <Icon className="bi bi-arrow-up-right" />
+    </div>
+  </div>
+);
+
+const Loader = () => (
+  <span
+    className="spinner-grow spinner-grow-sm me-1"
+    role="status"
+    aria-hidden="true"
+  />
+);
 
 const CandidateList = ({ candidateId, votes }) => (
   <div>
     <CandidateItem
       className="d-flex align-items-center justify-content-between"
-      onClick={(e) => {
-        if (
-          !["input", "bookmark", "link"].includes(e.target.id) &&
-          !e.target.href
-        )
-          State.update({
-            selected: state.selected === candidateId ? null : candidateId,
-          });
-      }}
       selected={state.selected === candidateId}
       winnerId={winnerIds.includes(candidateId)}
     >
-      <div className="d-flex">
+      <div className="d-flex w-100 align-items-center">
+        <Expand>
+          <i
+            className={`${
+              state.selected === candidateId
+                ? "bi bi-chevron-down"
+                : "bi bi-chevron-right"
+            }`}
+            onClick={(e) =>
+              State.update({
+                selected: state.selected === candidateId ? null : candidateId,
+              })
+            }
+          />
+        </Expand>
+
         {isIAmHuman && (
           <Bookmark
             selected={state.selected === candidateId}
@@ -369,17 +455,17 @@ const CandidateList = ({ candidateId, votes }) => (
             )}
           </Bookmark>
         )}
-        <div className="d-flex">
+        <div className="d-flex align-items-center">
           <Widget
             src="mob.near/widget/ProfileImage"
             props={{
               accountId: candidateId,
               imageClassName: "rounded-circle w-100 h-100",
-              style: { width: "24px", height: "24px", marginRight: 4 },
+              style: { width: "24px", height: "24px", marginRight: 5 },
             }}
           />
           <UserLink
-            src={`https://www.near.org/near/widget/ProfilePage?accountId=${candidateId}`}
+            src={`https://near.org/near/widget/ProfilePage?accountId=${candidateId}`}
             title={candidateId}
           />
           {winnerIds.includes(candidateId) && (
@@ -387,17 +473,19 @@ const CandidateList = ({ candidateId, votes }) => (
           )}
         </div>
       </div>
-      <div className="d-flex">
+      <div className="d-flex w-100 align-items-center justify-content-between">
         <Widget
-          src={widgets.button}
+          src={widgets.styledComponents}
           props={{
             Link: {
               size: "sm",
               className: "secondary dark",
               text: "Nomination",
-              icon: <i id="link" className="bi bi-arrow-up-right" />,
+              icon: <i className="bi bi-box-arrow-up-right" />,
               href: ref_link,
-              inverse: state.selected === candidateId,
+              inverse:
+                state.selected === candidateId ||
+                winnerIds.includes(candidateId),
             },
           }}
         />
@@ -420,63 +508,78 @@ const CandidateList = ({ candidateId, votes }) => (
       </div>
     </CandidateItem>
     {state.selected === candidateId && (
-      <Widget src={widgets.voters} props={{ candidateId }} />
+      <Widget src={widgets.voters} props={{ candidateId, isIAmHuman }} />
     )}
   </div>
 );
 
-const Filters = () => {
-  return (
-    <FilterRow className="d-flex align-items-center justify-content-between">
-      <div className="d-flex">
-        {isIAmHuman && (
-          <Bookmark
-            role="button"
-            className="text-secondary"
-            onClick={() => filterBy({ bookmark: true })}
-          >
-            <small>Bookmark</small>
-            <i className="bi bi-funnel" />
-          </Bookmark>
-        )}
-        <div className="text-secondary">
-          <small>Candidate</small>
-        </div>
-      </div>
-      <div className="d-flex">
-        <Nomination className="text-secondary text-end text-md-start">
-          <small>Nomination</small>
-        </Nomination>
-        <Votes
+const Filters = () => (
+  <FilterRow className="d-flex align-items-center justify-content-between">
+    <div className="d-flex align-items-center w-100">
+      <Expand />
+      {isIAmHuman && (
+        <Bookmark
           role="button"
           className="text-secondary"
-          onClick={() => filterBy({ votes: true })}
+          onClick={() => filterBy({ bookmark: true })}
         >
-          <small>Total votes</small>
+          <small>Bookmark</small>
           <i
             className={`bi ${
-              state.filter.votes ? "bi-arrow-down" : "bi-arrow-up"
+              state.filter.bookmark ? "bi-funnel-fill" : "bi-funnel"
             }`}
           />
-        </Votes>
-        {isIAmHuman && (
-          <Action
-            role="button"
-            className="text-secondary"
-            onClick={() => filterBy({ my_votes: true })}
-          >
-            <small>My votes</small>
-            <i className="bi bi-funnel" />
-          </Action>
-        )}
-      </div>
-    </FilterRow>
-  );
-};
+        </Bookmark>
+      )}
+      <Candidates
+        className="text-secondary"
+        onClick={() => filterBy({ candidates: true })}
+      >
+        <small>Candidate</small>
+        <i
+          className={`bi ${
+            state.filter.candidates ? "bi-arrow-down" : "bi-arrow-up"
+          }`}
+        />
+      </Candidates>
+    </div>
+    <div className="d-flex w-100 align-items-center justify-content-between">
+      <Nomination className="text-secondary text-end text-md-start">
+        <small>Nomination</small>
+      </Nomination>
+      <Votes
+        role="button"
+        className="text-secondary"
+        onClick={() => filterBy({ votes: true })}
+      >
+        <small>Total votes</small>
+        <i
+          className={`bi ${
+            state.filter.votes ? "bi-arrow-down" : "bi-arrow-up"
+          }`}
+        />
+      </Votes>
+      {isIAmHuman && (
+        <Action
+          role="button"
+          className="text-secondary"
+          onClick={() => filterBy({ my_votes: true })}
+        >
+          <small>My votes</small>
+          <i
+            className={`bi ${
+              state.filter.my_votes ? "bi-funnel-fill" : "bi-funnel"
+            }`}
+          />
+        </Action>
+      )}
+    </div>
+  </FilterRow>
+);
 
 const CastVotes = () => (
-  <CastVotesSection className="d-flex align-items-center justify-content-between">
-    <div>
+  <CastVotesSection className="d-flex align-items-center justify-content-between gap-3">
+    <div className="wrapper">
       <div className="d-flex align-items-end">
         <H3>
           {seats - myVotesForHouse().length - state.selectedCandidates.length}
@@ -484,75 +587,198 @@ const CastVotes = () => (
         <span>/</span>
         <H4>{seats}</H4>
         <span className="text-secondary">votes left</span>
-        {state.selectedCandidates.length > 0 && (
-          <Widget
-            src={widgets.button}
-            props={{
-              Button: {
-                size: "sm",
-                className: "secondary",
-                text: "Reset Selection",
-                onClick: () =>
-                  State.update({
-                    selectedCandidates: [],
-                    availableVotes: seats - myVotesForHouse().length,
-                  }),
-              },
-            }}
-          />
-        )}
       </div>
       <Info className="text-secondary">
         <i class="bi bi-info-circle"></i>
         Make sure you selected all {seats} candidates
       </Info>
     </div>
-    <Widget
-      src={widgets.button}
-      props={{
-        Button: {
-          disabled: state.selectedCandidates.length < seats,
-          text: `Cast ${state.selectedCandidates.length || ""} Votes`,
-          onClick: handleVote,
-        },
-      }}
-    />
-  </CastVotesSection>
-);
-
-return (
-  <Container>
-    <h1>{housesMapping[typ]}</h1>
-    {state.candidates.length > 0 ? (
-      <>
-        <Filters />
-        <CandidatesContainer>
-          {state.candidates.map(([candidateId, votes], index) => (
-            <CandidateList
-              candidateId={candidateId}
-              votes={votes}
-              key={index}
-            />
-          ))}
-        </CandidatesContainer>
-      </>
-    ) : (
-      <div className="d-flex p-5 justify-content-center">
-        There are no candidates found
-      </div>
-    )}
-    <div>
-      {isIAmHuman ? (
-        <CastVotes />
-      ) : (
+    <ActionSection className="d-flex gap-2">
+      {state.selectedCandidates.length > 0 && (
         <Widget
-          src={widgets.verifyHuman}
+          src={widgets.styledComponents}
           props={{
-            title: "Want to vote?",
-            description: "Click on Verify as a Human to proceed.",
+            Button: {
+              className: "secondary dark justify-content-center text-nowrap",
+              text: "Reset Selection",
+              onClick: () =>
+                State.update({
+                  selectedCandidates: [],
+                  availableVotes: seats - myVotesForHouse().length,
+                }),
+            },
           }}
         />
       )}
-    </div>
-  </Container>
+      <Widget
+        src={widgets.styledComponents}
+        props={{
+          Button: {
+            className: "primary justify-content-center",
+            disabled: state.selectedCandidates.length === 0,
+            text: `Cast ${state.selectedCandidates.length || ""} Votes`,
+            onClick: () =>
+              state.tosAgreement
+                ? State.update({ bountyProgramModal: true })
+                : State.update({ showToSModal: true }),
+          },
+        }}
+      />
+    </ActionSection>
+  </CastVotesSection>
+);
+
+const ALink = ({ title, href }) => (
+  <a href={href} target={"_blank"} rel={"noopener"}>
+    {title}
+  </a>
+);
+
+return (
+  <>
+    {state.showToSModal && (
+      <Widget
+        src={widgets.modal}
+        props={{
+          title: (
+            <div>
+              <img src="https://bafkreidmuyeawyqduaotd27jozw5czdrm7t7w5hlcx5nfjzjjxxzvyhkyi.ipfs.nftstorage.link/" />
+              <div className="mt-4">
+                Before you vote, please review the Fair Voting Policy.
+              </div>
+            </div>
+          ),
+          description: (
+            <>
+              Please make sure to read and understand the{" "}
+              <ALink
+                title="Fair Voting Policy."
+                href="https://bafkreieiqabf6k675f3doqdztej53qmiybmhiaqgjaqmj673wbxxq5muke.ipfs.nftstorage.link/"
+              />
+              which outlines the responsibilities of each voter.
+            </>
+          ),
+          content: (
+            <Section className="d-flex justify-content-center w-100 my-4">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                checked={state.tosAgreementInput}
+                onClick={() =>
+                  State.update({ tosAgreementInput: !state.tosAgreementInput })
+                }
+              />
+              I agree with{" "}
+              <ALink
+                title="Fair Voting Policy."
+                href="https://bafkreieiqabf6k675f3doqdztej53qmiybmhiaqgjaqmj673wbxxq5muke.ipfs.nftstorage.link/"
+              />
+            </Section>
+          ),
+          Button: {
+            title: state.loading ? (
+              <Loader />
+            ) : (
+              <>Agree to Fair Voting Policy</>
+            ),
+            disabled: !state.tosAgreementInput,
+            onCancel: () => State.update({ showToSModal: false }),
+            onSubmit: handleAcceptToS,
+          },
+        }}
+      />
+    )}
+    {state.bountyProgramModal && (
+      <Widget
+        src={widgets.modal}
+        props={{
+          title: (
+            <div>
+              <img src="https://bafkreidmuyeawyqduaotd27jozw5czdrm7t7w5hlcx5nfjzjjxxzvyhkyi.ipfs.nftstorage.link/" />
+              <div className="mt-4">You are about to cast your votes.</div>
+            </div>
+          ),
+          description: (
+            <>
+              <p>
+                Do you know about the{" "}
+                <ALink
+                  title="Whistleblower Bounty Program"
+                  href="https://medium.com/@neardigitalcollective/introducing-ndc-whistleblower-bounty-program-d4fe1b9fc5a0"
+                />
+                ? The Whistleblower Bounty Program offers up to 2,000 NEAR for
+                whistleblowers who come forward to share instances of vote
+                buying, account buying, election fraud, and other violations of
+                the{" "}
+                <ALink
+                  title="Fair Voting Policy"
+                  href="https://bafkreieiqabf6k675f3doqdztej53qmiybmhiaqgjaqmj673wbxxq5muke.ipfs.nftstorage.link/"
+                />
+                .
+              </p>
+              <p>
+                You will be bonding xN during the election period. This bond
+                will be returned to you after the election results are reviewed
+                and validated.
+              </p>
+              <p>
+                Make sure you vote for all the seats in this house. You can only
+                vote once and past votes cannot be changed.
+              </p>
+            </>
+          ),
+          content: (
+            <Section className="d-flex d-flex justify-content-center w-100 my-4">
+              I understand the{" "}
+              <ALink
+                title="Whistleblower Bounty Program"
+                href="https://medium.com/@neardigitalcollective/introducing-ndc-whistleblower-bounty-program-d4fe1b9fc5a0"
+              />
+              .
+            </Section>
+          ),
+          Button: {
+            title: "Cast Votes",
+            onCancel: () => State.update({ bountyProgramModal: false }),
+            onSubmit: handleVote,
+          },
+        }}
+      />
+    )}
+
+    <Container>
+      <h1>{housesMapping[typ]}</h1>
+      {state.candidates.length > 0 ? (
+        <>
+          <Filters />
+          <CandidatesContainer>
+            {state.candidates.map(([candidateId, votes], index) => (
+              <CandidateList
+                candidateId={candidateId}
+                votes={votes}
+                key={index}
+              />
+            ))}
+          </CandidatesContainer>
+        </>
+      ) : (
+        <div className="d-flex p-5 justify-content-center">
+          There are no candidates found
+        </div>
+      )}
+      <div>
+        {isIAmHuman ? (
+          <CastVotes />
+        ) : (
+          <Widget
+            src={widgets.verifyHuman}
+            props={{
+              title: "Want to vote?",
+              description: "Click on Verify as a Human to proceed.",
+            }}
+          />
+        )}
+      </div>
+    </Container>
+  </>
 );

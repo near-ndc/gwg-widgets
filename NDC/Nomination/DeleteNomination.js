@@ -75,7 +75,7 @@ return (
           props={{
             Button: {
               text: "Delete nomination",
-              className: "danger",
+              className: "danger secondary",
               onClick: handleSelfRevoke,
             },
           }}

@@ -3,19 +3,19 @@ const { selectedItem, handleSelect } = props;
 const items = {
   Latest: {
     title: "Recent",
-    src: "https://bafkreiew4nucfvlgjy3tz7fop66zd7qz6g57j4uf4ufjcxokwjxefwqyim.ipfs.nftstorage.link/",
+    src: "https://bafkreibyoqwxexke7agytjxvztsiezcfpkxkagbatqmp3tt6u4mv3ub7bi.ipfs.nftstorage.link/",
     srcSelected:
       "https://bafkreif4clvv3j4dyyxuowyosyklnh5c62emnh23e55gip3clsgkto3qi4.ipfs.nftstorage.link/",
   },
   Trending: {
     title: "Trending",
-    src: "https://bafkreidoyevrc2jtisbvh5ii4l4siiflwr7d42vgj52tknwcnpjcjt72sa.ipfs.nftstorage.link",
+    src: "https://bafkreiekyoaz3zz6i6ietcudab47u5a7btdhco6srdg6sgbmtgjhaexr2q.ipfs.nftstorage.link",
     srcSelected:
       "https://bafkreieeoqtjoyp64oxwvzu2qtjdxzapbpug5l6kgwfsnb7y43mpjhm52e.ipfs.nftstorage.link",
   },
   My: {
     title: "My",
-    src: "https://bafkreihtxbozr3tpmzyijzvgmnzjhfnvfudu5twxi5e736omfor6rrbcde.ipfs.nftstorage.link",
+    src: "https://bafkreicdwy5kpbid7qn2q4yt4lx6oo24kosa7t2ravqg54pmpb62mp64eq.ipfs.nftstorage.link",
     srcSelected:
       "https://bafkreibchxu3obfelbn3dhwpucfvc4yqopodp2khlcnzyw2mcr7zpg2mpi.ipfs.nftstorage.link",
   },
@@ -32,28 +32,14 @@ const ImgContainer = styled.div`
 const DesktopNav = styled.div`
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.05);
   border-radius: 8px;
-  border: 1px solid;
-  background: ${(props) =>
-    props.selected
-      ? "linear-gradient(90deg, #9333EA 0%, #4F46E5 100%)"
-      : "#FFFFFF"};
-  border-color: ${(props) => (props.selected ? "#4F46E5" : "#ffffff")};
+  background: ${(props) => (props.selected ? "#4ba6ee" : "#FFFFFF")};
   color: ${(props) => (props.selected ? "white" : "inherit")};
-
-  &:hover {
-    border: 1px solid #4f46e5;
-    background: ${(props) =>
-      props.selected
-        ? "linear-gradient(90deg, #9333EA 0%, #4F46E5 100%)"
-        : "linear-gradient(90deg, rgba(147, 51, 234, 0.08) 0%, rgba(79, 70, 229, 0.08) 100%)"};
-    box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.05);
-  }
 `;
 
 const MobileNav = styled.div`
   border-bottom: ${(props) =>
-    props.selected ? "2px solid #4F46E5" : "2px solid rgb(248, 248, 249)"};
-  color: ${(props) => (props.selected ? "#4F46E5" : "inherit")};
+    props.selected ? "2px solid #4ba6ee" : "2px solid rgb(248, 248, 249)"};
+  color: ${(props) => (props.selected ? "#4ba6ee" : "inherit")};
 `;
 
 const Desktop = styled.div`
@@ -76,7 +62,7 @@ const Nav = ({ itemType, mobile }) => (
   <div className="d-flex align-items-center">
     <ImgContainer mobile={mobile}>
       <Widget
-        src="rubycoptest.testnet/widget/Image"
+        src="mob.near/widget/Image"
         props={{
           image: {
             url:

@@ -565,7 +565,7 @@ return (
           </TagContainer>
           <NominationTitleContainer>
             <UserLink
-              href={`https://www.near.org/near/widget/ProfilePage?accountId=${accountId}`}
+              href={`https://near.org/near/widget/ProfilePage?accountId=${accountId}`}
             >
               <NominationTitle>{CandidateProps.name}</NominationTitle>
               <NominationUser>{accountId}</NominationUser>

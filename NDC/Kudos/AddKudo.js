@@ -5,13 +5,6 @@ const widgets = {
   styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
 };
 
-State.init({
-  receiverId: "",
-  message: "",
-  img: null,
-  tags: "",
-});
-
 const Modal = styled.div`
   position: fixed;
   display: flex;
@@ -78,6 +71,13 @@ const handleAddKudo = () => {
   ).then((data) => onHide());
 };
 
+State.init({
+  receiverId: "",
+  message: "",
+  img: null,
+  tags: "",
+});
+
 return (
   <Modal>
     <ComponentWrapper>
@@ -99,13 +99,12 @@ return (
           </Section>
           <Section>
             <Widget
-              src={widgets.styledComponents}
+              src={"rubycop.near/widget/Common.Compose"}
               props={{
-                TextArea: {
-                  label: `Add a ${kind === "k" ? "Kudo" : "Ding"} Description`,
-                  value: state.message,
-                  handleChange: (e) =>
-                    State.update({ message: e.target.value }),
+                placeholder: "Left a comment",
+                handleChange: (text) => {
+                  if (text.length > 1000) return;
+                  State.update({ message: text });
                 },
               }}
             />
@@ -117,13 +116,13 @@ return (
           </Section>
           <Section>
             <Widget
-              src={widgets.styledComponents}
+              src={"sayalot.near/widget/TagsEditor"}
               props={{
-                Input: {
-                  label: "Tags",
-                  placeholder: "Enter tags using comma separator",
-                  value: state.tags,
-                  handleChange: (e) => State.update({ tags: e.target.value }),
+                label: "Tags",
+                placeholder: "Enter tags",
+                setTagsObject: (tags) => {
+                  if (state.tags.length > 0)
+                    State.update({ tags: Object.keys(tags) });
                 },
               }}
             />

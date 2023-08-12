@@ -360,7 +360,6 @@ if (TextArea)
         onChange={TextArea.handleChange}
         rows={5}
       />
-
       {TextArea.maxLength && (
         <div className="d-flex justify-content-end">
           <small style={{ fontSize: 12 }} className="text-secondary">

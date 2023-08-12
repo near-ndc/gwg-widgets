@@ -1,4 +1,4 @@
-const { onHide, kudo, comment } = props;
+const { onHide, kudo, comment, edit } = props;
 
 const kudosContract = "kudos.ndctools.near";
 const widgets = {
@@ -6,10 +6,7 @@ const widgets = {
 };
 
 State.init({
-  receiverId: "",
-  message: "",
-  imageCid: "",
-  tags: "",
+  message: edit ? comment.message : "",
 });
 
 const Modal = styled.div`
@@ -92,6 +89,20 @@ const Description = styled.div`
   font-size: 14px;
 `;
 
+const encryptComment = () => {
+  let data = {
+    m: state.message.slice(0, 1000),
+    s: comment.owner_id.toString(),
+    t: comment.created_at.toString(),
+    p: comment.id.toString(),
+  };
+
+  let buff = new Buffer(JSON.stringify(data));
+
+  console.log(buff.toString("base64"));
+  return buff.toString("base64");
+};
+
 const handleAddComment = () => {
   Near.call(
     kudosContract,
@@ -104,6 +115,40 @@ const handleAddComment = () => {
     },
     "300000000000000",
     "17000000000000000000000"
+  ).then((_data) => onHide());
+};
+
+const handleEditComment = () => {
+  const targetComment = encryptComment();
+  const comments = {
+    ...kudo.comments,
+    ...{ [comment.id.toString]: targetComment },
+  };
+
+  Social.set(
+    {
+      [kudosContract]: {
+        kudos: {
+          [kudo.receiver_id]: {
+            [kudo.id]: {
+              created_at: kudo.created_at,
+              sender_id: kudo.sender_id,
+              kind: kudo.kind,
+              message: kudo.message,
+              icon: kudo.icon,
+              upvotes: kudo.upvotes,
+              comments: comments,
+              tags: JSON.stringify(kudo.tags),
+            },
+          },
+        },
+      },
+    },
+    {
+      force: true,
+      onCommit: onHide,
+      onCancel: onHide,
+    }
   ).then((_data) => onHide());
 };
 
@@ -133,7 +178,7 @@ return (
   <Modal>
     <ComponentWrapper>
       <ModalContent>
-        <h4>Comment to Reply</h4>
+        <h4>{edit ? "Edit message" : "Comment to Reply"}</h4>
         <div className="content">
           <div className="d-flex justify-content-between align-items-center">
             <div>
@@ -160,19 +205,12 @@ return (
           </Description>
           <hr className="text-secondary" />
           <Widget
-            src={widgets.styledComponents}
+            src={"rubycop.near/widget/Common.Compose"}
             props={{
-              TextArea: {
-                label: "Reply",
-                value: state.message,
-                maxLength: 1000,
-                placeholder: "Left a comment",
-                handleChange: (e) => {
-                  const text = e.target.value;
-                  if (text.length > 1000) return;
-
-                  State.update({ message: text });
-                },
+              placeholder: "Left a comment",
+              handleChange: (text) => {
+                if (text.length > 1000) return;
+                State.update({ message: text });
               },
             }}
           />
@@ -193,7 +231,7 @@ return (
             props={{
               Button: {
                 text: "Submit",
-                onClick: handleAddComment,
+                onClick: () => handleAddComment(),
               },
             }}
           />

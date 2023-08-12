@@ -83,7 +83,10 @@ const getDateAgo = () => {
 
 const handleShare = (e) => e.preventDefault();
 
-State.init({ isOpen: false });
+State.init({
+  isOpen: false,
+  isEdit: false,
+});
 
 const UserProfile = ({ secondary, ownerId }) => (
   <UserProfileDiv
@@ -124,11 +127,6 @@ const base64decode = (encodedValue) => {
   return JSON.parse(buff.toString("utf-8"));
 };
 
-const formatMsg = (message) => {
-  let newStr = message.replace("\\\\", "\\");
-  return newStr.replace(/\\u([0-9A-F]{4})/gi, (_, g) => String.fromCharCode(`0x${g}`));
-};
-
 return (
   <>
     <Container>
@@ -149,7 +147,10 @@ return (
         )}
         <UserProfile ownerId={comment.owner_id} />
         <Description className="text-secondary">
-          {comment.message}
+          <Widget
+            src="mob.near/widget/SocialMarkdown"
+            props={{ text: comment.message }}
+          />
         </Description>
         <div className="d-flex justify-content-between align-items-center">
           <CreatedAt className="gap-1">
@@ -167,6 +168,20 @@ return (
                 },
               }}
             />
+            {/* {context.accountId === comment.owner_id && (
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Button: {
+                    size: "sm",
+                    text: "Edit",
+                    className: "primary dark",
+                    icon: <i className="bi bi-pencil"></i>,
+                    onClick: () => State.update({ isOpen: true, isEdit: true }),
+                  },
+                }}
+              />
+            )} */}
             <Widget
               src={widgets.styledComponents}
               props={{
@@ -175,7 +190,7 @@ return (
                   disabled: !isIAmHuman,
                   size: "sm",
                   icon: <i className="bi bi-arrow-90deg-left" />,
-                  onClick: () => State.update({ isOpen: true }),
+                  onClick: () => State.update({ isOpen: true, isEdit: false }),
                 },
               }}
             />
@@ -189,6 +204,7 @@ return (
         src={widgets.addComment}
         props={{
           kudo,
+          edit: false, //state.isEdit,
           comment: {
             id: comment.id,
             owner_id: comment.owner_id,

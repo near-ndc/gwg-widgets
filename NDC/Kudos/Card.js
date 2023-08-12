@@ -248,6 +248,16 @@ const utf2Html = (str) => {
     .join("");
 };
 
+const trimText = (text, limit) => {
+  if (!text) return "";
+
+  const _limit = limit ?? 200;
+  const ending = text.length > _limit ? "..." : "";
+  const trimmed = text.slice(0, limit ?? 200);
+
+  return `${trimmed}${ending}`;
+};
+
 return (
   <>
     <Container
@@ -292,38 +302,41 @@ return (
                 <span>To {kudo.receiver_id}</span>
               </KudoLink>
             </div>
-            {isIAmHuman && (
-              <Widget
-                src={widgets.styledComponents}
-                props={{
-                  Button: {
-                    text: kudo.upvotes.length,
-                    disabled:
-                      kudo.upvotes.includes(context.accountId) ||
-                      kudo.receiver_id === context.accountId ||
-                      kudo.sender_id === context.accountId,
-                    className:
-                      kudo.kind === "k" ? "secondary dark" : "secondary danger",
-                    onClick: (e) => handleUpvote(kudo),
-                    image: {
-                      url:
-                        kudo.kind === "k"
-                          ? isIAmHuman &&
-                            kudo.receiver_id !== context.accountId &&
-                            kudo.sender_id !== context.accountId &&
-                            !kudo.upvotes.includes(context.accountId)
-                            ? "https://bafkreicdwy5kpbid7qn2q4yt4lx6oo24kosa7t2ravqg54pmpb62mp64eq.ipfs.nftstorage.link"
-                            : "https://bafkreidz6ybnsss2ulwg236fvp3cm5ksdqpsfziwhvnx4ee7maqpcl2jde.ipfs.nftstorage.link/"
-                          : "https://bafkreia6ux4wzaktmwxxnkzd7tbhpuxhlp352twzsunc6vetza76u6clwy.ipfs.nftstorage.link/",
-                    },
+            <Widget
+              src={widgets.styledComponents}
+              props={{
+                Button: {
+                  text: kudo.upvotes.length,
+                  disabled:
+                    !context.accountId ||
+                    !isIAmHuman ||
+                    kudo.upvotes.includes(context.accountId) ||
+                    kudo.receiver_id === context.accountId ||
+                    kudo.sender_id === context.accountId,
+                  className:
+                    kudo.kind === "k" ? "secondary dark" : "secondary danger",
+                  onClick: (e) => handleUpvote(kudo),
+                  image: {
+                    url:
+                      kudo.kind === "k"
+                        ? isIAmHuman &&
+                          kudo.receiver_id !== context.accountId &&
+                          kudo.sender_id !== context.accountId &&
+                          !kudo.upvotes.includes(context.accountId)
+                          ? "https://bafkreicdwy5kpbid7qn2q4yt4lx6oo24kosa7t2ravqg54pmpb62mp64eq.ipfs.nftstorage.link"
+                          : "https://bafkreidz6ybnsss2ulwg236fvp3cm5ksdqpsfziwhvnx4ee7maqpcl2jde.ipfs.nftstorage.link/"
+                        : "https://bafkreia6ux4wzaktmwxxnkzd7tbhpuxhlp352twzsunc6vetza76u6clwy.ipfs.nftstorage.link/",
                   },
-                }}
-              />
-            )}
+                },
+              }}
+            />
           </div>
         </div>
         <Description className="text-secondary">
-          {kudo.message}
+          <Widget
+            src="mob.near/widget/SocialMarkdown"
+            props={{ text: trimText(kudo.message) }}
+          />
         </Description>
         {kudo.icon && <ImageTag src={`https://ipfs.io/ipfs/${kudo.icon}`} />}
         {kudoTags.length > 0 && (
@@ -350,6 +363,20 @@ return (
             )}
           </CreatedAt>
           <div className="d-flex justify-content-between align-items-center gap-2">
+            {kudo.comments.length > 0 && (
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Link: {
+                    className: "secondary dark",
+                    text: kudo.comments.length,
+                    size: "sm",
+                    icon: <i className="bi bi-chat-dots-fill m-0" />,
+                    href: `${widgets.kudoPage}?accountId=${kudo.receiver_id}&kudoId=${kudo.id}`,
+                  },
+                }}
+              />
+            )}
             <Widget
               src={widgets.styledComponents}
               props={{

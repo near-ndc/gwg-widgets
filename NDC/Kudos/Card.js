@@ -288,19 +288,31 @@ return (
         <div className="d-flex justify-content-between align-items-center">
           <div className="d-flex justify-content-between align-items-center w-100">
             <div className="d-flex gap-2 align-items-center">
-              <KudoLink
-                href={`${widgets.kudoPage}?accountId=${kudo.receiver_id}&kudoId=${kudo.id}`}
-              >
-                <Widget
-                  src="mob.near/widget/ProfileImage"
-                  props={{
-                    accountId: kudo.receiver_id,
-                    imageClassName: "rounded-circle w-100 h-100",
-                    style: { width: "32px", height: "32px", marginRight: 5 },
-                  }}
-                />
-                <span>To {kudo.receiver_id}</span>
-              </KudoLink>
+              <Widget
+                src="near/widget/AccountProfileOverlay"
+                props={{
+                  accountId: kudo.receiver_id,
+                  children: (
+                    <KudoLink
+                      href={`${widgets.kudoPage}?accountId=${kudo.receiver_id}&kudoId=${kudo.id}`}
+                    >
+                      <Widget
+                        src="mob.near/widget/ProfileImage"
+                        props={{
+                          accountId: kudo.receiver_id,
+                          imageClassName: "rounded-circle w-100 h-100",
+                          style: {
+                            width: "32px",
+                            height: "32px",
+                            marginRight: 5,
+                          },
+                        }}
+                      />
+                      <span>To {kudo.receiver_id}</span>
+                    </KudoLink>
+                  ),
+                }}
+              />
             </div>
             <Widget
               src={widgets.styledComponents}

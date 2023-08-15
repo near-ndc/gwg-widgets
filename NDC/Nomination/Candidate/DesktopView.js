@@ -450,21 +450,27 @@ const TH = styled.th`
   padding: 15px 20px !important;
 `;
 
-const afilations = JSON.parse(data.nominations.afiliation);
+if (!data) return <Loader />;
 
-const afiilationsSort = afilations
-  .sort((a, b) => new Date(a.end_date) - new Date(b.end_date))
-  .reverse();
+const candidateProps = data.nominations;
+if (!candidateProps) return <Loader />;
+
+const comments = data.comments[0] ? data.comments[0].comments : [];
+const afilations = JSON.parse(candidateProps.afiliation);
+if (!afilations) return <Loader />;
+
+const afilationsSort = afilations.sort(
+  (a, b) => parseInt(b.end_date) - parseInt(a.end_date)
+);
 
 const issues = [
-  data.nominations.HAYInvolve,
-  data.nominations.WIYStrategy,
-  data.nominations.Key_Issue_1,
-  data.nominations.Key_Issue_2,
-  data.nominations.Key_Issue_3,
-  data.nominations.addition_platform,
+  candidateProps.HAYInvolve,
+  candidateProps.WIYStrategy,
+  candidateProps.Key_Issue_1,
+  candidateProps.Key_Issue_2,
+  candidateProps.Key_Issue_3,
+  candidateProps.addition_platform,
 ];
-const comments = data.comments[0].comments;
 
 const titles = [
   "How are you involved with the NEAR ecosystem? Why are you a qualified candidate? Why should people vote for you?",
@@ -521,11 +527,11 @@ return (
                   <UserLink
                     href={`https://near.org/near/widget/ProfilePage?accountId=${accountId}`}
                   >
-                    <NominationTitle>{data.nominations.name}</NominationTitle>
+                    <NominationTitle>{candidateProps.name}</NominationTitle>
                     <NominationUser>{accountId}</NominationUser>
                   </UserLink>
                   <TagContainer>
-                    {data.nominations.tags
+                    {candidateProps.tags
                       .trim()
                       .split(",")
                       .map((tag) => {
@@ -543,7 +549,7 @@ return (
               </div>
             </div>
             <div className="d-flex gap-3">
-              {data.nominations.video.length > 0 && (
+              {candidateProps.video.length > 0 && (
                 <Widget
                   src={widgets.styledComponents}
                   props={{
@@ -551,7 +557,7 @@ return (
                       text: `Watch Video`,
                       className: "primary dark",
                       icon: <i class="bi bi-play-circle ml-2"></i>,
-                      href: data.nominations.video,
+                      href: candidateProps.video,
                     },
                   }}
                 />

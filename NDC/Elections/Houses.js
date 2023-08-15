@@ -1,4 +1,17 @@
-const { houses, selectedHouse, handleSelect, votesLeft } = props;
+let { houses, ids, electionContract, selectedHouse, handleSelect, votesLeft } =
+  props;
+ids = props.ids ? ids : [1, 2, 3];
+State.init({ houses: houses ? houses : [] });
+
+if (!houses && electionContract) {
+  const contractHouses = [
+    Near.view(electionContract, "proposal", { prop_id: ids[0] }),
+    Near.view(electionContract, "proposal", { prop_id: ids[1] }),
+    Near.view(electionContract, "proposal", { prop_id: ids[2] }),
+  ];
+
+  State.update({ houses: contractHouses });
+}
 
 const housesMapping = {
   CouncilOfAdvisors: {
@@ -14,6 +27,14 @@ const housesMapping = {
     src: "https://bafkreihcog3rs2gj4wgwfixk6yqir7k3csyaqiqwcvm2gedlh6dlvr7ik4.ipfs.nftstorage.link",
   },
 };
+
+const Loader = () => (
+  <span
+    className="spinner-grow spinner-grow-sm me-1"
+    role="status"
+    aria-hidden="true"
+  />
+);
 
 const Small = styled.small`
   margin-top: 10px;
@@ -101,7 +122,7 @@ const HouseItem = ({ house }) => (
 
 return (
   <div>
-    {houses.map((house) => (
+    {state.houses.map((house) => (
       <HouseItem house={house} />
     ))}
   </div>

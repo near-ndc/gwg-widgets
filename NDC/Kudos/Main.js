@@ -29,7 +29,7 @@ const getKudos = () => {
   let data = Social.getr(`${kudosContract}/kudos`);
   let formattedKudos = [];
 
-  if (data) {
+  if (data && Object.entries(data).length > 0) {
     Object.entries(data).map(([receiverId, kudoObject], index) => {
       Object.entries(kudoObject).map(([id, kudo]) => {
         formattedKudos.push({
@@ -46,11 +46,6 @@ const getKudos = () => {
         });
       });
     });
-  }
-
-  if (formattedKudos.length === 0) {
-    State.update({ kudos: [], emptyResult: false });
-    return;
   }
 
   let filteredKudos = [];
@@ -81,10 +76,13 @@ const getKudos = () => {
     );
   }
 
-  State.update({
-    kudos: filteredKudos,
-    emptyResult: filteredKudos.length === 0,
-  });
+  if (formattedKudos.length === 0)
+    State.update({ kudos: [], emptyResult: false });
+  else
+    State.update({
+      kudos: filteredKudos,
+      emptyResult: filteredKudos.length === 0,
+    });
 };
 
 const isHuman = Near.view(registryContract, "is_human", {
@@ -95,11 +93,21 @@ const sbts = Near.view(registryContract, "sbt_tokens", {
 });
 
 State.update({
-  isKudoMinted: sbts.some((sbt) => sbt.owner === context.accountId),
-  isIAmHuman: isHuman[0][1].length > 0,
+  isKudoMinted: sbts && sbts.some((sbt) => sbt.owner === context.accountId),
+  isIAmHuman: isHuman && isHuman[0][1].length > 0,
 });
 
 getKudos();
+
+const checkTxnMethod = (res, name) => {
+  const txn = res.body.result.transaction;
+
+  return (
+    res.body.result.status.SuccessValue &&
+    txn.signer_id === context.accountId &&
+    txn.actions[0].FunctionCall.method_name === name
+  );
+};
 
 asyncFetch("https://rpc.testnet.near.org", {
   method: "POST",
@@ -114,13 +122,12 @@ asyncFetch("https://rpc.testnet.near.org", {
     params: [transactionHashes, context.accountId],
   }),
 }).then((res) => {
-  const txn = res.body.result.transaction;
-  if (
-    res.body.result.status.SuccessValue &&
-    txn.signer_id === context.accountId &&
-    txn.actions[0].FunctionCall.method_name === "exchange_kudos_for_sbt"
-  )
+  if (checkTxnMethod(res, "exchange_kudos_for_sbt"))
     State.update({ congratsMintModal: true });
+
+  console.log(res);
+  // if (checkTxnMethod(res, "add_kudo"))
+  //   State.update({ congratsMintModal: true });
 });
 
 const Container = styled.div`
@@ -304,9 +311,7 @@ return (
                 <div className="w-100 h-100 d-flex justify-content-center align-items-center">
                   <div className="text-center d-flex flex-column gap-2">
                     <i className="bi bi-search fs-1"></i>
-                    <H5 className="text-secondary thin">
-                      There are no kudos
-                    </H5>
+                    <H5 className="text-secondary thin">There are no kudos</H5>
                   </div>
                 </div>
               )}

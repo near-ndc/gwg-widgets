@@ -64,11 +64,15 @@ const handleAddKudo = () => {
       message: state.message,
       icon_cid: state.img.cid,
       kind,
-      hashtags: state.tags.replace(/\s/g, "").split(","),
+      hashtags: state.tags,
     },
     "70000000000000",
     100000000000000000000000
-  ).then((data) => onHide());
+  ).then((data) => {
+    onHide();
+    notifyAddKudo();
+    notifyMentionComment();
+  });
 };
 
 State.init({
@@ -76,7 +80,36 @@ State.init({
   message: "",
   img: null,
   tags: "",
+  userMentions: [],
 });
+
+const notifyAddKudo = () => {
+  Social.set({
+    index: {
+      notify: JSON.stringify({
+        key: state.receiverId,
+        value: { type: "Kudos.Create" },
+      }),
+    },
+  });
+};
+
+const notifyMentionComment = () => {
+  const mentions = state.userMentions.map((user) => {
+    return {
+      key: user,
+      value: { type: "Kudos.Comment" },
+    };
+  });
+
+  Social.set({
+    index: {
+      notify: JSON.stringify(mentions),
+    },
+  });
+};
+
+console.log(state.userMentions);
 
 return (
   <Modal>
@@ -86,14 +119,12 @@ return (
         <div className="content">
           <Section>
             <Widget
-              src={widgets.styledComponents}
+              src={"rubycop.near/widget/Common.Compose"}
               props={{
-                Input: {
-                  label: "NEAR account",
-                  value: state.receiverId,
-                  handleChange: (e) =>
-                    State.update({ receiverId: e.target.value }),
-                },
+                type: "input",
+                placeholder: "NEAR account",
+                withoutSeparator: true,
+                handleChange: (text) => State.update({ receiverId: text }),
               }}
             />
           </Section>
@@ -102,6 +133,8 @@ return (
               src={"rubycop.near/widget/Common.Compose"}
               props={{
                 placeholder: "Left a comment",
+                getMentions: (user) =>
+                  State.update({ userMentions: [...state.userMentions, user] }),
                 handleChange: (text) => {
                   if (text.length > 1000) return;
                   State.update({ message: text });
@@ -120,10 +153,8 @@ return (
               props={{
                 label: "Tags",
                 placeholder: "Enter tags",
-                setTagsObject: (tags) => {
-                  if (state.tags.length > 0)
-                    State.update({ tags: Object.keys(tags) });
-                },
+                setTagsObject: (tags) =>
+                  State.update({ tags: Object.keys(tags) }),
               }}
             />
           </Section>

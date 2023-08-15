@@ -17,31 +17,20 @@ const widgets = {
 function getVerifiedHuman() {
   asyncFetch(
     `https://api.pikespeak.ai/sbt/has-sbt?holder=${context.accountId}&class_id=1&issuer=fractal.i-am-human.near&with_expired=false&registry=${registry_contract}`,
-    {
-      headers: {
-        "x-api-key": api_key,
-      },
-    }
+    { headers: { "x-api-key": api_key } }
   ).then((res) => {
     State.update({ verified: res.body });
   });
   asyncFetch(
     `https://api.pikespeak.ai/nominations/is-upvoted-by?candidate=${accountId}&upvoter=${context.accountId}&contract=${nomination_contract}`,
-    {
-      headers: {
-        "x-api-key": api_key,
-      },
-    }
+    { headers: { "x-api-key": api_key } }
   ).then((res) => {
     State.update({ voted: res.body });
   });
 }
-if (state.start) {
-  getVerifiedHuman();
-  State.update({
-    start: false,
-  });
-}
+
+getVerifiedHuman();
+
 function handleUpVote() {
   Near.call(
     nomination_contract,
@@ -353,27 +342,6 @@ const CandidateTime = styled.p`
   font-weight: 500;
   line-height: 120%;
 `;
-const CandidateTextInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  align-self: stretch;
-`;
-const CandidateTitle = styled.p`
-  color: var(--000000, #000);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 120%;
-  margin: 0px;
-`;
-const CandidateDescription = styled.p`
-  color: var(--primary-828688, #828688);
-  font-size: 12px;
-  line-height: 130%;
-  margin: 0px;
-  text-align: justify;
-`;
 const DeclarationCard = styled.div`
   display: flex;
   padding: 16px 12px;
@@ -495,54 +463,52 @@ const CommentText = styled.p`
   line-height: 24px;
   margin: 0px;
 `;
-let profileInfo = Social.getr(`${context.accountId}/profile`);
-let imageIsNFT = profileInfo.image.nft ? true : false;
-let nftData = profileInfo.image.nft;
-const getNftCid = Near.view(nftData.contractId, "nft_token", {
-  token_id: nftData.tokenId,
-});
-const CandidateProps = props.data.nominations;
-const comments = props.data.comments[0].comments;
-let isNFTURL = CandidateProps.img.url;
 
-const afilations = JSON.parse(CandidateProps.afiliation);
+if (!data) return <Loader />;
 
-const afiilationsSort = afilations
-  .sort((a, b) => new Date(a.end_date) - new Date(b.end_date))
-  .reverse();
+const candidateProps = data.nominations;
+if (!candidateProps) return <Loader />;
+
+const comments = data.comments[0] ? data.comments[0].comments : [];
+const afilations = JSON.parse(candidateProps.afiliation);
+if (!afilations) return <Loader />;
+
+const afilationsSort = afilations.sort(
+  (a, b) => parseInt(b.end_date) - parseInt(a.end_date)
+);
 
 const issues = [
   {
-    description: CandidateProps.HAYInvolve,
+    description: candidateProps.HAYInvolve,
     title:
       "How are you involved with the NEAR ecosystem? Why are you a qualified candidate? Why should people vote for you?",
   },
   {
-    description: CandidateProps.WIYStrategy,
+    description: candidateProps.WIYStrategy,
     title: "What is your strategy to develop the NEAR ecosystem?",
   },
   {
-    description: CandidateProps.Key_Issue_1,
+    description: candidateProps.Key_Issue_1,
     title:
       "What’s your view and pledge on the issue of User Experience and Accessibility? This issue focuses on improving the user experience, developing the social layer, enhancing the developer experience, and making the Near platform accessible to all users, including those with little technical expertise. It also explores how Near can evoke positive emotions in its users.",
   },
   {
-    description: CandidateProps.Key_Issue_2,
+    description: candidateProps.Key_Issue_2,
     title:
       "What’s your view and pledge on the issue of Economic Growth and Innovation? This issue emphasizes the need for economic growth within the NDC, the development of DeFi capabilities, the establishment of fiat ramps, and the support for founders, developers, creators, and builders. It also stresses the importance of launching useful products on the Near mainnet.",
   },
   {
-    description: CandidateProps.Key_Issue_3,
+    description: candidateProps.Key_Issue_3,
     title:
       "What’s your view and pledge on the issue of Marketing and Outreach? This issue underscores the importance of marketing to make NEAR a household name, conducting research, participating in conferences and hackathons, integrating with Web 2.0 platforms, and promoting Near as a hub of innovation.",
   },
-  { description: CandidateProps.addition_platform, title: "Other Platform" },
+  { description: candidateProps.addition_platform, title: "Other Platform" },
 ];
 
 return (
   <DetailContent>
-    <DetailCard className="justify-content-center">
-      <DetailHeader>
+    <DetailCard className="w-100 justify-content-center">
+      <DetailHeader className="w-100">
         <Widget
           src="mob.near/widget/ProfileImage"
           props={{
@@ -567,25 +533,10 @@ return (
             <UserLink
               href={`https://near.org/near/widget/ProfilePage?accountId=${accountId}`}
             >
-              <NominationTitle>{CandidateProps.name}</NominationTitle>
+              <NominationTitle>{candidateProps.name}</NominationTitle>
               <NominationUser>{accountId}</NominationUser>
             </UserLink>
           </NominationTitleContainer>
-          <TagContainer>
-            {CandidateProps.tags
-              .trim()
-              .split(",")
-              .map((tag) => {
-                return tag && tag != "" ? (
-                  <Widget
-                    src={widgets.styledComponents}
-                    props={{
-                      Tag: { title: tag },
-                    }}
-                  />
-                ) : null;
-              })}
-          </TagContainer>
         </HeaderDetailContent>
         {data.nominations.video.length > 0 && (
           <Widget
@@ -595,7 +546,7 @@ return (
                 text: `Watch Video`,
                 className: "primary dark",
                 icon: <i class="bi bi-play-circle ml-2"></i>,
-                href: props.data.nominations.video,
+                href: data.nominations.video,
               },
             }}
           />
@@ -618,6 +569,23 @@ return (
           }}
         />
       </DetailHeader>
+
+      <TagContainer className="mt-2 flex-wrap">
+        {candidateProps.tags
+          .trim()
+          .split(",")
+          .map((tag) => {
+            return tag && tag != "" ? (
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Tag: { title: tag },
+                }}
+              />
+            ) : null;
+          })}
+      </TagContainer>
+
       <PlatformCard>
         <PlatformContent>
           <PlatformHeaderDiv>
@@ -649,7 +617,7 @@ return (
           <CandidateHeader>
             <PlatformHeaderText>Candidate Affiliations</PlatformHeaderText>
           </CandidateHeader>
-          {afilations.map((affiliation) => {
+          {afilationsSort.map((affiliation) => {
             return (
               <CandidateInfoDiv>
                 <CandidateInfoHeader>

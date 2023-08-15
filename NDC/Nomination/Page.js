@@ -1,6 +1,5 @@
-// TODO: Should be grabbed from contract side
 let { ids, dev } = props;
-ids = props.ids ? ids : [1, 2, 3]; // for testing purposes
+ids = props.ids ? ids : [1, 2, 3];
 
 const electionContract = "elections-v1.gwg-testing.near";
 const registryContract = dev
@@ -15,12 +14,6 @@ const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 function handleSelfRevoke() {
   Near.call(nominationContract, "self_revoke");
 }
-
-const houses = [
-  Near.view(electionContract, "proposal", { prop_id: ids[0] }),
-  Near.view(electionContract, "proposal", { prop_id: ids[1] }),
-  Near.view(electionContract, "proposal", { prop_id: ids[2] }),
-];
 
 const widgets = {
   header: "election.ndctools.near/widget/NDC.Elections.Header",
@@ -58,17 +51,12 @@ const httpRequestOpt = {
 const baseApi = "https://api.pikespeak.ai";
 
 const endpoints = {
-  sbt: `${baseApi}/sbt/sbt-by-owner?holder=${context.accountId}&class_id=1&issuer=fractal.i-am-human.near&with_expired=false&registry=${registryContract}`,
-  og: `${baseApi}/sbt/sbt-by-owner?holder=${context.accountId}&class_id=${
-    dev ? 2 : 1
-  }&issuer=${issuer}&with_expired=false&registry=${registryContract}`,
   candidateComments: `${baseApi}/nominations/candidates-comments-and-upvotes?candidate=${context.accountId}&contract=${nominationContract}`,
   houseNominations: (house) =>
     `${baseApi}/nominations/house-nominations?house=${house}&contract=${nominationContract}`,
 };
 
 function getVerifiedHuman() {
-  let selfNomination = false;
   const sbtTokens = Near.view(registryContract, "sbt_tokens", {
     issuer: "fractal.i-am-human.near",
   });
@@ -78,9 +66,7 @@ function getVerifiedHuman() {
 
   asyncFetch(endpoints.candidateComments, httpRequestOpt).then((res) => {
     if (res.body.length > 0) {
-      State.update({
-        selfNomination: true,
-      });
+      State.update({ selfNomination: true });
     }
   });
 
@@ -117,7 +103,7 @@ function getNominationInfo(house) {
         setTimeout(() => {
           profileData = Social.getr(`${nominee}/profile`);
           nominationData = Social.getr(`${nominee}/nominations`);
-        }, 1000);
+        }, 100);
 
         setTimeout(() => {
           if (data.is_revoked || !profileData || !nominationData) {
@@ -249,21 +235,14 @@ const Loader = () => (
 return (
   <>
     <div>
-      {houses.map((house) => (
-        <>
-          {house.id === state.selectedHouse && (
-            <Widget
-              key={i}
-              src={widgets.header}
-              props={{
-                startTime: time[0],
-                endTime: time[1],
-                type: "Nomination",
-              }}
-            />
-          )}
-        </>
-      ))}
+      <Widget
+        src={widgets.header}
+        props={{
+          startTime: time ? time[0] : 0,
+          endTime: time ? time[1] : 0,
+          type: "Nomination",
+        }}
+      />
       <Filter className="d-flex">
         <div className="w-100">
           <Widget
@@ -313,7 +292,7 @@ return (
             src={widgets.houses}
             props={{
               selectedHouse: state.selectedHouse,
-              houses: houses,
+              electionContract,
               handleSelect: (item) => handleSelect(item),
             }}
           />

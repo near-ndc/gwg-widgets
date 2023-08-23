@@ -19,25 +19,15 @@ const StyledLink = styled.a`
   text-overflow: ellipsis;
 `;
 
-const Badge = styled.div`
-  color: #fff;
-  font-size: 10px;
-  padding: 4px 8px;
-  background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
-  border-radius: 100px;
-  width: 120px !important;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-left: 10px;
-`;
-
 const List = styled.div`
   overflow-y: scroll;
   height: 300px;
   width: 100%;
 `;
+
+const widgets = {
+  styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
+};
 
 return (
   <List>
@@ -73,7 +63,15 @@ return (
             </small>
           </div>
         </div>
-        <Badge>{vote.house}</Badge>
+        <Widget
+          src={widgets.styledComponents}
+          props={{
+            Tag: {
+              title: vote.house,
+              className: "dark",
+            },
+          }}
+        />
       </VoteRow>
     ))}
   </List>

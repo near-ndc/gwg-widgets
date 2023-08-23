@@ -211,6 +211,8 @@ const housesMapping = {
 const alreadyVoted = (candidateId) =>
   myVotes.some((voter) => voter.candidate === candidateId);
 
+const alreadyVotedForHouse = () => myVotes.some((voter) => voter.house === typ);
+
 const filteredCandidates = () => {
   let candidates = result;
 
@@ -351,7 +353,7 @@ const loadInitData = () => {
   State.update({
     candidates: filteredCandidates(),
     tosAgreement: !!policy,
-    bountyProgramModal: !!policy
+    bountyProgramModal: !!policy,
   });
 };
 
@@ -367,6 +369,7 @@ const loadSocialDBData = () => {
 };
 
 const myVotesForHouse = () => myVotes.filter((vote) => vote.house === typ);
+const isVisible = () => myVotesForHouse().length > 0 || winnerIds.length > 0;
 
 State.init({
   start: true,
@@ -420,20 +423,22 @@ const CandidateList = ({ candidateId, votes }) => (
       winnerId={winnerIds.includes(candidateId)}
     >
       <div className="d-flex w-100 align-items-center">
-        <Expand>
-          <i
-            className={`${
-              state.selected === candidateId
-                ? "bi bi-chevron-down"
-                : "bi bi-chevron-right"
-            }`}
-            onClick={(e) =>
-              State.update({
-                selected: state.selected === candidateId ? null : candidateId,
-              })
-            }
-          />
-        </Expand>
+        {isVisible() && (
+          <Expand>
+            <i
+              className={`${
+                state.selected === candidateId
+                  ? "bi bi-chevron-down"
+                  : "bi bi-chevron-right"
+              }`}
+              onClick={(e) =>
+                State.update({
+                  selected: state.selected === candidateId ? null : candidateId,
+                })
+              }
+            />
+          </Expand>
+        )}
 
         {isIAmHuman && (
           <Bookmark
@@ -489,12 +494,12 @@ const CandidateList = ({ candidateId, votes }) => (
             },
           }}
         />
-        <Votes>{votes}</Votes>
+        {isVisible() && <Votes>{votes}</Votes>}
         {isIAmHuman && (
           <Votes>
             <input
               id="input"
-              disabled={alreadyVoted(candidateId)}
+              disabled={alreadyVotedForHouse()}
               onClick={() => handleSelectCandidate(candidateId)}
               className="form-check-input"
               type="checkbox"
@@ -507,7 +512,7 @@ const CandidateList = ({ candidateId, votes }) => (
         )}
       </div>
     </CandidateItem>
-    {state.selected === candidateId && (
+    {state.selected === candidateId && isVisible() && (
       <Widget src={widgets.voters} props={{ candidateId, isIAmHuman }} />
     )}
   </div>
@@ -516,7 +521,7 @@ const CandidateList = ({ candidateId, votes }) => (
 const Filters = () => (
   <FilterRow className="d-flex align-items-center justify-content-between">
     <div className="d-flex align-items-center w-100">
-      <Expand />
+      {isVisible() && <Expand />}
       {isIAmHuman && (
         <Bookmark
           role="button"
@@ -547,18 +552,20 @@ const Filters = () => (
       <Nomination className="text-secondary text-end text-md-start">
         <small>Nomination</small>
       </Nomination>
-      <Votes
-        role="button"
-        className="text-secondary"
-        onClick={() => filterBy({ votes: true })}
-      >
-        <small>Total votes</small>
-        <i
-          className={`bi ${
-            state.filter.votes ? "bi-arrow-down" : "bi-arrow-up"
-          }`}
-        />
-      </Votes>
+      {isVisible() && (
+        <Votes
+          role="button"
+          className="text-secondary"
+          onClick={() => filterBy({ votes: true })}
+        >
+          <small>Total votes</small>
+          <i
+            className={`bi ${
+              state.filter.votes ? "bi-arrow-down" : "bi-arrow-up"
+            }`}
+          />
+        </Votes>
+      )}
       {isIAmHuman && (
         <Action
           role="button"
@@ -582,7 +589,11 @@ const CastVotes = () => (
     <div className="wrapper">
       <div className="d-flex align-items-end">
         <H3>
-          {seats - myVotesForHouse().length - state.selectedCandidates.length}
+          {alreadyVotedForHouse()
+            ? 0
+            : seats -
+              myVotesForHouse().length -
+              state.selectedCandidates.length}
         </H3>
         <span>/</span>
         <H4>{seats}</H4>
@@ -590,7 +601,11 @@ const CastVotes = () => (
       </div>
       <Info className="text-secondary">
         <i class="bi bi-info-circle"></i>
-        Make sure you selected all {seats} candidates
+        {alreadyVotedForHouse() ? (
+          <span>You're already voted for {housesMapping[typ]}</span>
+        ) : (
+          <span>Make sure you selected {seats} candidates</span>
+        )}
       </Info>
     </div>
     <ActionSection className="d-flex gap-2">
@@ -739,6 +754,8 @@ return (
           ),
           Button: {
             title: "Cast Votes",
+            disabled:
+              state.selectedCandidates.length === 0 || alreadyVotedForHouse(),
             onCancel: () => State.update({ bountyProgramModal: false }),
             onSubmit: handleVote,
           },

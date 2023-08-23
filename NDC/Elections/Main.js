@@ -1,6 +1,6 @@
 let { ids, org } = props;
 
-ids = props.ids ? ids : [1, 2, 3]; // for testing purposes
+ids = props.ids ? ids : [1, 2, 3, 4];
 org = props.org ? org : "test"; // for testing purposes
 
 const electionContract = "elections-v1.gwg-testing.near";
@@ -12,6 +12,14 @@ let houses = [
   Near.view(electionContract, "proposal", { prop_id: ids[1] }),
   Near.view(electionContract, "proposal", { prop_id: ids[2] }),
 ];
+
+// TODO: uncomment when contract is done
+// let budget = Near.view(electionContract, "proposal", { prop_id: ids[3] });
+let budget = {
+  id: 4,
+  typ: "BudgetPackage",
+  seats: 1,
+};
 
 State.init({
   selectedHouse: ids[0],
@@ -61,6 +69,7 @@ const widgets = {
   header: "election.ndctools.near/widget/NDC.Elections.Header",
   filter: "election.ndctools.near/widget/NDC.Elections.Filter",
   houses: "election.ndctools.near/widget/NDC.Elections.Houses",
+  budget: "election.ndctools.near/widget/NDC.Elections.BudgetPackage",
   progress: "election.ndctools.near/widget/NDC.Elections.Progress",
   candidates: "election.ndctools.near/widget/NDC.Elections.Candidates",
   statistic: "election.ndctools.near/widget/NDC.Elections.Statistic",
@@ -117,21 +126,24 @@ return (
               startTime: house.start,
               endTime: house.end,
               type: "Election",
+              isWhistleblower: true,
             }}
           />
         )}
       </>
     ))}
-    <Filter>
-      <Widget
-        src={widgets.filter}
-        props={{
-          handleFilter,
-          candidateId: state.candidateId,
-          placeholder: "Search by candidate name",
-        }}
-      />
-    </Filter>
+    {budget.id === state.selectedHouse && (
+      <Filter>
+        <Widget
+          src={widgets.filter}
+          props={{
+            handleFilter,
+            candidateId: state.candidateId,
+            placeholder: "Search by candidate name",
+          }}
+        />
+      </Filter>
+    )}
     <Container className="d-flex row">
       <Left className="h-screen col-lg d-flex flex-column justify-content-between">
         <div>
@@ -140,7 +152,7 @@ return (
             src={widgets.houses}
             props={{
               selectedHouse: state.selectedHouse,
-              houses,
+              houses: [...houses, budget],
               handleSelect,
               votesLeft: (house) => votesLeft(house),
             }}
@@ -149,7 +161,8 @@ return (
         <Widget
           src={widgets.progress}
           props={{
-            houses,
+            houses: [...houses, budget],
+            handleSelect,
             votesLeft: (house) => votesLeft(house),
           }}
         />
@@ -175,6 +188,18 @@ return (
             )}
           </>
         ))}
+        {budget.id === state.selectedHouse && (
+          <Widget
+            src={widgets.budget}
+            props={{
+              electionContract,
+              registryContract,
+              myVotes: state.myVotes,
+              isIAmHuman: state.isIAmHuman,
+              ...budget,
+            }}
+          />
+        )}
       </div>
 
       <div className="col-lg">

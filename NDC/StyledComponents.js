@@ -50,6 +50,15 @@ const Styled = {
           background: #c23f38;
         }
       }
+
+      &.success {
+        background: #5BC65F;
+        color: #fff;
+
+        &:hover {
+          background: #239F28;
+        }
+      }
     }
 
     &.secondary {

@@ -1,6 +1,7 @@
 const { onHide, kudo, comment, edit } = props;
 
 const kudosContract = "kudos.ndctools.near";
+const socialContract = "social.near";
 const widgets = {
   styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
 };
@@ -104,18 +105,51 @@ const encryptComment = () => {
 };
 
 const handleAddComment = () => {
-  Near.call(
-    kudosContract,
-    "leave_comment",
+  const message = state.message.slice(0, 1000);
+  const mentions = message.match(/@[\w][^\s]*/g);
+  const mentionData =
+    mentions.length > 0
+      ? mentions.map((user) => {
+          return {
+            key: user.slice(1),
+            value: { type: "mention" },
+          };
+        })
+      : {};
+
+  let data = [
     {
-      parent_comment_id: comment.id,
-      receiver_id: kudo.receiver_id,
-      kudos_id: kudo.id,
-      message: state.message.slice(0, 1000),
+      contractName: kudosContract,
+      methodName: "leave_comment",
+      args: {
+        parent_comment_id: comment.id,
+        receiver_id: kudo.receiver_id,
+        kudos_id: kudo.id,
+        message,
+      },
+      gas: "250000000000000",
+      deposit: 17000000000000000000000,
     },
-    "300000000000000",
-    "17000000000000000000000"
-  ).then((_data) => onHide());
+  ];
+
+  // if (mentionData.length > 0)
+  //   data.push({
+  //     contractName: socialContract,
+  //     methodName: "set",
+  //     args: {
+  //       data: {
+  //         index: {
+  //           notify: JSON.stringify(mentionData),
+  //         },
+  //       },
+  //     },
+  //     gas: "30000000000000",
+  //     deposit: 1000000000000000000000,
+  //   });
+
+  Near.call(data).then((data) => {
+    onHide();
+  });
 };
 
 const handleEditComment = () => {

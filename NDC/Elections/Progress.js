@@ -51,11 +51,11 @@ return (
       </div>
     </div>
     <ProgressBar className="position-relative">
-      {state.step > 0 && <DoneBar className={`col-${state.step * 4}`} />}
+      {state.step > 0 && <DoneBar className={`col-${state.step * 3}`} />}
       <div className="position-absolute top-0 start-50">
         <small>
           <b className={`${state.step > 1 ? "text-light" : "inherit"}`}>
-            {state.step === 3 ? 100 : state.step * 33} %
+            {state.step === 4 ? 100 : state.step * 25} %
           </b>
         </small>
       </div>

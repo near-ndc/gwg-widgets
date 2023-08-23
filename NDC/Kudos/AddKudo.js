@@ -1,6 +1,7 @@
 const { onHide, kind } = props;
 
 const kudosContract = "kudos.ndctools.near";
+const socialContract = "social.near";
 const widgets = {
   styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
 };
@@ -56,22 +57,62 @@ const Section = styled.div`
 `;
 
 const handleAddKudo = () => {
-  Near.call(
-    kudosContract,
-    "give_kudos",
+  const mentions = state.message.match(/@[\w][^\s]*/g);
+  const mentionData =
+    mentions.length > 0
+      ? mentions.map((user) => {
+          return {
+            key: user.slice(1),
+            value: { type: "mention" },
+          };
+        })
+      : {};
+
+  let data = [
     {
-      receiver_id: state.receiverId,
-      message: state.message,
-      icon_cid: state.img.cid,
-      kind,
-      hashtags: state.tags,
+      contractName: kudosContract,
+      methodName: "give_kudos",
+      args: {
+        receiver_id: state.receiverId,
+        message: state.message,
+        icon_cid: state.img.cid,
+        kind,
+        hashtags: state.tags,
+      },
+      gas: "70000000000000",
+      deposit: 100000000000000000000000,
     },
-    "70000000000000",
-    100000000000000000000000
-  ).then((data) => {
+    // {
+    //   contractName: socialContract,
+    //   methodName: "set",
+    //   args: {
+    //     data: {
+    //       index: {
+    //         notify: JSON.stringify({
+    //           key: state.receiverId,
+    //           value: { type: "kudo_created" },
+    //         }),
+    //       },
+    //     },
+    //   },
+    // },
+  ];
+
+  // if (mentionData.length > 0)
+  //   data.push({
+  //     contractName: socialContract,
+  //     methodName: "set",
+  //     args: {
+  //       data: {
+  //         index: {
+  //           notify: JSON.stringify(mentionData),
+  //         },
+  //       },
+  //     },
+  //   });
+
+  Near.call(data).then((data) => {
     onHide();
-    notifyAddKudo();
-    notifyMentionComment();
   });
 };
 
@@ -80,36 +121,7 @@ State.init({
   message: "",
   img: null,
   tags: "",
-  userMentions: [],
 });
-
-const notifyAddKudo = () => {
-  Social.set({
-    index: {
-      notify: JSON.stringify({
-        key: state.receiverId,
-        value: { type: "Kudos.Create" },
-      }),
-    },
-  });
-};
-
-const notifyMentionComment = () => {
-  const mentions = state.userMentions.map((user) => {
-    return {
-      key: user,
-      value: { type: "Kudos.Comment" },
-    };
-  });
-
-  Social.set({
-    index: {
-      notify: JSON.stringify(mentions),
-    },
-  });
-};
-
-console.log(state.userMentions);
 
 return (
   <Modal>
@@ -133,8 +145,6 @@ return (
               src={"rubycop.near/widget/Common.Compose"}
               props={{
                 placeholder: "Left a comment",
-                getMentions: (user) =>
-                  State.update({ userMentions: [...state.userMentions, user] }),
                 handleChange: (text) => {
                   if (text.length > 1000) return;
                   State.update({ message: text });

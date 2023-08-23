@@ -52,14 +52,11 @@ const widgets = {
 return (
   <div>
     <Widget
-      src={widgets.styledComponents}
+      src={"sayalot.near/widget/TagsEditor"}
       props={{
-        Input: {
-          label: "Tags",
-          placeholder: "Add tags separated by a comma",
-          value: tags,
-          handleChange: handleTags,
-        },
+        label: "Tags",
+        placeholder: "Enter tags",
+        setTagsObject: handleTags,
       }}
     />
 
@@ -71,7 +68,7 @@ return (
           value={state.agreement}
           onChange={() => {
             handleDeclaration(!state.agreement);
-            State.update({agreement: !state.agreement})
+            State.update({ agreement: !state.agreement });
           }}
         />
         <P>

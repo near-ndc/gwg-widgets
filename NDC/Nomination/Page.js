@@ -56,9 +56,9 @@ const endpoints = {
     `${baseApi}/nominations/house-nominations?house=${house}&contract=${nominationContract}`,
 };
 
-function getVerifiedHuman() {
-  const sbtTokens = Near.view(registryContract, "sbt_tokens", {
-    issuer: "fractal.i-am-human.near",
+const getVerifiedHuman = () => {
+  const isHuman = Near.view(registryContract, "is_human", {
+    account: context.accountId,
   });
   const ogTokens = Near.view(registryContract, "sbt_tokens", {
     issuer,
@@ -72,11 +72,11 @@ function getVerifiedHuman() {
 
   State.update({
     og: ogTokens.some((sbt) => sbt.owner === context.accountId),
-    sbt: sbtTokens.some((sbt) => sbt.owner === context.accountId),
+    sbt: isHuman[0][1].length > 0,
   });
-}
+};
 
-function getNominationInfo(house) {
+const getNominationInfo = (house) => {
   let nominationsArr = [];
 
   State.update({ loading: true });
@@ -117,7 +117,13 @@ function getNominationInfo(house) {
             upVoteData: upVoteInfo,
             ...objCard,
           };
+
           nominationsArr.push(objCard);
+          nominationsArr = nominationsArr.sort(
+            (a, b) =>
+              new Date(b.indexerData.timestamp).getTime() -
+              new Date(a.indexerData.timestamp).getTime()
+          );
 
           State.update({
             nominations: nominationsArr,
@@ -128,14 +134,7 @@ function getNominationInfo(house) {
       });
     }
   });
-}
-
-if (state.start) {
-  getNominationInfo("HouseOfMerit");
-  getVerifiedHuman();
-
-  State.update({ start: false });
-}
+};
 
 const handleSelect = (item) => {
   switch (item.id) {
@@ -181,6 +180,13 @@ const handleFilter = (e) => {
     State.update({ nominations: state.originNominations });
   }
 };
+
+if (state.start) {
+  getVerifiedHuman();
+  getNominationInfo("HouseOfMerit");
+
+  State.update({ start: false });
+}
 
 const Container = styled.div`
   padding: 30px 0;

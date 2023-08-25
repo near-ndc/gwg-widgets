@@ -346,15 +346,31 @@ const filterBy = (option) => {
 };
 
 const loadInitData = () => {
-  const policy = Near.view(electionContract, "accepted_policy", {
-    user: context.accountId,
+  const electionStatus = Near.view(electionContract, "proposal_status", {
+    prop_id: id,
   });
 
-  State.update({
-    candidates: filteredCandidates(),
-    tosAgreement: !!policy,
-    bountyProgramModal: !!policy,
-  });
+  switch (electionStatus) {
+    case "NOT_STARTED":
+    case "ONGOING":
+      const policy = Near.view(electionContract, "accepted_policy", {
+        user: context.accountId,
+      });
+      State.update({
+        candidates: filteredCandidates(),
+        tosAgreement: !!policy,
+        bountyProgramModal: !!policy,
+      });
+      break;
+    case "COOLDOWN":
+      State.update({
+        candidates: filteredCandidates(),
+        showReviewModal: true,
+      });
+      break;
+    case "ENDED":
+    default:
+  }
 };
 
 const loadSocialDBData = () => {
@@ -391,6 +407,7 @@ State.init({
   filterOption: "",
   showToSModal: false,
   bountyProgramModal: false,
+  showReviewModal: false,
 });
 
 loadInitData();
@@ -651,6 +668,26 @@ const ALink = ({ title, href }) => (
 
 return (
   <>
+    {state.showReviewModal && (
+      <Widget
+        src={widgets.modal}
+        props={{
+          title: (
+            <div>
+              <img src="https://bafkreidmuyeawyqduaotd27jozw5czdrm7t7w5hlcx5nfjzjjxxzvyhkyi.ipfs.nftstorage.link/" />
+              <div className="mt-4">Election results are under review</div>
+            </div>
+          ),
+          description:
+            "Election results are under review by Election integrity Councils. Please wait it may takes a few days",
+          Button: {
+            title: "I understand",
+            onCancel: () => State.update({ showReviewModal: false }),
+            onSubmit: () => State.update({ showReviewModal: false }),
+          },
+        }}
+      />
+    )}
     {state.showToSModal && (
       <Widget
         src={widgets.modal}

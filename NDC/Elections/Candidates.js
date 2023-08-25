@@ -23,6 +23,12 @@ const widgets = {
 
 const POLICY_HASH =
   "f1c09f8686fe7d0d798517111a66675da0012d8ad1693a47e0e2a7d3ae1c69d4";
+const FAIR_POLICY_DOC =
+  "https://bafkreidwdxocdkfsv6srynw7ipnogfuw76fzncmxd5jv7furbsn5cp4bz4.ipfs.nftstorage.link";
+const BLACKLIST_VERIFY_LINK = "";
+const GREYLIST_VERIFY_LINK = "";
+const MIN_BOND = 3;
+const MAX_BOND = 300;
 
 const H4 = styled.h4`
   margin-bottom: 0;
@@ -52,7 +58,7 @@ const StyledLink = styled.a`
   }
 `;
 
-const CandidateItem = styled.div`
+const CandidateItemRow = styled.div`
   padding: 0 20px;
   height: 48px;
   border-radius: 12px;
@@ -83,7 +89,7 @@ const Bookmark = styled.div`
 
   #bookmark.bi-bookmark-fill {
     color: ${(props) =>
-      props.winnerId || props.selected ? "#fff" : "#4F46E5"};
+      props.winnerId || props.selected ? "#fff" : "#4498E0"};
   }
 
   @media (max-width: 400px) {
@@ -201,7 +207,12 @@ const ActionSection = styled.div`
   }
 `;
 
+const Rule = styled.div`
+  color: #f29bc0;
+`;
+
 const currentUser = context.accountId;
+
 const housesMapping = {
   CouncilOfAdvisors: "Council Of Advisors",
   HouseOfMerit: "House of Merit",
@@ -238,6 +249,7 @@ const filteredCandidates = () => {
           alreadyVoted(candidateId)
         )
       : result;
+
   if (candidateId)
     candidates = result.filter(([candidate, _vote], _index) =>
       candidate.toLowerCase().includes(candidateId.toLowerCase())
@@ -254,9 +266,12 @@ const handleSelectCandidate = (candidateId) => {
   const currentVotes = seats - myVotesForHouse().length - selectedItems.length;
   if (currentVotes < 0) return;
 
+  Storage.privateSet("election_user_selection", JSON.stringify(selectedItems));
+
   State.update({
     selectedCandidates: selectedItems,
     availableVotes: currentVotes,
+    reload: false,
   });
 };
 
@@ -286,7 +301,12 @@ const handleBookmarkCandidate = (candidateId) => {
       onCommit: () => {
         if (selectedItems.length === 0)
           State.update({ selectedCandidates: result });
-        State.update({ bookmarked: selectedItems, loading: false });
+
+        State.update({
+          bookmarked: selectedItems,
+          loading: false,
+          reload: true,
+        });
       },
       onCancel: () => State.update({ loading: false }),
     }
@@ -297,9 +317,9 @@ const handleVote = () =>
   Near.call(
     electionContract,
     "vote",
-    { prop_id: id, vote: state.selectedCandidates },
+    { prop_id: props.id, vote: state.selectedCandidates },
     "70000000000000",
-    2000000000000000000000
+    (state.greylisted ? MAX_BOND : MIN_BOND) * 100000000000000000000000
   ).then((data) => State.update({ bountyProgramModal: false }));
 
 const handleAcceptToS = () => {
@@ -321,7 +341,7 @@ const handleAcceptToS = () => {
   );
 };
 
-const filterBy = (option) => {
+const handleFilter = (option) => {
   let filterOption = "";
   let filter = {};
 
@@ -342,60 +362,49 @@ const filterBy = (option) => {
     filter = { my_votes: !state.filter.my_votes };
   }
 
-  State.update({ filterOption, filter });
+  State.update({ filterOption, filter, reload: true });
 };
 
 const loadInitData = () => {
-  const electionStatus = Near.view(electionContract, "proposal_status", {
-    prop_id: id,
-  });
-
-  switch (electionStatus) {
-    case "NOT_STARTED":
+  switch (state.electionStatus) {
     case "ONGOING":
-      const policy = Near.view(electionContract, "accepted_policy", {
-        user: context.accountId,
-      });
       State.update({
-        candidates: filteredCandidates(),
-        tosAgreement: !!policy,
-        bountyProgramModal: !!policy,
+        tosAgreement: !!state.acceptedPolicy,
+        bountyProgramModal: !!state.acceptedPolicy,
       });
       break;
     case "COOLDOWN":
       State.update({
-        candidates: filteredCandidates(),
         showReviewModal: true,
       });
       break;
-    case "ENDED":
     default:
+      0;
   }
 };
 
 const loadSocialDBData = () => {
   let _bookmarked = Social.index(currentUser, `${ndcOrganization}/${typ}`);
 
-  State.update({
-    bookmarked:
-      _bookmarked && _bookmarked[_bookmarked.length - 1]
-        ? _bookmarked[_bookmarked.length - 1].value
-        : [],
-  });
+  return _bookmarked && _bookmarked[_bookmarked.length - 1]
+    ? _bookmarked[_bookmarked.length - 1].value
+    : [];
 };
 
 const myVotesForHouse = () => myVotes.filter((vote) => vote.house === typ);
 const isVisible = () => myVotesForHouse().length > 0 || winnerIds.length > 0;
+const userSelection = Storage.privateGet("election_user_selection");
 
 State.init({
-  start: true,
+  reload: true,
   loading: false,
+  electionStatus: "NOT_STARTED",
   availableVotes: seats - myVotesForHouse().length,
   selected: null,
   bookmarked: [],
   tosAgreementInput: false,
   tosAgreement: false,
-  selectedCandidates: [],
+  selectedCandidates: JSON.parse(userSelection ?? "[]"),
   voters: [],
   candidates: result,
   filter: {
@@ -405,13 +414,34 @@ State.init({
     my_votes: false,
   },
   filterOption: "",
+  blacklisted: false,
+  greylisted: false,
   showToSModal: false,
   bountyProgramModal: false,
   showReviewModal: false,
+  blacklistedModal: true,
 });
 
-loadInitData();
-loadSocialDBData();
+if (state.reload) {
+  const electionStatus = Near.view(electionContract, "proposal_status", {
+    prop_id: props.id,
+  });
+
+  const acceptedPolicy = Near.view(electionContract, "accepted_policy", {
+    user: context.accountId,
+  });
+
+  const bookmarked = loadSocialDBData();
+
+  State.update({
+    electionStatus,
+    acceptedPolicy,
+    candidates: filteredCandidates(),
+    bookmarked,
+  });
+
+  loadInitData();
+}
 
 const UserLink = ({ title, src }) => (
   <div className="d-flex mr-3">
@@ -432,9 +462,9 @@ const Loader = () => (
   />
 );
 
-const CandidateList = ({ candidateId, votes }) => (
+const CandidateItem = ({ candidateId, votes }) => (
   <div>
-    <CandidateItem
+    <CandidateItemRow
       className="d-flex align-items-center justify-content-between"
       selected={state.selected === candidateId}
       winnerId={winnerIds.includes(candidateId)}
@@ -504,7 +534,7 @@ const CandidateList = ({ candidateId, votes }) => (
               className: "secondary dark",
               text: "Nomination",
               icon: <i className="bi bi-box-arrow-up-right" />,
-              href: ref_link,
+              href: `https://near.org/nomination.ndctools.near/widget/NDC.Nomination.Candidate.Page?house=HouseOfMerit&accountId=${candidateId}`,
               inverse:
                 state.selected === candidateId ||
                 winnerIds.includes(candidateId),
@@ -516,7 +546,7 @@ const CandidateList = ({ candidateId, votes }) => (
           <Votes>
             <input
               id="input"
-              disabled={alreadyVotedForHouse()}
+              disabled={alreadyVotedForHouse() || state.blacklisted}
               onClick={() => handleSelectCandidate(candidateId)}
               className="form-check-input"
               type="checkbox"
@@ -528,7 +558,7 @@ const CandidateList = ({ candidateId, votes }) => (
           </Votes>
         )}
       </div>
-    </CandidateItem>
+    </CandidateItemRow>
     {state.selected === candidateId && isVisible() && (
       <Widget src={widgets.voters} props={{ candidateId, isIAmHuman }} />
     )}
@@ -543,7 +573,7 @@ const Filters = () => (
         <Bookmark
           role="button"
           className="text-secondary"
-          onClick={() => filterBy({ bookmark: true })}
+          onClick={() => handleFilter({ bookmark: true })}
         >
           <small>Bookmark</small>
           <i
@@ -555,7 +585,7 @@ const Filters = () => (
       )}
       <Candidates
         className="text-secondary"
-        onClick={() => filterBy({ candidates: true })}
+        onClick={() => handleFilter({ candidates: true })}
       >
         <small>Candidate</small>
         <i
@@ -573,7 +603,7 @@ const Filters = () => (
         <Votes
           role="button"
           className="text-secondary"
-          onClick={() => filterBy({ votes: true })}
+          onClick={() => handleFilter({ votes: true })}
         >
           <small>Total votes</small>
           <i
@@ -587,7 +617,7 @@ const Filters = () => (
         <Action
           role="button"
           className="text-secondary"
-          onClick={() => filterBy({ my_votes: true })}
+          onClick={() => handleFilter({ my_votes: true })}
         >
           <small>My votes</small>
           <i
@@ -620,6 +650,8 @@ const CastVotes = () => (
         <i class="bi bi-info-circle"></i>
         {alreadyVotedForHouse() ? (
           <span>You're already voted for {housesMapping[typ]}</span>
+        ) : state.blacklisted ? (
+          <span>Your account is blacklisted</span>
         ) : (
           <span>Make sure you selected {seats} candidates</span>
         )}
@@ -633,11 +665,13 @@ const CastVotes = () => (
             Button: {
               className: "secondary dark justify-content-center text-nowrap",
               text: "Reset Selection",
-              onClick: () =>
+              onClick: () => {
+                Storage.privateSet("election_user_selection", "[]");
                 State.update({
                   selectedCandidates: [],
                   availableVotes: seats - myVotesForHouse().length,
-                }),
+                });
+              },
             },
           }}
         />
@@ -647,8 +681,11 @@ const CastVotes = () => (
         props={{
           Button: {
             className: "primary justify-content-center",
-            disabled: state.selectedCandidates.length === 0,
-            text: `Cast ${state.selectedCandidates.length || ""} Votes`,
+            disabled:
+              state.selectedCandidates.length === 0 || state.blacklisted,
+            text: `Cast ${state.selectedCandidates.length || ""} Vote${
+              state.selectedCandidates.length === 1 ? "" : "s"
+            }`,
             onClick: () =>
               state.tosAgreement
                 ? State.update({ bountyProgramModal: true })
@@ -688,6 +725,37 @@ return (
         }}
       />
     )}
+    {state.blacklisted && state.blacklistedModal && (
+      <Widget
+        src={widgets.modal}
+        props={{
+          title: (
+            <div>
+              <img src="https://bafkreignre4f27jsdgxt25pgnenjyqfw55pkhtnu5gkv7vhex3ttv45pbe.ipfs.nftstorage.link" />
+              <div className="mt-4">You are on the election blacklist. </div>
+            </div>
+          ),
+          description: (
+            <>
+              The community has voted to block backlisted accounts from voting
+              in the NDC general election. You have been blacklisted due
+              previously violating the
+              <ALink title="Fair Voting Policy." href={FAIR_POLICY_DOC} />.
+            </>
+          ),
+          Button: {
+            title: "I understand",
+            onCancel: () => State.update({ blacklistedModal: false }),
+            onSubmit: () => State.update({ blacklistedModal: false }),
+          },
+          SecondaryButton: {
+            type: "Link",
+            title: "Appeal the Decision",
+            href: BLACKLIST_VERIFY_LINK,
+          },
+        }}
+      />
+    )}
     {state.showToSModal && (
       <Widget
         src={widgets.modal}
@@ -703,10 +771,7 @@ return (
           description: (
             <>
               Please make sure to read and understand the{" "}
-              <ALink
-                title="Fair Voting Policy."
-                href="https://bafkreieiqabf6k675f3doqdztej53qmiybmhiaqgjaqmj673wbxxq5muke.ipfs.nftstorage.link/"
-              />
+              <ALink title="Fair Voting Policy." href={FAIR_POLICY_DOC} />
               which outlines the responsibilities of each voter.
             </>
           ),
@@ -721,10 +786,7 @@ return (
                 }
               />
               I agree with{" "}
-              <ALink
-                title="Fair Voting Policy."
-                href="https://bafkreieiqabf6k675f3doqdztej53qmiybmhiaqgjaqmj673wbxxq5muke.ipfs.nftstorage.link/"
-              />
+              <ALink title="Fair Voting Policy." href={FAIR_POLICY_DOC} />
             </Section>
           ),
           Button: {
@@ -747,67 +809,85 @@ return (
           title: (
             <div>
               <img src="https://bafkreidmuyeawyqduaotd27jozw5czdrm7t7w5hlcx5nfjzjjxxzvyhkyi.ipfs.nftstorage.link/" />
-              <div className="mt-4">You are about to cast your votes.</div>
+              <div className="mt-4">
+                {state.greylisted ? (
+                  <>Additional Verification Required.</>
+                ) : (
+                  <>You are about to cast your votes.</>
+                )}
+              </div>
             </div>
           ),
           description: (
             <>
-              <p>
-                Do you know about the{" "}
-                <ALink
-                  title="Whistleblower Bounty Program"
-                  href="https://medium.com/@neardigitalcollective/introducing-ndc-whistleblower-bounty-program-d4fe1b9fc5a0"
-                />
-                ? The Whistleblower Bounty Program offers up to 2,000 NEAR for
-                whistleblowers who come forward to share instances of vote
-                buying, account buying, election fraud, and other violations of
-                the{" "}
-                <ALink
-                  title="Fair Voting Policy"
-                  href="https://bafkreieiqabf6k675f3doqdztej53qmiybmhiaqgjaqmj673wbxxq5muke.ipfs.nftstorage.link/"
-                />
-                .
-              </p>
-              <p>
-                You will be bonding xN during the election period. This bond
-                will be returned to you after the election results are reviewed
-                and validated.
-              </p>
-              <p>
-                Make sure you vote for all the seats in this house. You can only
-                vote once and past votes cannot be changed.
-              </p>
+              <Rule className="d-flex gap-2">
+                <h3>1</h3>
+                <p className="text-secondary text-start">
+                  Don't sell your vote and risk being banned from governance.
+                  Instead report bad actors and claim a bounty up to 2,500 NEAR.
+                  Learn more about{" "}
+                  <ALink
+                    title="Whistleblower Bounty Program"
+                    href="https://medium.com/@neardigitalcollective/introducing-ndc-whistleblower-bounty-program-d4fe1b9fc5a0"
+                  />
+                </p>
+              </Rule>
+              <Rule className="d-flex gap-2">
+                <h3>2</h3>
+                <p className="text-secondary text-start">
+                  A bond of <b>{state.greylisted ? MAX_BOND : MIN_BOND} NEAR</b>{" "}
+                  is required to vote. If you are a fair voter, this bond will
+                  returned to you after the election results are reviewed and
+                  rectified.
+                </p>
+              </Rule>
+              <Rule className="d-flex gap-2">
+                <h3>3</h3>
+                <p className="text-secondary text-start">
+                  You votes <b>cannot</b> be changed.
+                </p>
+              </Rule>
+
+              {state.greylisted && (
+                <p className="text-secondary mt-2">
+                  <b>Voters without reputation need to be verified</b> by the
+                  Election Integrity Council or place a substantial bond to
+                  vote. If you are a fair voter, this bond will be returned to
+                  you once the election results are reviewed and ratified.
+                </p>
+              )}
             </>
           ),
-          content: (
-            <Section className="d-flex d-flex justify-content-center w-100 my-4">
-              I understand the{" "}
-              <ALink
-                title="Whistleblower Bounty Program"
-                href="https://medium.com/@neardigitalcollective/introducing-ndc-whistleblower-bounty-program-d4fe1b9fc5a0"
-              />
-              .
-            </Section>
-          ),
           Button: {
-            title: "Cast Votes",
+            title: `Cast ${state.selectedCandidates.length || ""} Vote${
+              state.selectedCandidates.length === 1 ? "" : "s"
+            }`,
             disabled:
               state.selectedCandidates.length === 0 || alreadyVotedForHouse(),
-            onCancel: () => State.update({ bountyProgramModal: false }),
+            onCancel: () =>
+              State.update({ bountyProgramModal: false, reload: false }),
             onSubmit: handleVote,
+          },
+          SecondaryButton: {
+            type: state.greylisted ? "Link" : "Button",
+            title: state.greylisted ? "Apply to Verify" : "Cancel",
+            href: GREYLIST_VERIFY_LINK,
+            onSubmit: () =>
+              State.update({ bountyProgramModal: false, reload: false }),
           },
         }}
       />
     )}
 
     <Container>
-      <h1>{housesMapping[typ]}</h1>
+      <h2>{housesMapping[typ]}</h2>
+      <small className="text-secondary">{result.length} Candidates</small>
       {state.candidates.length > 0 ? (
         <>
           <Filters />
           <CandidatesContainer>
             {state.candidates.map(([candidateId, votes], index) => (
-              <CandidateList
+              <CandidateItem
                 candidateId={candidateId}
                 votes={votes}
                 key={index}

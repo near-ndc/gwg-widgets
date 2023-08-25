@@ -1,5 +1,3 @@
-const { voted, total } = props;
-
 const Chart = styled.div`
   width: 150px;
   aspect-ratio: 1;
@@ -48,7 +46,27 @@ const H5 = styled.h5`
   }
 `;
 
-const percent = (voted / total) * 100;
+const electionContract = "elections-v1.gwg-testing.near";
+const registryContract = "registry.i-am-human.near";
+const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
+
+State.init({
+  total: 0,
+  voted: 0,
+});
+
+const total = Near.view("registry.i-am-human.near", "sbt_supply", {
+  issuer: "fractal.i-am-human.near",
+});
+
+asyncFetch(
+  `https://api.pikespeak.ai/election/total-voters?contract=${electionContract}`,
+  { headers: { "x-api-key": apiKey } }
+).then((resp) => {
+  if (resp.body) State.update({ voted: resp.body, total });
+});
+
+const percent = state.total > 0 ? (state.voted / state.total) * 100 : 0;
 
 return (
   <div>
@@ -56,7 +74,7 @@ return (
       <span>{percent.toFixed(1)}%</span>
     </Chart>
     <H5>
-      <b>{voted}</b>/<small>{total} Humans Voted</small>
+      <b>{state.voted}</b>/<small>{state.total} Humans Voted</small>
     </H5>
   </div>
 );

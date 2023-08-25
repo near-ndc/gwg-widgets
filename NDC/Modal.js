@@ -1,4 +1,4 @@
-const { title, description, content, Button } = props;
+const { title, description, content, Button, SecondaryButton } = props;
 
 const widgets = {
   styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
@@ -66,16 +66,37 @@ return (
         <h6 className="text-secondary text-center px-2">{description}</h6>
         {content}
         <div className="d-flex justify-content-center gap-2 w-100">
-          <Widget
-            src={widgets.styledComponents}
-            props={{
-              Button: {
-                className: "secondary dark",
-                text: "Cancel",
-                onClick: Button.onCancel,
-              },
-            }}
-          />
+          {SecondaryButton ? (
+            <Widget
+              src={widgets.styledComponents}
+              props={{
+                [SecondaryButton.type ?? "Button"]: {
+                  className: "secondary dark",
+                  disabled: SecondaryButton.disabled,
+                  text: SecondaryButton.title,
+                  onClick:
+                    SecondaryButton.type === "Button"
+                      ? SecondaryButton.onSubmit
+                      : null,
+                  href:
+                    SecondaryButton.type === "Link"
+                      ? SecondaryButton.href
+                      : null,
+                },
+              }}
+            />
+          ) : (
+            <Widget
+              src={widgets.styledComponents}
+              props={{
+                Button: {
+                  className: "secondary dark",
+                  text: "Cancel",
+                  onClick: Button.onCancel,
+                },
+              }}
+            />
+          )}
           <Widget
             src={widgets.styledComponents}
             props={{

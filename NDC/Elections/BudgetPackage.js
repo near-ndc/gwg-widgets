@@ -148,9 +148,10 @@ const CastVotes = () => (
         src={widgets.styledComponents}
         props={{
           Button: {
+            text: "Yes",
             className: "primary success justify-content-center",
             icon: <i className="bi bi-hand-thumbs-up" />,
-            onClick: () => handleVote(true),
+            onClick: () => handleVote(0),
           },
         }}
       />
@@ -158,9 +159,21 @@ const CastVotes = () => (
         src={widgets.styledComponents}
         props={{
           Button: {
+            text: "No",
             className: "primary danger justify-content-center",
             icon: <i className="bi bi-hand-thumbs-down" />,
-            onClick: () => handleVote(false),
+            onClick: () => handleVote(1),
+          },
+        }}
+      />
+      <Widget
+        src={widgets.styledComponents}
+        props={{
+          Button: {
+            text: "Abstain",
+            className: "justify-content-center",
+            icon: <i className="bi bi-x-lg" />,
+            onClick: () => handleVote(2),
           },
         }}
       />
@@ -168,25 +181,17 @@ const CastVotes = () => (
   </CastVotesSection>
 );
 
+const Content = () => <p>Budget package ...</p>;
+
 return (
   <Container>
     <h1>Budget Package</h1>
     <CandidatesContainer>
-      <iframe src="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"></iframe>
-      {/* <object
-        data="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-        type="application/pdf"
-        width="100%"
-        height="100%"
-        aria-labelledby="PDF document"
-      >
-        <p>
-          Your browser does not support PDFs.
-          <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
-            Download the PDF
-          </a>
-        </p>
-      </object> */}
+      <Content />
+      <a href="https://bafkreidwdxocdkfsv6srynw7ipnogfuw76fzncmxd5jv7furbsn5cp4bz4.ipfs.nftstorage.link/">
+        View Budget Package
+        <i className="ml-2 bi bi-box-arrow-up-right" />
+      </a>
     </CandidatesContainer>
 
     <div>

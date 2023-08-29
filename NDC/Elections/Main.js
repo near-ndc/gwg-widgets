@@ -1,7 +1,6 @@
-let { ids, org } = props;
+let { ids } = props;
 
 ids = props.ids ? ids : [1, 2, 3, 4];
-org = props.org ? org : "NDC";
 
 const electionContract = "elections-v1.gwg-testing.near";
 const registryContract = "registry-v1.gwg-testing.near";
@@ -23,6 +22,14 @@ State.init({
   blacklisted: false,
   greylisted: false,
   candidateId: "",
+  alreadyBonded: false,
+});
+
+asyncFetch(
+  `https://api.pikespeak.ai/election/already_bonded?contract=${electionContract}`,
+  { headers: { "x-api-key": apiKey } }
+).then((resp) => {
+  if (resp.body) State.update({ alreadyBonded: resp.body });
 });
 
 const isHuman = Near.view(registryContract, "is_human", {
@@ -65,6 +72,15 @@ const widgets = {
 
 const handleSelect = (item) => {
   State.update({ selectedHouse: item.id });
+};
+
+const handleUnbond = () => {
+  Near.call(
+    registryContract,
+    "is_human_call",
+    { ctr: electionContract, function: "bond", payload: "{}" },
+    "110000000000000"
+  ).then((data) => State.update({ alreadyBonded: false }));
 };
 
 const handleFilter = (e) => State.update({ candidateId: e.target.value });
@@ -157,14 +173,33 @@ return (
               }}
             />
           </div>
-          <Widget
-            src={widgets.progress}
-            props={{
-              houses: [...houses, budget],
-              handleSelect,
-              votesLeft: (house) => votesLeft(house),
-            }}
-          />
+
+          {state.winnerIds.length > 0 ? (
+            <>
+              {state.alreadyBonded && (
+                <div className="mt-5">
+                  <Widget
+                    src={widgets.styledComponents}
+                    props={{
+                      Button: {
+                        text: "Unbond & Mint I Voted SBT",
+                        onClick: handleUnbond,
+                      },
+                    }}
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <Widget
+              src={widgets.progress}
+              props={{
+                houses: [...houses, budget],
+                handleSelect,
+                votesLeft: (house) => votesLeft(house),
+              }}
+            />
+          )}
         </Left>
         <div className="col-lg-6 p-2 p-md-3">
           {houses.map((house) => (
@@ -176,15 +211,10 @@ return (
                   props={{
                     electionContract,
                     registryContract,
-                    ndcOrganization: org,
-                    isIAmHuman: state.isIAmHuman,
-                    myVotes: state.myVotes,
-                    candidateId: state.candidateId,
-                    winnerIds: state.winnerIds,
-                    blacklisted: state.blacklisted,
-                    greylisted: state.greylisted,
-                    ...house,
+                    ndcOrganization: "NDC",
                     result: rand(house.result),
+                    ...state,
+                    ...house,
                   }}
                 />
               )}

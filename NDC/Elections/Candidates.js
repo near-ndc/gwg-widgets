@@ -14,6 +14,7 @@ const {
   candidateId,
   blacklisted,
   greylisted,
+  alreadyBonded,
 } = props;
 
 const widgets = {
@@ -344,7 +345,7 @@ const handleVote = () => {
     deposit: (greylisted ? MAX_BOND : MIN_BOND) * 1000000000000000000000000,
   };
 
-  const arr = state.alreadyBonded ? [voteFunc] : [bondFunc, voteFunc];
+  const arr = alreadyBonded ? [voteFunc] : [bondFunc, voteFunc];
 
   Near.call(arr).then((data) => State.update({ bountyProgramModal: false }));
 };
@@ -468,7 +469,6 @@ State.init({
   loading: false,
   electionStatus: "NOT_STARTED",
   acceptedPolicy: false,
-  alreadyBonded: false,
   availableVotes: seats - myVotesForHouse().length,
   selected: null,
   bookmarked: [],
@@ -504,13 +504,6 @@ if (state.reload) {
   fetchGraphQL(NFT_SERIES[1]).then((result) =>
     processNFTAvailability(result, "hasIVotedNFT")
   );
-
-  asyncFetch(
-    `https://api.pikespeak.ai/election/already_bonded?contract=${electionContract}`,
-    { headers: { "x-api-key": apiKey } }
-  ).then((resp) => {
-    if (resp.body) State.update({ alreadyBonded: resp.body });
-  });
 
   const electionStatus = Near.view(electionContract, "proposal_status", {
     prop_id: props.id,

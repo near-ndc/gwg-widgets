@@ -52,6 +52,12 @@ const H6 = styled.h6`
 
 const ImgContainer = styled.div`
   margin-right: 20px;
+
+  img {
+    border-radius: 50%;
+    height: 40px;
+    max-height: "40px";
+  }
 `;
 
 const CompletedIcon = styled.i`
@@ -86,20 +92,9 @@ const HouseItem = ({ house }) => (
   >
     <div className="d-flex align-items-center">
       <ImgContainer>
-        <Widget
-          src="mob.near/widget/Image"
-          props={{
-            image: { url: housesMapping[house.typ].src },
-            alt: housesMapping[house.typ].title,
-            style: {
-              height: "40px",
-              objectFit: "cover",
-              maxHeight: "40px",
-              borderRadius: "50%",
-            },
-            fallbackUrl:
-              "https://ipfs.near.social/ipfs/bafkreibmiy4ozblcgv3fm3gc6q62s55em33vconbavfd2ekkuliznaq3zm",
-          }}
+        <img
+          src={housesMapping[house.typ].src}
+          alt={housesMapping[house.typ].title}
         />
       </ImgContainer>
       <div>

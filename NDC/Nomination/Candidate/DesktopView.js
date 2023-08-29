@@ -87,6 +87,7 @@ const DetailCard = styled.div`
 
 const TagContainer = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 4px;
 `;
@@ -500,8 +501,8 @@ return (
                   accountId,
                   imageClassName: "rounded-circle w-100 h-100",
                   style: {
-                    width: "100px",
-                    height: "100px",
+                    width: "90px",
+                    height: "90px",
                     marginRight: "15px",
                   },
                 }}

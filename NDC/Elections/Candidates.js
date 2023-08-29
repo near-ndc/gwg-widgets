@@ -1,17 +1,19 @@
 const {
   electionContract,
+  registryContract,
   ndcOrganization,
   myVotes,
   id,
   typ,
   ref_link,
-  winnerIds,
   quorum,
   seats,
   voters_num,
   result,
   isIAmHuman,
   candidateId,
+  blacklisted,
+  greylisted,
 } = props;
 
 const widgets = {
@@ -21,14 +23,23 @@ const widgets = {
   verifyHuman: "nomination.ndctools.near/widget/NDC.VerifyHuman",
 };
 
+const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
+const QUERY_API_ENDPOINT = "https://graph.mintbase.xyz/mainnet";
 const POLICY_HASH =
-  "f1c09f8686fe7d0d798517111a66675da0012d8ad1693a47e0e2a7d3ae1c69d4";
+  "99c19c7a4ea920bb2ae2c5a214b35f6c0393e518e7637b2d6dccf365dd62a047";
 const FAIR_POLICY_DOC =
   "https://bafkreidwdxocdkfsv6srynw7ipnogfuw76fzncmxd5jv7furbsn5cp4bz4.ipfs.nftstorage.link";
+const FAIR_POLICY_NFT =
+  "https://ipfs.near.social/ipfs/bafkreiabsu7xhumhim4gxj5h7umopc3b5ekppeofwwizsf5loqs2vcntpm";
+const I_VOTED_NFT =
+  "https://ipfs.near.social/ipfs/bafkreiewiq4puwmcu7ciztsfqvmpl3gsumfgsm5r22g24abiynoeghsyey";
+const MINT_VOTING_POLICY_NFT = "https://shard.dog/fairvoting/";
+const MINT_I_VOTED_NFT = "https://shard.dog/ivoted";
 const BLACKLIST_VERIFY_LINK = "";
 const GREYLIST_VERIFY_LINK = "";
-const MIN_BOND = 3;
-const MAX_BOND = 300;
+const MIN_BOND = 0.01; //3
+const MAX_BOND = 0.02; //300;
+const NFT_SERIES = [124, 125];
 
 const H4 = styled.h4`
   margin-bottom: 0;
@@ -201,6 +212,10 @@ const Section = styled.div`
   margin-bottom: 10px;
 `;
 
+const GraylistedAlert = styled.div`
+  background: rgb(236 236 236);
+`;
+
 const ActionSection = styled.div`
   @media (max-width: 400px) {
     width: 100%;
@@ -313,14 +328,26 @@ const handleBookmarkCandidate = (candidateId) => {
   );
 };
 
-const handleVote = () =>
-  Near.call(
-    electionContract,
-    "vote",
-    { prop_id: props.id, vote: state.selectedCandidates },
-    "70000000000000",
-    (state.greylisted ? MAX_BOND : MIN_BOND) * 100000000000000000000000
-  ).then((data) => State.update({ bountyProgramModal: false }));
+const handleVote = () => {
+  const voteFunc = {
+    contractName: electionContract,
+    methodName: "vote",
+    args: { prop_id: props.id, vote: state.selectedCandidates },
+    gas: "110000000000000",
+  };
+
+  const bondFunc = {
+    contractName: registryContract,
+    methodName: "is_human_call",
+    args: { ctr: electionContract, function: "bond", payload: "{}" },
+    gas: "110000000000000",
+    deposit: (greylisted ? MAX_BOND : MIN_BOND) * 1000000000000000000000000,
+  };
+
+  const arr = state.alreadyBonded ? [voteFunc] : [bondFunc, voteFunc];
+
+  Near.call(arr).then((data) => State.update({ bountyProgramModal: false }));
+};
 
 const handleAcceptToS = () => {
   State.update({ loading: true });
@@ -329,13 +356,13 @@ const handleAcceptToS = () => {
     electionContract,
     "accept_fair_voting_policy",
     { policy: POLICY_HASH },
-    "70000000000000",
+    70000000000000,
     1000000000000000000000
   ).then((data) =>
     State.update({
       showToSModal: false,
       tosAgreement: true,
-      bountyProgramModal: true,
+      showMintPolicyModal: true,
       loading: false,
     })
   );
@@ -365,18 +392,25 @@ const handleFilter = (option) => {
   State.update({ filterOption, filter, reload: true });
 };
 
-const loadInitData = () => {
+const handleStateTransition = () => {
+  if (state.filterOption !== "") return;
+
   switch (state.electionStatus) {
     case "ONGOING":
-      State.update({
-        tosAgreement: !!state.acceptedPolicy,
-        bountyProgramModal: !!state.acceptedPolicy,
-      });
+      if (!!state.acceptedPolicy)
+        State.update({
+          showMintPolicyModal: state.hasPolicyNFT === false,
+          showMintIVotedModal:
+            myVotes.length > 0 && state.hasIVotedNFT === false,
+        });
       break;
     case "COOLDOWN":
       State.update({
         showReviewModal: true,
       });
+      break;
+    case "ENDED":
+      State.update({ winnerIds });
       break;
     default:
       0;
@@ -391,14 +425,50 @@ const loadSocialDBData = () => {
     : [];
 };
 
+function fetchGraphQL(series) {
+  return asyncFetch(QUERY_API_ENDPOINT, {
+    method: "POST",
+    headers: { "mb-api-key": "anon", "x-hasura-role": electionContract },
+    body: JSON.stringify({
+      query: `
+        query MyQuery {
+          nft_tokens(
+            where: {nft_contract_id: {_eq: "mint.sharddog.near"}, token_id: {_regex: "^${series}:"}, owner: {_eq: "orangejoe.near"}}
+            order_by: {minted_timestamp: asc}
+          ) {
+            last_transfer_timestamp
+          }
+        }
+      `,
+      variables: {},
+      operationName: "MyQuery",
+    }),
+  });
+}
+
+const processNFTAvailability = (result, key) => {
+  if (result.status === 200) {
+    let data = result.body.data;
+    if (data) {
+      const tokens = data.nft_tokens;
+
+      if (tokens.length > 0 && tokens[0].last_transfer_timestamp === null)
+        State.update({ [key]: true });
+    }
+  }
+};
+
 const myVotesForHouse = () => myVotes.filter((vote) => vote.house === typ);
-const isVisible = () => myVotesForHouse().length > 0 || winnerIds.length > 0;
+const isVisible = () =>
+  myVotesForHouse().length > 0 || state.winnerIds.length > 0;
 const userSelection = Storage.privateGet("election_user_selection");
 
 State.init({
   reload: true,
   loading: false,
   electionStatus: "NOT_STARTED",
+  acceptedPolicy: false,
+  alreadyBonded: false,
   availableVotes: seats - myVotesForHouse().length,
   selected: null,
   bookmarked: [],
@@ -414,15 +484,34 @@ State.init({
     my_votes: false,
   },
   filterOption: "",
-  blacklisted: false,
-  greylisted: false,
   showToSModal: false,
   bountyProgramModal: false,
   showReviewModal: false,
   blacklistedModal: true,
+
+  showMintPolicyModal: false,
+  showMintIVotedModal: false,
+  hasPolicyNFT: null,
+  hasIVotedNFT: null,
+  winnerIds: [],
 });
 
 if (state.reload) {
+  fetchGraphQL(NFT_SERIES[0]).then((result) =>
+    processNFTAvailability(result, "hasPolicyNFT")
+  );
+
+  fetchGraphQL(NFT_SERIES[1]).then((result) =>
+    processNFTAvailability(result, "hasIVotedNFT")
+  );
+
+  asyncFetch(
+    `https://api.pikespeak.ai/election/already_bonded?contract=${electionContract}`,
+    { headers: { "x-api-key": apiKey } }
+  ).then((resp) => {
+    if (resp.body) State.update({ alreadyBonded: resp.body });
+  });
+
   const electionStatus = Near.view(electionContract, "proposal_status", {
     prop_id: props.id,
   });
@@ -431,16 +520,21 @@ if (state.reload) {
     user: context.accountId,
   });
 
+  const winnerIds = Near.view(electionContract, "winners_by_house", {
+    prop_id: id,
+  });
+
   const bookmarked = loadSocialDBData();
 
   State.update({
-    electionStatus,
-    acceptedPolicy,
+    electionStatus: electionStatus ?? state.electionStatus,
+    acceptedPolicy: acceptedPolicy === POLICY_HASH ?? state.acceptedPolicy,
+    winnerIds: winnerIds ?? state.winnerIds,
+    bookmarked: bookmarked ?? state.bookmarked,
     candidates: filteredCandidates(),
-    bookmarked,
   });
 
-  loadInitData();
+  handleStateTransition();
 }
 
 const UserLink = ({ title, src }) => (
@@ -467,7 +561,7 @@ const CandidateItem = ({ candidateId, votes }) => (
     <CandidateItemRow
       className="d-flex align-items-center justify-content-between"
       selected={state.selected === candidateId}
-      winnerId={winnerIds.includes(candidateId)}
+      winnerId={state.winnerIds.includes(candidateId)}
     >
       <div className="d-flex w-100 align-items-center">
         {isVisible() && (
@@ -490,7 +584,7 @@ const CandidateItem = ({ candidateId, votes }) => (
         {isIAmHuman && (
           <Bookmark
             selected={state.selected === candidateId}
-            winnerId={winnerIds.includes(candidateId)}
+            winnerId={state.winnerIds.includes(candidateId)}
           >
             {state.loading === candidateId ? (
               <Loader />
@@ -509,18 +603,29 @@ const CandidateItem = ({ candidateId, votes }) => (
         )}
         <div className="d-flex align-items-center">
           <Widget
-            src="mob.near/widget/ProfileImage"
+            src="near/widget/AccountProfileOverlay"
             props={{
               accountId: candidateId,
-              imageClassName: "rounded-circle w-100 h-100",
-              style: { width: "24px", height: "24px", marginRight: 5 },
+              children: (
+                <div className="d-flex justify-items-center">
+                  <Widget
+                    src="mob.near/widget/ProfileImage"
+                    props={{
+                      accountId: candidateId,
+                      imageClassName: "rounded-circle w-100 h-100",
+                      style: { width: "24px", height: "24px", marginRight: 5 },
+                    }}
+                  />
+                  <UserLink
+                    src={`https://near.org/near/widget/ProfilePage?accountId=${candidateId}`}
+                    title={candidateId}
+                  />
+                </div>
+              ),
             }}
           />
-          <UserLink
-            src={`https://near.org/near/widget/ProfilePage?accountId=${candidateId}`}
-            title={candidateId}
-          />
-          {winnerIds.includes(candidateId) && (
+
+          {state.winnerIds.includes(candidateId) && (
             <Winner className="bi bi-trophy p-1" />
           )}
         </div>
@@ -537,7 +642,7 @@ const CandidateItem = ({ candidateId, votes }) => (
               href: `https://near.org/nomination.ndctools.near/widget/NDC.Nomination.Candidate.Page?house=HouseOfMerit&accountId=${candidateId}`,
               inverse:
                 state.selected === candidateId ||
-                winnerIds.includes(candidateId),
+                state.winnerIds.includes(candidateId),
             },
           }}
         />
@@ -546,7 +651,7 @@ const CandidateItem = ({ candidateId, votes }) => (
           <Votes>
             <input
               id="input"
-              disabled={alreadyVotedForHouse() || state.blacklisted}
+              disabled={alreadyVotedForHouse() || blacklisted}
               onClick={() => handleSelectCandidate(candidateId)}
               className="form-check-input"
               type="checkbox"
@@ -650,7 +755,7 @@ const CastVotes = () => (
         <i class="bi bi-info-circle"></i>
         {alreadyVotedForHouse() ? (
           <span>You're already voted for {housesMapping[typ]}</span>
-        ) : state.blacklisted ? (
+        ) : blacklisted ? (
           <span>Your account is blacklisted</span>
         ) : (
           <span>Make sure you selected {seats} candidates</span>
@@ -681,13 +786,14 @@ const CastVotes = () => (
         props={{
           Button: {
             className: "primary justify-content-center",
-            disabled:
-              state.selectedCandidates.length === 0 || state.blacklisted,
+            disabled: state.selectedCandidates.length === 0 || blacklisted,
             text: `Cast ${state.selectedCandidates.length || ""} Vote${
               state.selectedCandidates.length === 1 ? "" : "s"
             }`,
             onClick: () =>
-              state.tosAgreement
+              !!state.acceptedPolicy && !state.hasPolicyNFT
+                ? State.update({ showMintPolicyModal: true })
+                : !!state.acceptedPolicy && state.hasPolicyNFT
                 ? State.update({ bountyProgramModal: true })
                 : State.update({ showToSModal: true }),
           },
@@ -725,7 +831,7 @@ return (
         }}
       />
     )}
-    {state.blacklisted && state.blacklistedModal && (
+    {blacklisted && blacklistedModal && (
       <Widget
         src={widgets.modal}
         props={{
@@ -770,9 +876,11 @@ return (
           ),
           description: (
             <>
-              Please make sure to read and understand the{" "}
-              <ALink title="Fair Voting Policy." href={FAIR_POLICY_DOC} />
-              which outlines the responsibilities of each voter.
+              <div className="mt-4">
+                Please make sure to read and understand the{" "}
+                <ALink title="Fair Voting Policy." href={FAIR_POLICY_DOC} />
+                which outlines the responsibilities of each voter.
+              </div>
             </>
           ),
           content: (
@@ -802,6 +910,31 @@ return (
         }}
       />
     )}
+    {state.showMintPolicyModal && (
+      <Widget
+        src={widgets.modal}
+        props={{
+          title: "Before you vote, mint Fair Voting Policy NFT.",
+          description: (
+            <>
+              <img width={300} src={FAIR_POLICY_NFT} />
+              <div className="mt-4 mb-4">
+                Please make sure to read and understand the{" "}
+                <ALink title="Fair Voting Policy." href={FAIR_POLICY_DOC} />
+                which outlines the responsibilities of each voter.
+              </div>
+            </>
+          ),
+          Button: {
+            type: "Link",
+            title: "Mint Fair Voting NFT",
+            onCancel: () =>
+              State.update({ showMintPolicyModal: false, reload: false }),
+            href: MINT_VOTING_POLICY_NFT,
+          },
+        }}
+      />
+    )}
     {state.bountyProgramModal && (
       <Widget
         src={widgets.modal}
@@ -810,7 +943,7 @@ return (
             <div>
               <img src="https://bafkreidmuyeawyqduaotd27jozw5czdrm7t7w5hlcx5nfjzjjxxzvyhkyi.ipfs.nftstorage.link/" />
               <div className="mt-4">
-                {state.greylisted ? (
+                {greylisted ? (
                   <>Additional Verification Required.</>
                 ) : (
                   <>You are about to cast your votes.</>
@@ -835,8 +968,8 @@ return (
               <Rule className="d-flex gap-2">
                 <h3>2</h3>
                 <p className="text-secondary text-start">
-                  A bond of <b>{state.greylisted ? MAX_BOND : MIN_BOND} NEAR</b>{" "}
-                  is required to vote. If you are a fair voter, this bond will
+                  A bond of <b>{greylisted ? MAX_BOND : MIN_BOND} NEAR</b> is
+                  required to vote. If you are a fair voter, this bond will
                   returned to you after the election results are reviewed and
                   rectified.
                 </p>
@@ -848,13 +981,13 @@ return (
                 </p>
               </Rule>
 
-              {state.greylisted && (
-                <p className="text-secondary mt-2">
+              {greylisted && (
+                <GraylistedAlert className="p-3 mb-4 rounded">
                   <b>Voters without reputation need to be verified</b> by the
                   Election Integrity Council or place a substantial bond to
                   vote. If you are a fair voter, this bond will be returned to
                   you once the election results are reviewed and ratified.
-                </p>
+                </GraylistedAlert>
               )}
             </>
           ),
@@ -869,11 +1002,40 @@ return (
             onSubmit: handleVote,
           },
           SecondaryButton: {
-            type: state.greylisted ? "Link" : "Button",
-            title: state.greylisted ? "Apply to Verify" : "Cancel",
+            type: greylisted ? "Link" : "Button",
+            title: greylisted ? "Apply to Verify" : "Cancel",
             href: GREYLIST_VERIFY_LINK,
             onSubmit: () =>
               State.update({ bountyProgramModal: false, reload: false }),
+          },
+        }}
+      />
+    )}
+    {state.showMintIVotedModal && (
+      <Widget
+        src={widgets.modal}
+        props={{
+          title: "Congratulations! Mint “I Voted” NFT",
+          description: (
+            <div>
+              <img width={300} src={I_VOTED_NFT} />
+              <div className="mt-4 mb-4">
+                Celebrate for voting in the inaugural election of NEAR and mint
+                your “I Voted” NFT! 🎉
+              </div>
+            </div>
+          ),
+          Button: {
+            type: "Link",
+            title: "Mint I voted NFT",
+            onCancel: () =>
+              State.update({ showMintIVotedModal: false, reload: false }),
+            href: MINT_I_VOTED_NFT,
+          },
+          SecondaryButton: {
+            type: "Link",
+            title: "Tweet I Voted",
+            href: SHARE_LINK,
           },
         }}
       />

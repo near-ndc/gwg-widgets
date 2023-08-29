@@ -4,7 +4,7 @@ ids = props.ids ? ids : [1, 2, 3, 4];
 org = props.org ? org : "NDC";
 
 const electionContract = "elections-v1.gwg-testing.near";
-const registryContract = "registry.i-am-human.near";
+const registryContract = "registry-v1.gwg-testing.near";
 const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 
 let houses = [
@@ -18,7 +18,10 @@ let budget = Near.view(electionContract, "proposal", { prop_id: ids[3] });
 State.init({
   selectedHouse: ids[0],
   myVotes: [],
+  winnerIds: [],
   isIAmHuman: false,
+  blacklisted: false,
+  greylisted: false,
   candidateId: "",
 });
 
@@ -26,20 +29,20 @@ const isHuman = Near.view(registryContract, "is_human", {
   account: context.accountId,
 });
 
-const getWinnerIds = () => {
-  const house = houses.find((h) => h.id === state.selectedHouse);
-  const now = new Date().getTime();
-  const end = new Date(parseInt(house.end)).getTime();
+const winnerIds = Near.view(electionContract, "winners_by_house", {
+  prop_id: state.selectedHouse,
+});
 
-  if (now < end) return [];
+const flagged = Near.view(electionContract, "account_flagged", {
+  account: context.accountId,
+});
 
-  const res = house.result.sort((a, b) => b[1] - a[1]);
-  const winners = house.result.filter((item) => item[1] === res[0][1]);
-
-  return winners.slice(0, house.quorum).map((w) => w[0]);
-};
-
-State.update({ isIAmHuman: isHuman[0][1].length > 0 });
+State.update({
+  isIAmHuman: isHuman[0][1].length > 0,
+  winnerIds,
+  blacklisted: flagged === "Blacklisted",
+  greylisted: flagged !== "Blacklisted" && flagged !== "Verified",
+});
 
 if (context.accountId)
   asyncFetch(
@@ -177,9 +180,11 @@ return (
                     isIAmHuman: state.isIAmHuman,
                     myVotes: state.myVotes,
                     candidateId: state.candidateId,
-                    winnerIds: getWinnerIds(),
+                    winnerIds: state.winnerIds,
+                    blacklisted: state.blacklisted,
+                    greylisted: state.greylisted,
                     ...house,
-                    result: rand(house.result)
+                    result: rand(house.result),
                   }}
                 />
               )}

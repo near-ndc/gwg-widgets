@@ -66,24 +66,25 @@ const getVerifiedHuman = () => {
 
   asyncFetch(endpoints.candidateComments, httpRequestOpt).then((res) => {
     if (res.body.length > 0) {
-      State.update({ selfNomination: true });
+      State.update({ selfNomination: true, start: false });
     }
   });
 
   State.update({
     og: ogTokens.some((sbt) => sbt.owner === context.accountId),
     sbt: isHuman[0][1].length > 0,
+    start: false,
   });
 };
 
 const getNominationInfo = (house) => {
   let nominationsArr = [];
 
-  State.update({ loading: true });
+  State.update({ loading: true, start: false });
 
   asyncFetch(endpoints.houseNominations(house), httpRequestOpt).then((res) => {
     if (res.body.length <= 0) {
-      State.update({ nominations: [], loading: false });
+      State.update({ nominations: [], loading: false, start: false });
       return;
     }
 
@@ -103,11 +104,11 @@ const getNominationInfo = (house) => {
         setTimeout(() => {
           profileData = Social.getr(`${nominee}/profile`);
           nominationData = Social.getr(`${nominee}/nominations`);
-        }, 100);
+        }, 2000);
 
         setTimeout(() => {
           if (data.is_revoked || !profileData || !nominationData) {
-            State.update({ loading: false });
+            State.update({ loading: false, start: false });
             return;
           }
 
@@ -129,8 +130,9 @@ const getNominationInfo = (house) => {
             nominations: nominationsArr,
             originNominations: nominationsArr,
             loading: false,
+            start: false,
           });
-        }, 1000);
+        }, 2000);
       });
     }
   });

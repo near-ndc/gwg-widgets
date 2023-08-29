@@ -15,13 +15,14 @@ const Modal = styled.div`
   justify-content: center;
   align-items: center;
   background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
 `;
 
 const ComponentWrapper = styled.div`
   position: absolute;
   width: 100%;
   z-index: 100;
-  top: 50%;
+  top: 55%;
   left: 50%;
   transform: translate(-50%, -50%);
 `;
@@ -75,9 +76,9 @@ return (
                   disabled: SecondaryButton.disabled,
                   text: SecondaryButton.title,
                   onClick:
-                    SecondaryButton.type === "Button"
-                      ? SecondaryButton.onSubmit
-                      : null,
+                    SecondaryButton.type === "Link"
+                      ? null
+                      : SecondaryButton.onSubmit,
                   href:
                     SecondaryButton.type === "Link"
                       ? SecondaryButton.href
@@ -100,10 +101,11 @@ return (
           <Widget
             src={widgets.styledComponents}
             props={{
-              Button: {
-                disabled: Button.disabled,
+              [Button.type ?? "Button"]: {
                 text: Button.title,
-                onClick: Button.onSubmit,
+                disabled: Button.disabled,
+                onClick: Button.type === "Link" ? null : Button.onSubmit,
+                href: Button.type === "Link" ? Button.href : null,
               },
             }}
           />

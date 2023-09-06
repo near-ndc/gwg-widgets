@@ -32,18 +32,6 @@ const Styled = {
         }
       }
 
-      &:disabled {
-        cursor: not-allowed;
-        background: #c3cace;
-        color: #828688;
-        border: 0;
-
-        &:hover {
-          background: #c3cace;
-          color: #828688;
-        }
-      }
-
       &.danger {
         background: #dd5e56;
         color: #fff;
@@ -59,6 +47,18 @@ const Styled = {
 
         &:hover {
           background: #239f28;
+        }
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+        background: #c3cace;
+        color: #828688;
+        border: 0;
+
+        &:hover {
+          background: #c3cace;
+          color: #828688;
         }
       }
     }
@@ -191,6 +191,11 @@ const Styled = {
         }
       }
 
+      &.success {
+        border: 1px solid rgb(35, 159, 40);
+        color: rgb(35, 159, 40);
+      }
+
       &:disabled {
         border-color: #c3cace;
         color: #828688;
@@ -281,7 +286,7 @@ if (Link)
         Link.className ?? "primary"
       } gap-1`}
       href={Link.href}
-      target="_blank"
+      target={Link.doNotOpenNew ? "" : "_blank"}
       disabled={Link.disabled}
       inverse={Link.inverse}
     >
@@ -409,186 +414,3 @@ if (Input)
       )}
     </div>
   );
-
-const WidgetButton = ({
-  type,
-  size,
-  className,
-  disabled,
-  text,
-  icon,
-  image,
-  inverse,
-}) => (
-  <Widget
-    src={`${contract}/widget/NDC.StyledComponents`}
-    props={{
-      [type ?? "Button"]: {
-        size,
-        className,
-        disabled,
-        inverse,
-        text,
-        icon,
-        image,
-      },
-    }}
-  />
-);
-
-const WidgetSelect = () => (
-  <Widget
-    src={`${contract}/widget/NDC.StyledComponents`}
-    props={{
-      Dropdown: {
-        label: "Select label",
-        options: [
-          { title: "Select value", default: true, value: 0 },
-          { title: "value 1", value: 1 },
-          { title: "value 2", value: 2 },
-        ],
-      },
-    }}
-  />
-);
-
-const WidgetInput = ({ type }) => {
-  State.init({ [type]: "" });
-
-  return (
-    <Widget
-      src={`${contract}/widget/NDC.StyledComponents`}
-      props={{
-        [type]: {
-          label: "Select label",
-          placeholder: "Placeholder text here...",
-          maxLength: "20",
-          min: new Date(),
-          value: state[type],
-          handleChange: (e) => State.update({ [type]: e.target.value }),
-        },
-      }}
-    />
-  );
-};
-
-return (
-  <Container>
-    <h4>Button</h4>
-    <div className="d-flex align-items-end flex-wrap gap-2 mb-2">
-      <WidgetButton text="Primary" />
-      <WidgetButton text="Primary" icon={<i class="bi bi-check-lg"></i>} />
-      <WidgetButton
-        text="Secondary"
-        className="secondary"
-        icon={<i class="bi bi-check-lg"></i>}
-      />
-      <WidgetButton
-        text="Secondary"
-        className="secondary"
-        image={{
-          url: "https://bafkreieynbjyuycbo7naqp5dtiajcsmpiwyt7n2mk35746463nkcjte2yy.ipfs.nftstorage.link/",
-        }}
-      />
-      <WidgetButton disabled text="Primary" />
-      <WidgetButton disabled className="secondary" text="Secondary" />
-      <WidgetButton size="sm" text="Primary" />
-      <WidgetButton size="sm" className="secondary" text="Secondary" />
-    </div>
-
-    <div className="d-flex align-items-end flex-wrap gap-2 mb-2">
-      <WidgetButton text="Primary Dark" className="primary dark" />
-      <WidgetButton
-        text="Primary Dark"
-        className="primary dark"
-        icon={<i class="bi bi-check-lg"></i>}
-      />
-      <WidgetButton
-        text="Secondary Dark"
-        className="secondary dark"
-        icon={<i class="bi bi-check-lg"></i>}
-      />
-      <WidgetButton disabled className="primary dark" text="Primary dark" />
-      <WidgetButton disabled className="secondary dark" text="Secondary dark" />
-      <WidgetButton size="sm" className="primary dark" text="Primary dark" />
-      <WidgetButton
-        size="sm"
-        className="secondary dark"
-        text="Secondary dark"
-      />
-    </div>
-
-    <div className="d-flex align-items-end flex-wrap gap-2 mb-2">
-      <WidgetButton
-        text="Danger"
-        className="danger"
-        icon={<i class="bi bi-trash" />}
-      />
-      <WidgetButton
-        text="Danger"
-        className="danger secondary"
-        icon={<i class="bi bi-trash" />}
-      />
-      <WidgetButton
-        text="Danger"
-        className="danger primary"
-        icon={<i class="bi bi-trash" />}
-      />
-    </div>
-
-    <div className="d-flex align-items-end flex-wrap gap-2 mb-2">
-      <WidgetButton
-        size="sm"
-        className="secondary dark"
-        icon={<i class="bi bi-share"></i>}
-      />
-      <WidgetButton
-        disabled
-        size="sm"
-        className="secondary dark"
-        icon={<i class="bi bi-share"></i>}
-      />
-    </div>
-
-    <h4>Link Button</h4>
-    <div className="d-flex align-items-end flex-wrap gap-2">
-      <WidgetButton type="Link" text="Primary" className="primary dark" />
-      <WidgetButton type="Link" text="Secondary" className="secondary dark" />
-      <div className="bg-dark">
-        <WidgetButton
-          type="Link"
-          text="Secondary"
-          inverse={true}
-          className="secondary dark"
-        />
-      </div>
-    </div>
-
-    <h4>Tag</h4>
-    <div className="d-flex align-items-end flex-wrap gap-2 mb-2">
-      <Widget
-        src={`${contract}/widget/NDC.StyledComponents`}
-        props={{ Tag: { title: "Lorem ipsum", className: "dark" } }}
-      />
-      <Widget
-        src={`${contract}/widget/NDC.StyledComponents`}
-        props={{ Tag: { title: "Lorem ipsum" } }}
-      />
-      <Widget
-        src={`${contract}/widget/NDC.StyledComponents`}
-        props={{
-          Tag: {
-            title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-          },
-        }}
-      />
-    </div>
-
-    <h4>Select</h4>
-    <WidgetSelect />
-
-    <h4>Input</h4>
-    <WidgetInput type="Input" />
-    <WidgetInput type="TextArea" />
-  </Container>
-);

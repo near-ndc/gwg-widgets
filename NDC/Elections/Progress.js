@@ -44,7 +44,7 @@ State.update({ step });
 return (
   <Stepper>
     <div className="d-flex justify-content-between align-items-center">
-      <div>Your voting progress</div>
+      <div>Voting progress</div>
       <div>
         <CompleteText> {state.step}</CompleteText>/<span>{houses.length}</span>
         <span className="text-secondary">Houses</span>

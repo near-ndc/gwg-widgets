@@ -1,8 +1,10 @@
 let { houses, ids, electionContract, selectedHouse, handleSelect, votesLeft } =
   props;
-ids = props.ids ? ids : [1, 2, 3, 4];
+ids = ids ?? [1, 2, 3, 4];
+
 State.init({ houses: houses ?? [] });
 
+// for nominations (only 3 houses to display)
 if (!houses && electionContract) {
   const contractHouses = [
     Near.view(electionContract, "proposal", { prop_id: ids[0] }),

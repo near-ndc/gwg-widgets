@@ -83,6 +83,10 @@ return (
                     SecondaryButton.type === "Link"
                       ? SecondaryButton.href
                       : null,
+                  doNotOpenNew:
+                    SecondaryButton.type === "Link"
+                      ? SecondaryButton.doNotOpenNew
+                      : null,
                 },
               }}
             />
@@ -106,6 +110,8 @@ return (
                 disabled: Button.disabled,
                 onClick: Button.type === "Link" ? null : Button.onSubmit,
                 href: Button.type === "Link" ? Button.href : null,
+                doNotOpenNew:
+                  Button.type === "Link" ? Button.doNotOpenNew : null,
               },
             }}
           />

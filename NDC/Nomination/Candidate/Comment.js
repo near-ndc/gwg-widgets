@@ -26,7 +26,8 @@ const CommentCard = styled.div`
   align-items: flex-start;
   gap: 12px;
   border-radius: 10px;
-  background: #fff;
+  background: ${(props) => (props.owner ? "#4ba6ee17" : "#fff")};
+  border: 1px solid ${(props) => (props.owner ? "#4BA6EE" : "#fff")};
 `;
 
 const CommentCardHeader = styled.div`
@@ -255,8 +256,10 @@ const formatName = (name) =>
     ? `${name.slice(0, 4)}..${name.slice(name.length - 4, name.length)}`
     : name;
 
+const handleFlag = () => {};
+
 return (
-  <CommentCard>
+  <CommentCard owner={data.commentator === data.candidate}>
     <CommentCardHeader>
       <CommentUserContent>
         <Widget
@@ -292,6 +295,8 @@ return (
       <CommentButtonDiv>
         {data.removed ? (
           <></>
+        ) : data.flagged ? (
+          <i className="bi bi-flag-fill" />
         ) : context.accountId == data.commentator ? (
           <Widget
             src={widgets.styledComponents}
@@ -299,14 +304,14 @@ return (
               Button: {
                 text: "Delete",
                 size: "sm",
-                className: "danger",
+                className: "primary danger",
                 onClick: handleDeleteComment,
                 icon: <i className="bi bi-trash"></i>,
               },
             }}
           />
         ) : (
-          <></>
+          <i className="bi bi-flag" onClick={handleFlag} />
         )}
       </CommentButtonDiv>
     </CommentCardLowerSection>

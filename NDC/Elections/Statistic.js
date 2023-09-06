@@ -1,3 +1,5 @@
+const { electionContract } = props;
+
 const Chart = styled.div`
   width: 150px;
   aspect-ratio: 1;
@@ -46,7 +48,6 @@ const H5 = styled.h5`
   }
 `;
 
-const electionContract = "elections-v1.gwg-testing.near";
 const registryContract = "registry.i-am-human.near";
 const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 

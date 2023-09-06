@@ -301,7 +301,6 @@ const CandidateCard = styled.div`
 
 const CandidateContent = styled.div`
   display: flex;
-  width: 302px;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
@@ -484,7 +483,7 @@ const titles = [
 
 return (
   <Container class="row">
-    <div class="col-9" style={{ "margin-right": "5px", width: "950px" }}>
+    <div class="" style={{ "margin-right": "5px", width: "950px" }}>
       <div class="row" style={{ "margin-inline": "5px" }}>
         <div
           class="col-12 p-0 w-100"
@@ -583,23 +582,15 @@ return (
             </div>
           </div>
         </div>
-        <div
-          class="col-5"
-          style={{
-            "margin-top": "10px",
-            "padding-left": "0",
-            "padding-right": "0",
-            width: "330px",
-          }}
-        >
-          <div>
+        <div className="d-flex mt-3 gap-3 w-100">
+          <div className="w-25">
             <CandidateCard
               style={{
                 "border-radius": "8px",
                 background: "#F8F8F9",
               }}
             >
-              <CandidateContent>
+              <CandidateContent className="w-100">
                 <ContentHeader>
                   <ContentHeaderText>Candidate Affiliations</ContentHeaderText>
                 </ContentHeader>
@@ -638,90 +629,88 @@ return (
               </CandidateContent>
             </CandidateCard>
           </div>
-        </div>
-        <div
-          class="col-7"
-          style={{
-            "border-radius": "8px",
-            margin: "10px 0 0 10px",
-            width: "600px",
-            background: "#F8F8F9",
-            padding: "20px",
-          }}
-        >
-          <PlatformCard>
-            <PlatformContent>
-              <ContentHeader>
-                <ContentHeaderText>Platform</ContentHeaderText>
-              </ContentHeader>
+          <div
+            class="w-75"
+            style={{
+              "border-radius": "8px",
+              background: "#F8F8F9",
+              padding: "20px",
+            }}
+          >
+            <PlatformCard>
+              <PlatformContent>
+                <ContentHeader>
+                  <ContentHeaderText>Platform</ContentHeaderText>
+                </ContentHeader>
 
-              <table
-                className="table table-sm"
-                style={{
-                  background: "white",
-                  "border-collapse": "collapse",
-                  "border-radius": "8px",
-                  "border-style": "hidden",
-                  overflow: "hidden",
-                  "box-shadow": "0px 0px 2px #bfbfbfb3",
-                }}
-              >
-                <thead>
-                  <tr class="p-3 mb-2 rounded-5 text-center">
-                    <TH width="35%">
-                      <H6>Key Issues</H6>
-                    </TH>
-                    <TH width="65%">
-                      <H6>Candidate's Positions</H6>
-                    </TH>
-                  </tr>
-                </thead>
-                <tbody>
-                  {issues.map((data, key) => {
-                    return (
-                      <>
-                        <tr
-                          class="text-center"
-                          style={{
-                            height: "80px",
-                            "vertical-align": "middle",
-                          }}
-                        >
-                          <td
+                <table
+                  className="table table-sm"
+                  style={{
+                    background: "white",
+                    "border-collapse": "collapse",
+                    "border-radius": "8px",
+                    "border-style": "hidden",
+                    overflow: "hidden",
+                    "box-shadow": "0px 0px 2px #bfbfbfb3",
+                  }}
+                >
+                  <thead>
+                    <tr class="p-3 mb-2 rounded-5 text-center">
+                      <TH width="35%">
+                        <H6>Key Issues</H6>
+                      </TH>
+                      <TH width="65%">
+                        <H6>Candidate's Positions</H6>
+                      </TH>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {issues.map((data, key) => {
+                      return (
+                        <>
+                          <tr
+                            class="text-center"
                             style={{
-                              border: "1px solid rgba(208, 214, 217, 0.40)",
-                              verticalAlign: "text-top",
+                              height: "80px",
+                              "vertical-align": "middle",
                             }}
                           >
-                            <KeyIssueTitle>{titles[key]}</KeyIssueTitle>
-                          </td>
-                          <td
-                            style={{
-                              background: "#F8F8F9",
-                              verticalAlign: "text-top",
-                              color: "#212427",
-                            }}
-                          >
-                            <KeyIssueDescription className="text-seconodary">
-                              <Widget
-                                src="mob.near/widget/SocialMarkdown"
-                                props={{ text: data }}
-                              />
-                            </KeyIssueDescription>
-                          </td>
-                        </tr>
-                      </>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </PlatformContent>
-          </PlatformCard>
+                            <td
+                              style={{
+                                border: "1px solid rgba(208, 214, 217, 0.40)",
+                                verticalAlign: "text-top",
+                              }}
+                            >
+                              <KeyIssueTitle>{titles[key]}</KeyIssueTitle>
+                            </td>
+                            <td
+                              style={{
+                                background: "#F8F8F9",
+                                verticalAlign: "text-top",
+                                color: "#212427",
+                              }}
+                            >
+                              <KeyIssueDescription className="text-seconodary">
+                                <Widget
+                                  src="mob.near/widget/SocialMarkdown"
+                                  props={{ text: data }}
+                                />
+                              </KeyIssueDescription>
+                            </td>
+                          </tr>
+                        </>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </PlatformContent>
+            </PlatformCard>
+          </div>
         </div>
       </div>
     </div>
     <div
-      class="col-3"
+      class=""
       style={{
         width: "350px",
         background: "#F8F8F9",
@@ -834,10 +823,7 @@ return (
                 props={{
                   Button: {
                     text: "Add a Comment",
-                    disabled:
-                      !context.accountId ||
-                      !state.verified ||
-                      context.accountId === accountId,
+                    disabled: !context.accountId || !state.verified,
                     className: "primary w-100 mt-4 mb-2 justify-content-center",
                     onClick: () => State.update({ showModal: true }),
                     icon: <i className="bi bi-plus-lg"></i>,

@@ -559,7 +559,7 @@ return (
               disabled:
                 !context.accountId ||
                 !state.verified ||
-                context.accountId === candidate,
+                context.accountId === accountId,
               className: `${
                 context.accountId && state.voted ? "primary" : "secondary"
               } dark`,
@@ -764,10 +764,7 @@ return (
             Button: {
               text: "Add a Comment",
               size: "sm",
-              disabled:
-                !context.accountId ||
-                !state.verified ||
-                context.accountId === candidate,
+              disabled: !context.accountId || !state.verified,
               className: "primary justify-content-center",
               onClick: () => State.update({ showModal: true }),
               icon: <i className="bi bi-plus-lg"></i>,

@@ -30,19 +30,12 @@ const httpRequestOpt = {
   headers: { "x-api-key": api_key },
 };
 
-function getVerifiedHuman() {
-  asyncFetch(
-    `https://api.pikespeak.ai/nominations/is-upvoted-by?candidate=${data.indexerData.nominee}&upvoter=${context.accountId}&contract=${nomination_contract}`,
-    httpRequestOpt
-  ).then((res) => {
-    State.update({ voted: res.body });
-  });
-}
-
-if (state.start) {
-  getVerifiedHuman();
-  State.update({ start: false });
-}
+asyncFetch(
+  `https://api.pikespeak.ai/nominations/is-upvoted-by?candidate=${data.indexerData.nominee}&upvoter=${context.accountId}&contract=${nomination_contract}`,
+  httpRequestOpt
+).then((res) => {
+  State.update({ voted: res.body });
+});
 
 function handleUpVote() {
   Near.call(

@@ -1,4 +1,5 @@
-const { startTime, endTime, type, isWhistleblower } = props;
+const { startTime, endTime, type, isWhistleblower, cooldown } =
+  props;
 
 State.init({
   days: "-",
@@ -18,13 +19,15 @@ const timer = setInterval(() => {
   const now = new Date().getTime();
   const start = new Date(parseInt(startTime)).getTime();
   const end = new Date(parseInt(endTime)).getTime();
+  const coold =
+    new Date(parseInt(endTime)).getTime() +
+    new Date(parseInt(cooldown)).getTime();
   let title = "";
 
   let diff;
-  if (now < start)
-    diff = new Date(parseInt(start)).getTime() - new Date().getTime();
-  else if (now > start && now < end)
-    diff = new Date(parseInt(end)).getTime() - new Date().getTime();
+  if (now < start) diff = start - now;
+  else if (now > start && now < end) diff = end - now;
+  else if (now > end && now < coold) diff = coold - now;
   else diff = 0;
 
   let days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -34,7 +37,13 @@ const timer = setInterval(() => {
 
   if (now < start) title = <>Time before {type} starts</>;
   else if (now > start && now < end)
-    title = <>Time remaining in current {type}</>;
+    title =
+      type === "Nomination" ? (
+        <>TIME LEFT TO NOMINATE - ELECTIONS START SEPT 8</>
+      ) : (
+        <>Time remaining in current {type}</>
+      );
+  else if (now > end && now < coold) title = <>{type} is under review</>;
   else {
     title = <>{type} is ended</>;
     days = 0;
@@ -68,7 +77,7 @@ const H1 = styled.h1`
 
 const H6 = styled.h6`
   font-size: 12px;
-  font-weight: 300;
+  font-weight: 400;
   margin-right: 32px;
   margin-bottom: 0;
   line-height: 1.5;

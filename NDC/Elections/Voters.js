@@ -1,6 +1,4 @@
-const { candidateId, isIAmHuman } = props;
-
-const electionContract = election_contract ?? "elections-v1.gwg-testing.near";
+const { candidateId, isIAmHuman, electionContract, ids } = props;
 const apiKey = api_key ?? "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 
 State.init({
@@ -11,7 +9,11 @@ asyncFetch(
   `https://api.pikespeak.ai/election/votes-by-candidate?contract=${electionContract}&candidate=${candidateId}`,
   { headers: { "x-api-key": apiKey } }
 ).then((resp) => {
-  State.update({ voters: resp.body });
+  const voters = resp.body.filter((vote) =>
+    ids.includes(parseInt(vote.proposal_id))
+  );
+
+  State.update({ voters, reload: false });
 });
 
 const VotersContainer = styled.div`
@@ -49,7 +51,7 @@ const VoterItem = styled.div`
 
 const StyledLink = styled.a`
   color: inherit !important;
-  width: 90px;
+  width: 120px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

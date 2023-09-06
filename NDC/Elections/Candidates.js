@@ -3,6 +3,7 @@ const {
   registryContract,
   ndcOrganization,
   myVotes,
+  ids,
   id,
   typ,
   ref_link,
@@ -11,10 +12,13 @@ const {
   voters_num,
   result,
   isIAmHuman,
-  candidateId,
+  candidateFilterId,
   blacklisted,
   greylisted,
-  alreadyBonded,
+  isBonded,
+  hasPolicyNFT,
+  hasIVotedNFT,
+  electionStatus,
 } = props;
 
 const widgets = {
@@ -22,6 +26,8 @@ const widgets = {
   styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
   modal: "nomination.ndctools.near/widget/NDC.Modal",
   verifyHuman: "nomination.ndctools.near/widget/NDC.VerifyHuman",
+  budget: "election.ndctools.near/widget/NDC.Elections.BudgetPackage",
+  castVotes: "election.ndctools.near/widget/NDC.Elections.CastVotes",
 };
 
 const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
@@ -34,21 +40,16 @@ const FAIR_POLICY_NFT =
   "https://ipfs.near.social/ipfs/bafkreiabsu7xhumhim4gxj5h7umopc3b5ekppeofwwizsf5loqs2vcntpm";
 const I_VOTED_NFT =
   "https://ipfs.near.social/ipfs/bafkreiewiq4puwmcu7ciztsfqvmpl3gsumfgsm5r22g24abiynoeghsyey";
-const MINT_VOTING_POLICY_NFT = "https://shard.dog/fairvoting/";
-const MINT_I_VOTED_NFT = "https://shard.dog/ivoted";
-const BLACKLIST_VERIFY_LINK = "";
-const GREYLIST_VERIFY_LINK = "";
+const SHARE_LINK =
+  "https://twitter.com/intent/tweet?text=I%20minted%20%E2%80%9CI%20Voted%E2%80%9D%20NFT%20during%20NDC%20Elections!%20%F0%9F%8E%89%0A%0ACheck%20election%20here%3A%20https%3A//near.org/election.ndctools.near/widget/NDC.Elections.Main%0A%0A%23NDC%20%23NEAR";
+const MINT_VOTING_POLICY_NFT = `https://shard.dog/fairvoting?ids=[${ids}]&accountId=${context.accountId}`;
+const MINT_I_VOTED_NFT = `https://shard.dog/ivoted?ids=[${ids}]&accountId=${context.accountId}`;
+const BLACKLIST_VERIFY_LINK =
+  "https://docs.google.com/forms/d/e/1FAIpQLSdQYxiUcxpiCDVKnN55Q7T2fnUPt0VjRdzo46qEkV7ub5mWFw/viewform";
+const GREYLIST_VERIFY_LINK =
+  "https://airtable.com/appgHJzUuw1Kb2GJV/shrCdvjmWMzwaMEj8";
 const MIN_BOND = 0.01; //3
 const MAX_BOND = 0.02; //300;
-const NFT_SERIES = [124, 125];
-
-const H4 = styled.h4`
-  margin-bottom: 0;
-`;
-
-const H3 = styled.h3`
-  margin-bottom: 0;
-`;
 
 const Container = styled.div`
   position: relative:
@@ -58,7 +59,7 @@ const Container = styled.div`
 
 const StyledLink = styled.a`
   color: inherit !important;
-  width: 90px;
+  width: 120px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -70,6 +71,11 @@ const StyledLink = styled.a`
   }
 `;
 
+const UserIcons = styled.div`
+  width: 45px;
+  color: ${(props) => (props.selected && !props.winnerId ? "#fff" : "black")};
+`;
+
 const CandidateItemRow = styled.div`
   padding: 0 20px;
   height: 48px;
@@ -77,14 +83,26 @@ const CandidateItemRow = styled.div`
   margin-bottom: 8px;
   border: 1px solid;
   background: ${(props) =>
-    props.winnerId ? "#239F28" : props.selected ? "#4aa6ee" : "#F8F8F9"};
+    props.winnerId
+      ? "rgb(206 233 207)"
+      : props.selected
+      ? "#4aa6ee"
+      : "#F8F8F9"};
   border-color: ${(props) =>
-    props.winnerId ? "#239F28" : props.selected ? "#4aa6ee" : "#F8F8F9"};
-  color: ${(props) => (props.selected || props.winnerId ? "white" : "inherit")};
+    props.winnerId
+      ? "rgb(137 201 139)"
+      : props.selected
+      ? "#4aa6ee"
+      : "#F8F8F9"};
+  color: ${(props) => (props.selected && !props.winnerId ? "#fff" : "inherit")};
 
   &:hover {
     background: ${(props) =>
-      props.winnerId ? "#239F28" : props.selected ? "#4aa6ee" : "#d4e4f461"};
+      props.winnerId
+        ? "rgb(206 233 207)"
+        : props.selected
+        ? "#4aa6ee"
+        : "#d4e4f461"};
   
   @media (max-width: 400px) {
     padding: 0 10px;
@@ -126,14 +144,25 @@ const Action = styled.div``;
 
 const Nomination = styled.div``;
 
+const NominationLink = styled.div`
+  display: block;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const NominationLinkMobile = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
+`;
+
 const FilterRow = styled.div`
   padding: 15px 20px;
   font-size: 13px;
-`;
-
-const Info = styled.i`
-  font-size: 12px;
-  margin: 0 !important;
 `;
 
 const CandidatesContainer = styled.div`
@@ -154,55 +183,6 @@ const Icon = styled.i`
   font-size: 14px;
 `;
 
-const CastVotesSection = styled.div`
-  background: #fdfeff;
-  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  padding: 16px;
-
-  @media (max-width: 400px) {
-    flex-direction: column;
-  }
-
-  .wrapper {
-    @media (max-width: 400px) {
-      width: 100%;
-    }
-  }
-
-  button {
-    @media (max-width: 400px) {
-      width: 100%;
-    }
-  }
-
-  h3,
-  h4 {
-    margin: 0 3px;
-  }
-
-  h3 {
-    font-weight: 900;
-  }
-
-  .text-secondary {
-    margin: 0 10px;
-  }
-
-  &.not-verified {
-    h4 {
-      font-size: 16px;
-      margin: 0 0 5px 0;
-      font-weight: 600;
-    }
-
-    h5 {
-      margin: 0;
-      font-size: 12px;
-    }
-  }
-`;
-
 const Winner = styled.i`
   margin-left: 10px;
   font-size: 14px;
@@ -217,12 +197,6 @@ const GraylistedAlert = styled.div`
   background: rgb(236 236 236);
 `;
 
-const ActionSection = styled.div`
-  @media (max-width: 400px) {
-    width: 100%;
-  }
-`;
-
 const Rule = styled.div`
   color: #f29bc0;
 `;
@@ -233,6 +207,7 @@ const housesMapping = {
   CouncilOfAdvisors: "Council Of Advisors",
   HouseOfMerit: "House of Merit",
   TransparencyCommission: "Transparency Commission",
+  SetupPackage: "Budget Package",
 };
 
 const alreadyVoted = (candidateId) =>
@@ -266,15 +241,24 @@ const filteredCandidates = () => {
         )
       : result;
 
-  if (candidateId)
+  if (candidateFilterId)
     candidates = result.filter(([candidate, _vote], _index) =>
-      candidate.toLowerCase().includes(candidateId.toLowerCase())
+      candidate.toLowerCase().includes(candidateFilterId.toLowerCase())
     );
 
   return candidates;
 };
 
 const handleSelectCandidate = (candidateId) => {
+  if (!state.acceptedPolicy) {
+    State.update({ showToSModal: true });
+    return;
+  }
+  if (!!state.acceptedPolicy && hasPolicyNFT === false) {
+    State.update({ showMintPolicyModal: true });
+    return;
+  }
+
   const selectedItems = state.selectedCandidates.includes(candidateId)
     ? state.selectedCandidates.filter((el) => el !== candidateId)
     : [...state.selectedCandidates, candidateId];
@@ -282,12 +266,24 @@ const handleSelectCandidate = (candidateId) => {
   const currentVotes = seats - myVotesForHouse().length - selectedItems.length;
   if (currentVotes < 0) return;
 
-  Storage.privateSet("election_user_selection", JSON.stringify(selectedItems));
-
   State.update({
     selectedCandidates: selectedItems,
     availableVotes: currentVotes,
     reload: false,
+  });
+
+  return true;
+};
+
+const handleCast = () =>
+  !!state.acceptedPolicy && hasPolicyNFT
+    ? State.update({ bountyProgramModal: true })
+    : State.update({ showToSModal: true });
+
+const handleResetSelection = () => {
+  State.update({
+    selectedCandidates: [],
+    availableVotes: seats - myVotesForHouse().length,
   });
 };
 
@@ -345,28 +341,27 @@ const handleVote = () => {
     deposit: (greylisted ? MAX_BOND : MIN_BOND) * 1000000000000000000000000,
   };
 
-  const arr = alreadyBonded ? [voteFunc] : [bondFunc, voteFunc];
+  const arr = isBonded ? [voteFunc] : [bondFunc, voteFunc];
 
-  Near.call(arr).then((data) => State.update({ bountyProgramModal: false }));
+  Near.call(arr);
+  State.update({
+    bountyProgramModal: false,
+    reload: true,
+  });
 };
 
 const handleAcceptToS = () => {
-  State.update({ loading: true });
-
   Near.call(
     electionContract,
     "accept_fair_voting_policy",
     { policy: POLICY_HASH },
     70000000000000,
     1000000000000000000000
-  ).then((data) =>
-    State.update({
-      showToSModal: false,
-      tosAgreement: true,
-      showMintPolicyModal: true,
-      loading: false,
-    })
   );
+  State.update({
+    showToSModal: false,
+    reload: true,
+  });
 };
 
 const handleFilter = (option) => {
@@ -400,9 +395,11 @@ const handleStateTransition = () => {
     case "ONGOING":
       if (!!state.acceptedPolicy)
         State.update({
-          showMintPolicyModal: state.hasPolicyNFT === false,
+          showMintPolicyModal: hasPolicyNFT === false,
           showMintIVotedModal:
-            myVotes.length > 0 && state.hasIVotedNFT === false,
+            state.hasVotedOnAllProposals &&
+            hasIVotedNFT === false &&
+            hasPolicyNFT === true,
         });
       break;
     case "COOLDOWN":
@@ -434,7 +431,12 @@ function fetchGraphQL(series) {
       query: `
         query MyQuery {
           nft_tokens(
-            where: {nft_contract_id: {_eq: "mint.sharddog.near"}, token_id: {_regex: "^${series}:"}, owner: {_eq: "orangejoe.near"}}
+            where: {
+              nft_contract_id: {
+                _eq: "mint.sharddog.near"
+              },
+              token_id: {_regex: "^${series}:"},
+              owner: {_eq: "${currentUser}"}}
             order_by: {minted_timestamp: asc}
           ) {
             last_transfer_timestamp
@@ -453,28 +455,30 @@ const processNFTAvailability = (result, key) => {
     if (data) {
       const tokens = data.nft_tokens;
 
-      if (tokens.length > 0 && tokens[0].last_transfer_timestamp === null)
-        State.update({ [key]: true });
+      State.update({
+        [key]: tokens.length > 0 && tokens[0].last_transfer_timestamp === null,
+      });
     }
   }
 };
 
+console.log(state.winnerIds);
+
 const myVotesForHouse = () => myVotes.filter((vote) => vote.house === typ);
 const isVisible = () =>
   myVotesForHouse().length > 0 || state.winnerIds.length > 0;
-const userSelection = Storage.privateGet("election_user_selection");
 
 State.init({
   reload: true,
   loading: false,
-  electionStatus: "NOT_STARTED",
   acceptedPolicy: false,
+  hasVotedOnAllProposals: false,
   availableVotes: seats - myVotesForHouse().length,
   selected: null,
   bookmarked: [],
   tosAgreementInput: false,
   tosAgreement: false,
-  selectedCandidates: JSON.parse(userSelection ?? "[]"),
+  selectedCandidates: [],
   voters: [],
   candidates: result,
   filter: {
@@ -496,48 +500,54 @@ State.init({
   winnerIds: [],
 });
 
+const winnerIds = Near.view(electionContract, "winners_by_proposal", {
+  prop_id: props.id,
+});
+
 if (state.reload) {
-  fetchGraphQL(NFT_SERIES[0]).then((result) =>
-    processNFTAvailability(result, "hasPolicyNFT")
-  );
-
-  fetchGraphQL(NFT_SERIES[1]).then((result) =>
-    processNFTAvailability(result, "hasIVotedNFT")
-  );
-
   const electionStatus = Near.view(electionContract, "proposal_status", {
     prop_id: props.id,
   });
 
-  const acceptedPolicy = Near.view(electionContract, "accepted_policy", {
-    user: context.accountId,
-  });
+  const hasVotedOnAllProposals = Near.view(
+    electionContract,
+    "has_voted_on_all_proposals",
+    { user: currentUser }
+  );
 
-  const winnerIds = Near.view(electionContract, "winners_by_house", {
-    prop_id: id,
+  const acceptedPolicy = Near.view(electionContract, "accepted_policy", {
+    user: currentUser,
   });
 
   const bookmarked = loadSocialDBData();
 
   State.update({
     electionStatus: electionStatus ?? state.electionStatus,
-    acceptedPolicy: acceptedPolicy === POLICY_HASH ?? state.acceptedPolicy,
+    acceptedPolicy: acceptedPolicy === POLICY_HASH ?? acceptedPolicy,
     winnerIds: winnerIds ?? state.winnerIds,
     bookmarked: bookmarked ?? state.bookmarked,
     candidates: filteredCandidates(),
+    hasVotedOnAllProposals,
   });
 
   handleStateTransition();
 }
 
-const UserLink = ({ title, src }) => (
+const UserLink = ({ title, src, selected, winnerId }) => (
   <div className="d-flex mr-3">
     <StyledLink href={src} target="_blank">
       {title}
     </StyledLink>
-    <div>
+    <UserIcons
+      selected={selected}
+      winnerId={winnerId}
+      className="d-flex align-items-center"
+    >
       <Icon className="bi bi-arrow-up-right" />
-    </div>
+      {state.winnerIds.includes(title) && (
+        <Winner className="bi bi-trophy-fill p-1 text-success" />
+      )}
+    </UserIcons>
   </div>
 );
 
@@ -595,56 +605,69 @@ const CandidateItem = ({ candidateId, votes }) => (
           </Bookmark>
         )}
         <div className="d-flex align-items-center">
-          <Widget
-            src="near/widget/AccountProfileOverlay"
-            props={{
-              accountId: candidateId,
-              children: (
-                <div className="d-flex justify-items-center">
-                  <Widget
-                    src="mob.near/widget/ProfileImage"
-                    props={{
-                      accountId: candidateId,
-                      imageClassName: "rounded-circle w-100 h-100",
-                      style: { width: "24px", height: "24px", marginRight: 5 },
-                    }}
-                  />
-                  <UserLink
-                    src={`https://near.org/near/widget/ProfilePage?accountId=${candidateId}`}
-                    title={candidateId}
-                  />
-                </div>
-              ),
-            }}
-          />
-
-          {state.winnerIds.includes(candidateId) && (
-            <Winner className="bi bi-trophy p-1" />
-          )}
+          <div className="d-flex justify-items-center">
+            <Widget
+              src="mob.near/widget/ProfileImage"
+              props={{
+                accountId: candidateId,
+                imageClassName: "rounded-circle w-100 h-100",
+                style: { width: "24px", height: "24px", marginRight: 5 },
+              }}
+            />
+            <UserLink
+              selected={state.selected === candidateId}
+              winnerId={state.winnerIds.includes(candidateId)}
+              src={`https://near.org/near/widget/ProfilePage?accountId=${candidateId}`}
+              title={candidateId}
+            />
+          </div>
         </div>
       </div>
-      <div className="d-flex w-100 align-items-center justify-content-between">
-        <Widget
-          src={widgets.styledComponents}
-          props={{
-            Link: {
-              size: "sm",
-              className: "secondary dark",
-              text: "Nomination",
-              icon: <i className="bi bi-box-arrow-up-right" />,
-              href: `https://near.org/nomination.ndctools.near/widget/NDC.Nomination.Candidate.Page?house=HouseOfMerit&accountId=${candidateId}`,
-              inverse:
-                state.selected === candidateId ||
-                state.winnerIds.includes(candidateId),
-            },
-          }}
-        />
+      <div className="d-flex w-100 align-items-center justify-content-around">
+        <NominationLink>
+          <Widget
+            src={widgets.styledComponents}
+            props={{
+              Link: {
+                size: "sm",
+                className: state.winnerIds.includes(candidateId)
+                  ? "secondary success"
+                  : "secondary dark",
+                text: "Nomination",
+                icon: <i className="bi bi-box-arrow-up-right" />,
+                href: `https://near.org/nomination.ndctools.near/widget/NDC.Nomination.Candidate.Page?house=HouseOfMerit&accountId=${candidateId}`,
+                inverse: state.selected === candidateId,
+              },
+            }}
+          />
+        </NominationLink>
+        <NominationLinkMobile>
+          <Widget
+            src={widgets.styledComponents}
+            props={{
+              Link: {
+                size: "sm",
+                className: state.winnerIds.includes(candidateId)
+                  ? "secondary success"
+                  : "secondary dark",
+                text: "",
+                icon: <i className="bi bi-box-arrow-up-right" />,
+                href: `https://near.org/nomination.ndctools.near/widget/NDC.Nomination.Candidate.Page?house=HouseOfMerit&accountId=${candidateId}`,
+                inverse: state.selected === candidateId,
+              },
+            }}
+          />
+        </NominationLinkMobile>
         {isVisible() && <Votes>{votes}</Votes>}
         {isIAmHuman && (
           <Votes>
             <input
               id="input"
-              disabled={alreadyVotedForHouse() || blacklisted}
+              disabled={
+                alreadyVotedForHouse() ||
+                blacklisted ||
+                state.electionStatus !== "ONGOING"
+              }
               onClick={() => handleSelectCandidate(candidateId)}
               className="form-check-input"
               type="checkbox"
@@ -658,7 +681,10 @@ const CandidateItem = ({ candidateId, votes }) => (
       </div>
     </CandidateItemRow>
     {state.selected === candidateId && isVisible() && (
-      <Widget src={widgets.voters} props={{ candidateId, isIAmHuman }} />
+      <Widget
+        src={widgets.voters}
+        props={{ candidateId, electionContract, isIAmHuman, ids }}
+      />
     )}
   </div>
 );
@@ -693,8 +719,8 @@ const Filters = () => (
         />
       </Candidates>
     </div>
-    <div className="d-flex w-100 align-items-center justify-content-between">
-      <Nomination className="text-secondary text-end text-md-start">
+    <div className="d-flex w-100 align-items-center justify-content-end gap-4">
+      <Nomination className="text-secondary text-end text-md-end">
         <small>Nomination</small>
       </Nomination>
       {isVisible() && (
@@ -729,73 +755,6 @@ const Filters = () => (
   </FilterRow>
 );
 
-const CastVotes = () => (
-  <CastVotesSection className="d-flex align-items-center justify-content-between gap-3">
-    <div className="wrapper">
-      <div className="d-flex align-items-end">
-        <H3>
-          {alreadyVotedForHouse()
-            ? 0
-            : seats -
-              myVotesForHouse().length -
-              state.selectedCandidates.length}
-        </H3>
-        <span>/</span>
-        <H4>{seats}</H4>
-        <span className="text-secondary">votes left</span>
-      </div>
-      <Info className="text-secondary">
-        <i class="bi bi-info-circle"></i>
-        {alreadyVotedForHouse() ? (
-          <span>You're already voted for {housesMapping[typ]}</span>
-        ) : blacklisted ? (
-          <span>Your account is blacklisted</span>
-        ) : (
-          <span>Make sure you selected {seats} candidates</span>
-        )}
-      </Info>
-    </div>
-    <ActionSection className="d-flex gap-2">
-      {state.selectedCandidates.length > 0 && (
-        <Widget
-          src={widgets.styledComponents}
-          props={{
-            Button: {
-              className: "secondary dark justify-content-center text-nowrap",
-              text: "Reset Selection",
-              onClick: () => {
-                Storage.privateSet("election_user_selection", "[]");
-                State.update({
-                  selectedCandidates: [],
-                  availableVotes: seats - myVotesForHouse().length,
-                });
-              },
-            },
-          }}
-        />
-      )}
-      <Widget
-        src={widgets.styledComponents}
-        props={{
-          Button: {
-            className: "primary justify-content-center",
-            disabled: state.selectedCandidates.length === 0 || blacklisted,
-            text: `Cast ${state.selectedCandidates.length || ""} Vote${
-              state.selectedCandidates.length === 1 ? "" : "s"
-            }`,
-            onClick: () =>
-              !!state.acceptedPolicy && !state.hasPolicyNFT
-                ? State.update({ showMintPolicyModal: true })
-                : !!state.acceptedPolicy && state.hasPolicyNFT
-                ? State.update({ bountyProgramModal: true })
-                : State.update({ showToSModal: true }),
-          },
-        }}
-      />
-    </ActionSection>
-  </CastVotesSection>
-);
-
 const ALink = ({ title, href }) => (
   <a href={href} target={"_blank"} rel={"noopener"}>
     {title}
@@ -818,13 +777,15 @@ return (
             "Election results are under review by Election integrity Councils. Please wait it may takes a few days",
           Button: {
             title: "I understand",
-            onCancel: () => State.update({ showReviewModal: false }),
-            onSubmit: () => State.update({ showReviewModal: false }),
+            onCancel: () =>
+              State.update({ showReviewModal: false, reload: false }),
+            onSubmit: () =>
+              State.update({ showReviewModal: false, reload: false }),
           },
         }}
       />
     )}
-    {blacklisted && blacklistedModal && (
+    {blacklisted && state.blacklistedModal && (
       <Widget
         src={widgets.modal}
         props={{
@@ -924,6 +885,7 @@ return (
             onCancel: () =>
               State.update({ showMintPolicyModal: false, reload: false }),
             href: MINT_VOTING_POLICY_NFT,
+            doNotOpenNew: true,
           },
         }}
       />
@@ -1013,8 +975,8 @@ return (
             <div>
               <img width={300} src={I_VOTED_NFT} />
               <div className="mt-4 mb-4">
-                Celebrate for voting in the inaugural election of NEAR and mint
-                your “I Voted” NFT! 🎉
+                Celebrate voting in the inaugural NEAR election and mint your “I
+                Voted” NFT! 🎉
               </div>
             </div>
           ),
@@ -1024,6 +986,7 @@ return (
             onCancel: () =>
               State.update({ showMintIVotedModal: false, reload: false }),
             href: MINT_I_VOTED_NFT,
+            doNotOpenNew: true,
           },
           SecondaryButton: {
             type: "Link",
@@ -1036,34 +999,61 @@ return (
 
     <Container>
       <h2>{housesMapping[typ]}</h2>
-      <small className="text-secondary">{result.length} Candidates</small>
-      {state.candidates.length > 0 ? (
-        <>
-          <Filters />
-          <CandidatesContainer>
-            {state.candidates.map(([candidateId, votes], index) => (
-              <CandidateItem
-                candidateId={candidateId}
-                votes={votes}
-                key={index}
-              />
-            ))}
-          </CandidatesContainer>
-        </>
+      {typ === "SetupPackage" ? (
+        <Widget src={widgets.budget} />
       ) : (
-        <div className="d-flex p-5 justify-content-center">
-          There are no candidates found
-        </div>
+        <>
+          <small className="text-secondary">{result.length} Candidates</small>
+          {state.candidates.length > 0 ? (
+            <>
+              <Filters />
+              <CandidatesContainer>
+                {state.candidates.map(([candidateId, votes], index) => (
+                  <CandidateItem
+                    candidateId={candidateId}
+                    votes={votes}
+                    key={index}
+                  />
+                ))}
+              </CandidatesContainer>
+            </>
+          ) : (
+            <div className="d-flex p-5 justify-content-center align-items-center flex-column gap-2">
+              <span>There are no candidates found.</span>
+              <Widget
+                src={widgets.styledComponents}
+                props={{
+                  Button: {
+                    className: "secondary dark",
+                    text: "Clear Filters",
+                    onClick: () =>
+                      State.update({
+                        filterOption: "",
+                        filter: {
+                          bookmark: false,
+                          candidates: false,
+                          votes: false,
+                          my_votes: false,
+                        },
+                      }),
+                  },
+                }}
+              />
+            </div>
+          )}
+        </>
       )}
       <div>
-        {isIAmHuman ? (
-          <CastVotes />
-        ) : (
+        {isIAmHuman && (
           <Widget
-            src={widgets.verifyHuman}
+            src={widgets.castVotes}
             props={{
-              title: "Want to vote?",
-              description: "Click on Verify as a Human to proceed.",
+              ...props,
+              ...state,
+              handleCast,
+              handleVote,
+              handleResetSelection,
+              handleSelectCandidate,
             }}
           />
         )}

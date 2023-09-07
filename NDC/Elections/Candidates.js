@@ -11,7 +11,7 @@ const {
   seats,
   voters_num,
   result,
-  isIAmHuman,
+  iahToken,
   candidateFilterId,
   blacklisted,
   greylisted,
@@ -142,13 +142,23 @@ const Votes = styled.div``;
 
 const Action = styled.div``;
 
-const Nomination = styled.div``;
+const Nomination = styled.div`
+  width: 100px;
+`;
 
 const NominationLink = styled.div`
   display: block;
 
   @media (max-width: 768px) {
     display: none;
+  }
+`;
+
+const InfoRow = styled.div`
+  gap: 54px;
+
+  @media (max-width: 768px) {
+    gap: 25px;
   }
 `;
 
@@ -391,7 +401,7 @@ const handleFilter = (option) => {
 const handleStateTransition = () => {
   if (state.filterOption !== "") return;
 
-  switch (state.electionStatus) {
+  switch (electionStatus) {
     case "ONGOING":
       if (!!state.acceptedPolicy)
         State.update({
@@ -462,8 +472,6 @@ const processNFTAvailability = (result, key) => {
   }
 };
 
-console.log(state.winnerIds);
-
 const myVotesForHouse = () => myVotes.filter((vote) => vote.house === typ);
 const isVisible = () =>
   myVotesForHouse().length > 0 || state.winnerIds.length > 0;
@@ -505,10 +513,6 @@ const winnerIds = Near.view(electionContract, "winners_by_proposal", {
 });
 
 if (state.reload) {
-  const electionStatus = Near.view(electionContract, "proposal_status", {
-    prop_id: props.id,
-  });
-
   const hasVotedOnAllProposals = Near.view(
     electionContract,
     "has_voted_on_all_proposals",
@@ -522,7 +526,6 @@ if (state.reload) {
   const bookmarked = loadSocialDBData();
 
   State.update({
-    electionStatus: electionStatus ?? state.electionStatus,
     acceptedPolicy: acceptedPolicy === POLICY_HASH ?? acceptedPolicy,
     winnerIds: winnerIds ?? state.winnerIds,
     bookmarked: bookmarked ?? state.bookmarked,
@@ -584,7 +587,7 @@ const CandidateItem = ({ candidateId, votes }) => (
           </Expand>
         )}
 
-        {isIAmHuman && (
+        {iahToken && (
           <Bookmark
             selected={state.selected === candidateId}
             winnerId={state.winnerIds.includes(candidateId)}
@@ -623,7 +626,7 @@ const CandidateItem = ({ candidateId, votes }) => (
           </div>
         </div>
       </div>
-      <div className="d-flex w-100 align-items-center justify-content-around">
+      <InfoRow className="d-flex w-100 align-items-center justify-content-end">
         <NominationLink>
           <Widget
             src={widgets.styledComponents}
@@ -659,14 +662,14 @@ const CandidateItem = ({ candidateId, votes }) => (
           />
         </NominationLinkMobile>
         {isVisible() && <Votes>{votes}</Votes>}
-        {isIAmHuman && (
+        {iahToken && (
           <Votes>
             <input
               id="input"
               disabled={
                 alreadyVotedForHouse() ||
                 blacklisted ||
-                state.electionStatus !== "ONGOING"
+                electionStatus !== "ONGOING"
               }
               onClick={() => handleSelectCandidate(candidateId)}
               className="form-check-input"
@@ -678,12 +681,12 @@ const CandidateItem = ({ candidateId, votes }) => (
             />
           </Votes>
         )}
-      </div>
+      </InfoRow>
     </CandidateItemRow>
     {state.selected === candidateId && isVisible() && (
       <Widget
         src={widgets.voters}
-        props={{ candidateId, electionContract, isIAmHuman, ids }}
+        props={{ candidateId, electionContract, iahToken, ids }}
       />
     )}
   </div>
@@ -693,7 +696,7 @@ const Filters = () => (
   <FilterRow className="d-flex align-items-center justify-content-between">
     <div className="d-flex align-items-center w-100">
       {isVisible() && <Expand />}
-      {isIAmHuman && (
+      {iahToken && (
         <Bookmark
           role="button"
           className="text-secondary"
@@ -719,8 +722,8 @@ const Filters = () => (
         />
       </Candidates>
     </div>
-    <div className="d-flex w-100 align-items-center justify-content-end gap-4">
-      <Nomination className="text-secondary text-end text-md-end">
+    <div className="d-flex w-100 align-items-center justify-content-end gap-2">
+      <Nomination className="text-secondary text-start text-md-start">
         <small>Nomination</small>
       </Nomination>
       {isVisible() && (
@@ -737,7 +740,7 @@ const Filters = () => (
           />
         </Votes>
       )}
-      {isIAmHuman && (
+      {iahToken && (
         <Action
           role="button"
           className="text-secondary"
@@ -774,7 +777,7 @@ return (
             </div>
           ),
           description:
-            "Election results are under review by Election integrity Councils. Please wait it may takes a few days",
+            "Election results are under review by Election integrity Councils. Please wait it may take a few days",
           Button: {
             title: "I understand",
             onCancel: () =>
@@ -1044,7 +1047,7 @@ return (
         </>
       )}
       <div>
-        {isIAmHuman && (
+        {iahToken && (
           <Widget
             src={widgets.castVotes}
             props={{

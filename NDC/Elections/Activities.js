@@ -35,7 +35,15 @@ const Tag = styled.div`
 `;
 
 const AccountBlock = styled.div`
-  width: 84px;
+  width: 100%;
+`;
+
+const ImgContainer = styled.div`
+  img {
+    border-radius: 50%;
+    height: 32px;
+    max-height: "32px";
+  }
 `;
 
 const widgets = {
@@ -43,10 +51,14 @@ const widgets = {
 };
 
 const housesMapping = {
-  CouncilOfAdvisors: "Council Of Advisors",
-  HouseOfMerit: "House of Merit",
-  TransparencyCommission: "Transparency Commission",
-  SetupPackage: "Budget Package",
+  CouncilOfAdvisors:
+    "https://bafkreidejnek5zzwlhd3lxnr7s3tvtrgul6jobfpikbs7zjkpuovxdz7je.ipfs.nftstorage.link",
+  HouseOfMerit:
+    "https://bafkreihoomeeaeyqerqftn3n7yb2jrnmqtpwgpsl3xpelek6qmly3qzob4.ipfs.nftstorage.link",
+  TransparencyCommission:
+    "https://bafkreihcog3rs2gj4wgwfixk6yqir7k3csyaqiqwcvm2gedlh6dlvr7ik4.ipfs.nftstorage.link",
+  SetupPackage:
+    "https://bafkreidsg3gntb4grebr6rpvffhzkwdt2siel7ucl3hpsj5i7qqu426dgq.ipfs.nftstorage.link",
 };
 
 return (
@@ -58,14 +70,14 @@ return (
           href={`https://explorer.mainnet.near.org/transactions/${vote.transaction_id}`}
           className="d-flex justify-content-between align-items-center"
         >
-          <div className="d-flex align-items-center w-50">
+          <div className="d-flex align-items-center">
             <div>
               {vote.house !== "SetupPackage" ? (
                 <Widget
                   src="mob.near/widget/ProfileImage"
                   props={{
                     accountId: vote.candidate,
-                    imageClassName: "rounded-circle w-100 mh-100",
+                    imageClassName: "rounded-circle w-100 h-100",
                     style: { width: "32px", height: "32px", marginRight: 8 },
                   }}
                 />
@@ -95,17 +107,9 @@ return (
               </small>
             </AccountBlock>
           </div>
-          <Tag className="w-50">
-            <Widget
-              src={widgets.styledComponents}
-              props={{
-                Tag: {
-                  title: housesMapping[vote.house],
-                  className: "dark",
-                },
-              }}
-            />
-          </Tag>
+          <ImgContainer>
+            <img src={housesMapping[vote.house]} />
+          </ImgContainer>
         </VoteRow>
       ))}
   </List>

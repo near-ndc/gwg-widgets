@@ -1023,25 +1023,27 @@ return (
           ) : (
             <div className="d-flex p-5 justify-content-center align-items-center flex-column gap-2">
               <span>There are no candidates found.</span>
-              <Widget
-                src={widgets.styledComponents}
-                props={{
-                  Button: {
-                    className: "secondary dark",
-                    text: "Clear Filters",
-                    onClick: () =>
-                      State.update({
-                        filterOption: "",
-                        filter: {
-                          bookmark: false,
-                          candidates: false,
-                          votes: false,
-                          my_votes: false,
-                        },
-                      }),
-                  },
-                }}
-              />
+              {state.filterOption && (
+                <Widget
+                  src={widgets.styledComponents}
+                  props={{
+                    Button: {
+                      className: "secondary dark",
+                      text: "Clear Filters",
+                      onClick: () =>
+                        State.update({
+                          filterOption: "",
+                          filter: {
+                            bookmark: false,
+                            candidates: false,
+                            votes: false,
+                            my_votes: false,
+                          },
+                        }),
+                    },
+                  }}
+                />
+              )}
             </div>
           )}
         </>

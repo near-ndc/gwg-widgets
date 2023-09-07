@@ -39,6 +39,13 @@ const Step = styled.li`
   h6 {
     font-size: 12px;
   }
+
+  small {
+    @media (max-width: 400px) {
+      font-size: 12px;
+      padding: 5px;
+    }
+  }
 `;
 
 return (

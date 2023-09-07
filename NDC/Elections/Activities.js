@@ -58,7 +58,7 @@ const housesMapping = {
   TransparencyCommission:
     "https://bafkreihcog3rs2gj4wgwfixk6yqir7k3csyaqiqwcvm2gedlh6dlvr7ik4.ipfs.nftstorage.link",
   SetupPackage:
-    "https://bafkreidsg3gntb4grebr6rpvffhzkwdt2siel7ucl3hpsj5i7qqu426dgq.ipfs.nftstorage.link",
+    "https://ipfs.near.social/ipfs/bafkreicljooupjpwmdlja2ocjg3sljvknlq5iriahqbqiwob635l2vszqa",
 };
 
 return (
@@ -84,7 +84,7 @@ return (
               ) : (
                 <BPImg
                   className="rounded-circle"
-                  src="https://bafkreidsg3gntb4grebr6rpvffhzkwdt2siel7ucl3hpsj5i7qqu426dgq.ipfs.nftstorage.link"
+                  src={housesMapping.SetupPackage}
                 />
               )}
             </div>

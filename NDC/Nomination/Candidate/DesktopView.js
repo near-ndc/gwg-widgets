@@ -565,8 +565,8 @@ return (
               <Widget
                 src={widgets.styledComponents}
                 props={{
-                  Button: {
-                    text: `+${data.comments[0].upvotes ?? 0}`,
+                  Link: {
+                    text: "Vote",
                     disabled:
                       !context.accountId ||
                       !state.verified ||
@@ -574,7 +574,7 @@ return (
                     className: `${
                       context.accountId && state.voted ? "primary" : "secondary"
                     } dark`,
-                    onClick: handleUpVote,
+                    href: "#/election.ndctools.near/widget/NDC.Elections.Main",
                     icon: <i className="bi bi-hand-thumbs-up"></i>,
                   },
                 }}

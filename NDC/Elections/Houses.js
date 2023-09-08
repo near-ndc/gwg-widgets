@@ -1,4 +1,4 @@
-let { houses, ids, electionContract, selectedHouse, handleSelect, votesLeft } =
+let { houses, ids, electionContract, selectedHouse, votesLeft, urlProps } =
   props;
 ids = ids ?? [1, 2, 3, 4];
 
@@ -73,23 +73,39 @@ const CompletedIcon = styled.i`
   }
 `;
 
-const ItemContainer = styled.div`
+const ItemContainer = styled.a`
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.05);
   border-radius: 8px;
   background: ${(props) => (props.selected ? "#4BA6EE" : "#fff")};
   color: ${(props) => (props.selected ? "white" : "inherit")};
+  text-decoration: none;
 
   &:hover {
+    text-decoration: none;
+    color: ${(props) => (props.selected ? "#fff" : "#000")};
     background: ${(props) => (props.selected ? "#4BA6EE" : "#fff")};
     box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.05);
   }
 `;
 
+const buildURL = (houseId) => {
+  const arr = [];
+  if (!urlProps) return "";
+
+  if (urlProps.ids) arr.push(`ids=${urlProps.ids}`);
+  if (urlProps.election_contract)
+    arr.push(`election_contract=${urlProps.election_contract}`);
+  if (urlProps.registry_contract)
+    arr.push(`registry_contract=${urlProps.registry_contract}`);
+  arr.push(`house=${houseId}`);
+
+  return "?" + arr.join("&");
+};
+
 const HouseItem = ({ house }) => (
   <ItemContainer
-    role="button"
     className="d-flex p-3 px-4 align-items-center mb-3 justify-content-between"
-    onClick={() => handleSelect(house)}
+    href={buildURL(house.id)}
     selected={selectedHouse === house.id}
   >
     <div className="d-flex align-items-center">

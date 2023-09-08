@@ -1,13 +1,13 @@
-let { ids, election_contract } = props;
+let { ids, election_contract, registry_contract } = props;
 
 ids = ids ? JSON.parse(ids) : [1, 2, 3, 4];
 const budgetId = ids[3];
 
-const electionContract = election_contract ?? "elections-v2.gwg-testing.near"; // elections.ndc-gwg.near
-const registryContract = "registry-v1.gwg-testing.near"; // registry.i-am-human.near
+const electionContract = election_contract ?? "elections.ndc-gwg.near";
+const registryContract = registry_contract ?? "registry.i-am-human.near";
 const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 
-const NFT_SERIES = [203, 204];
+const NFT_SERIES = [205, 206];
 const QUERY_API_ENDPOINT = "https://graph.mintbase.xyz/mainnet";
 
 const widgets = {
@@ -24,7 +24,7 @@ const widgets = {
 
 State.init({
   electionStatus: "NOT_STARTED",
-  selectedHouse: ids[0],
+  selectedHouse: props.house ? parseInt(props.house) : ids[0],
   myVotes: [],
   winnerIds: [],
   iahToken: null,
@@ -231,10 +231,6 @@ if (state.reload) {
   loadBond();
 }
 
-const handleSelect = (item) => {
-  State.update({ selectedHouse: item.id });
-};
-
 const handleUnbond = () => {
   Near.call(
     registryContract,
@@ -364,10 +360,10 @@ return (
             <Widget
               src={widgets.houses}
               props={{
+                urlProps: props,
                 selectedHouse: state.selectedHouse,
                 houses: state.houses,
                 ids,
-                handleSelect,
                 votesLeft: !!state.iahToken
                   ? (house) => votesLeft(house)
                   : null,
@@ -406,7 +402,7 @@ return (
               {!!state.iahToken && (
                 <Widget
                   src={widgets.progress}
-                  props={{ houses: state.houses, handleSelect, votesLeft }}
+                  props={{ houses: state.houses, votesLeft }}
                 />
               )}
             </>

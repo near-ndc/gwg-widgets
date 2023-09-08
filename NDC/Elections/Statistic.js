@@ -66,7 +66,11 @@ asyncFetch(
   `https://api.pikespeak.ai/election/total-voters?contract=${electionContract}`,
   { headers: { "x-api-key": apiKey } }
 ).then((resp) => {
-  if (resp.body) State.update({ voted: resp.body, total: total - BLACKLISTED_COUNT });
+  if (resp.body)
+    State.update({
+      voted: resp.body,
+      total: total > 0 ? total - BLACKLISTED_COUNT : 0,
+    });
 });
 
 const percent = state.total > 0 ? (state.voted / state.total) * 100 : 0;

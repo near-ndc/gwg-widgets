@@ -490,14 +490,14 @@ return (
           <Widget
             src={widgets.styledComponents}
             props={{
-              Button: {
+              Link: {
                 disabled: !canUpvote(),
-                text: `+${data.upVoteData?.upvotes ?? 0}`,
+                text: "Vote",
                 className: `${
                   context.accountId && state.voted ? "primary" : "secondary"
                 } dark`,
                 size: "sm",
-                onClick: handleUpVote,
+                href: "#/election.ndctools.near/widget/NDC.Elections.Main",
                 icon: <i className="bi bi-hand-thumbs-up"></i>,
               },
             }}

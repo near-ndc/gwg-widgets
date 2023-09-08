@@ -41,15 +41,15 @@ const FAIR_POLICY_NFT =
 const I_VOTED_NFT =
   "https://ipfs.near.social/ipfs/bafkreiewiq4puwmcu7ciztsfqvmpl3gsumfgsm5r22g24abiynoeghsyey";
 const SHARE_LINK =
-  "https://twitter.com/intent/tweet?text=I%20minted%20%E2%80%9CI%20Voted%E2%80%9D%20NFT%20during%20NDC%20Elections!%20%F0%9F%8E%89%0A%0ACheck%20election%20here%3A%20https%3A//near.org/election.ndctools.near/widget/NDC.Elections.Main%0A%0A%23NDC%20%23NEAR";
+  "https://twitter.com/intent/tweet?text=I%20minted%20%E2%80%9CI%20Voted%E2%80%9D%20NFT%20during%20NDC%20Elections!%20%F0%9F%8E%89%0A%0ACheck%20election%20here%3A%20https%3A//near.org/election.ndctools.near/widget/NDC.Elections.Main%0A%0A%23NDC%20%23NEAR%20https://pbs.twimg.com/media/F5gdVfyXYAECcjh?format=jpg&name=large";
 const MINT_VOTING_POLICY_NFT = `https://shard.dog/fairvoting?ids=[${ids}]&accountId=${context.accountId}`;
 const MINT_I_VOTED_NFT = `https://shard.dog/ivoted?ids=[${ids}]&accountId=${context.accountId}`;
 const BLACKLIST_VERIFY_LINK =
   "https://docs.google.com/forms/d/e/1FAIpQLSdQYxiUcxpiCDVKnN55Q7T2fnUPt0VjRdzo46qEkV7ub5mWFw/viewform";
 const GREYLIST_VERIFY_LINK =
   "https://airtable.com/appgHJzUuw1Kb2GJV/shrCdvjmWMzwaMEj8";
-const MIN_BOND = 0.01; //3
-const MAX_BOND = 0.02; //300;
+const MIN_BOND = 3; //3
+const MAX_BOND = 300; //300;
 
 const Container = styled.div`
   position: relative:
@@ -103,6 +103,13 @@ const CandidateItemRow = styled.div`
         : props.selected
         ? "#4aa6ee"
         : "#d4e4f461"};
+  }
+
+  .form-check-input:checked {
+    background-color: ${(props) =>
+      props.winnerId ? "#239f28" : "#0d6efd"} !important;
+    border-color: ${(props) =>
+      props.winnerId ? "#239f28" : "#0d6efd"} !important;
   
   @media (max-width: 400px) {
     padding: 0 10px;
@@ -119,7 +126,7 @@ const Bookmark = styled.div`
 
   #bookmark.bi-bookmark-fill {
     color: ${(props) =>
-      props.winnerId || props.selected ? "#fff" : "#4498E0"};
+      props.winnerId ? "#198754" : props.selected ? "#fff" : "#4498E0"};
   }
 
   @media (max-width: 400px) {
@@ -203,8 +210,17 @@ const Section = styled.div`
   margin-bottom: 10px;
 `;
 
+const VotingAlert = styled.div`
+  background: #f8f8f9;
+`;
+
 const GraylistedAlert = styled.div`
   background: rgb(236 236 236);
+`;
+
+const Rules = styled.div`
+  overflow-y: scroll;
+  max-height: 300px;
 `;
 
 const Rule = styled.div`
@@ -638,7 +654,7 @@ const CandidateItem = ({ candidateId, votes }) => (
                   : "secondary dark",
                 text: "Nomination",
                 icon: <i className="bi bi-box-arrow-up-right" />,
-                href: `https://near.org/nomination.ndctools.near/widget/NDC.Nomination.Candidate.Page?house=HouseOfMerit&accountId=${candidateId}`,
+                href: `https://near.org/nomination.ndctools.near/widget/NDC.Nomination.Candidate.Page?house=${typ}&accountId=${candidateId}`,
                 inverse: state.selected === candidateId,
               },
             }}
@@ -910,7 +926,7 @@ return (
             </div>
           ),
           description: (
-            <>
+            <Rules>
               <Rule className="d-flex gap-2">
                 <h3>1</h3>
                 <p className="text-secondary text-start">
@@ -939,6 +955,14 @@ return (
                 </p>
               </Rule>
 
+              {state.selectedCandidates.length < seats && (
+                <VotingAlert className="p-3 mb-2 rounded">
+                  <i class="bi bi-exclamation-circle" />
+                  You've selected just {state.selectedCandidates.length || ""} /
+                  ${seats} candidates
+                </VotingAlert>
+              )}
+
               {greylisted && (
                 <GraylistedAlert className="p-3 mb-4 rounded">
                   <b>Voters without reputation need to be verified</b> by the
@@ -947,16 +971,21 @@ return (
                   you once the election results are reviewed and ratified.
                 </GraylistedAlert>
               )}
-            </>
+            </Rules>
           ),
           Button: {
-            title: `Cast ${state.selectedCandidates.length || ""} Vote${
+            title: `Cast ${
+              state.selectedCandidates.length || ""
+            } / ${seats} Vote${
               state.selectedCandidates.length === 1 ? "" : "s"
             }`,
             disabled:
               state.selectedCandidates.length === 0 || alreadyVotedForHouse(),
             onCancel: () =>
               State.update({ bountyProgramModal: false, reload: false }),
+            icon: state.selectedCandidates.length < seats && (
+              <i class="bi bi-exclamation-triangle" />
+            ),
             onSubmit: handleVote,
           },
           SecondaryButton: {

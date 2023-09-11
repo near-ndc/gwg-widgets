@@ -59,7 +59,7 @@ const Container = styled.div`
 
 const StyledLink = styled.a`
   color: inherit !important;
-  width: 120px;
+  width: 215px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -67,16 +67,20 @@ const StyledLink = styled.a`
   padding-top: 2px;
 
   @media (max-width: 400px) {
-    width: 60px;
+    width: 120px;
   }
 `;
 
 const UserIcons = styled.div`
-  width: 45px;
+  width: 20px;
   color: ${(props) => (props.selected && !props.winnerId ? "#fff" : "black")};
 `;
 
 const CandidateItemRow = styled.div`
+  @media (max-width: 400px) {
+    padding: 0 10px !important;
+  }
+
   padding: 0 20px;
   height: 48px;
   border-radius: 12px;
@@ -94,7 +98,13 @@ const CandidateItemRow = styled.div`
       : props.selected
       ? "#4aa6ee"
       : "#F8F8F9"};
-  color: ${(props) => (props.selected && !props.winnerId ? "#fff" : "inherit")};
+      color: ${(props) =>
+        props.selected && !props.winnerId ? "#fff" : "inherit"};
+
+  small span {
+    color: ${(props) =>
+      props.selected && !props.winnerId ? "#fff" : "inherit"};
+  }
 
   &:hover {
     background: ${(props) =>
@@ -110,10 +120,6 @@ const CandidateItemRow = styled.div`
       props.winnerId ? "#239f28" : "#0d6efd"} !important;
     border-color: ${(props) =>
       props.winnerId ? "#239f28" : "#0d6efd"} !important;
-  
-  @media (max-width: 400px) {
-    padding: 0 10px;
-  }
 `;
 
 const Candidates = styled.div`
@@ -121,13 +127,23 @@ const Candidates = styled.div`
 `;
 
 const Bookmark = styled.div`
-  width: 90px;
+  width: 40px;
   cursor: pointer;
 
   #bookmark.bi-bookmark-fill {
     color: ${(props) =>
       props.winnerId ? "#198754" : props.selected ? "#fff" : "#4498E0"};
   }
+
+  @media (max-width: 400px) {
+    width: auto;
+    margin-right: 15px;
+  }
+`;
+
+const BookmarkFilter = styled.div`
+  width: 90px;
+  cursor: pointer;
 
   @media (max-width: 400px) {
     width: auto;
@@ -145,40 +161,65 @@ const Expand = styled.div`
   }
 `;
 
-const Votes = styled.div``;
+const ExpandFilter = styled.div`
+  width: 35px;
+  cursor: pointer;
 
-const Action = styled.div``;
+  @media (max-width: 400px) {
+    width: 0px;
+    margin-right: 10px;
+  }
+`;
+
+const Votes = styled.div`
+  width: 15px;
+`;
+
+const VotesFilter = styled.div`
+  width: 80px;
+  @media (max-width: 400px) {
+    width: 45px;
+  }
+`;
 
 const Nomination = styled.div`
-  width: 100px;
+  width: 105px;
+
+  @media (max-width: 400px) {
+    width: 70px;
+  }
 `;
 
 const NominationLink = styled.div`
   display: block;
 
-  @media (max-width: 768px) {
+  @media (max-width: 400px) {
     display: none;
   }
 `;
 
 const InfoRow = styled.div`
-  gap: 54px;
+  gap: 45px;
 
   @media (max-width: 768px) {
-    gap: 25px;
+    gap: 35px;
+  }
+
+  @media (max-width: 400px) {
+    gap: 20px;
   }
 `;
 
 const NominationLinkMobile = styled.div`
   display: none;
 
-  @media (max-width: 768px) {
+  @media (max-width: 400px) {
     display: block;
   }
 `;
 
 const FilterRow = styled.div`
-  padding: 15px 20px;
+  padding: 15px 0px;
   font-size: 13px;
 `;
 
@@ -210,8 +251,8 @@ const Section = styled.div`
   margin-bottom: 10px;
 `;
 
-const VotingAlert = styled.div`
-  background: #f8f8f9;
+const VotingAlert = styled.small`
+  color: #f29bc0;
 `;
 
 const GraylistedAlert = styled.div`
@@ -258,7 +299,7 @@ const filteredCandidates = () => {
     );
   if (state.filterOption === "votes")
     candidates = candidates.sort((a, b) =>
-      state.filter.votes ? a[1] - b[1] : b[1] - a[1]
+      state.filter.votes ? b[1] - a[1] : a[1] - b[1]
     );
   if (state.filterOption === "my_votes")
     candidates = state.filter.my_votes
@@ -341,17 +382,19 @@ const handleBookmarkCandidate = (candidateId) => {
           State.update({ selectedCandidates: result });
 
         State.update({
-          bookmarked: selectedItems,
           loading: false,
-          reload: true,
+          reload: false,
+          bookmarked: selectedBookmarks(candidateId),
         });
       },
-      onCancel: () => State.update({ loading: false }),
+      onCancel: () => State.update({ loading: false, reload: false }),
     }
   );
 };
 
 const handleVote = () => {
+  const bondDiff = greylisted ? MAX_BOND - isBonded : MIN_BOND - isBonded;
+
   const voteFunc = {
     contractName: electionContract,
     methodName: "vote",
@@ -364,10 +407,9 @@ const handleVote = () => {
     methodName: "is_human_call",
     args: { ctr: electionContract, function: "bond", payload: "{}" },
     gas: "110000000000000",
-    deposit: (greylisted ? MAX_BOND : MIN_BOND) * 1000000000000000000000000,
+    deposit: bondDiff * 1000000000000000000000000,
   };
-
-  const arr = isBonded ? [voteFunc] : [bondFunc, voteFunc];
+  const arr = bondDiff == 0 ? [voteFunc] : [bondFunc, voteFunc];
 
   Near.call(arr);
   State.update({
@@ -441,13 +483,14 @@ const handleStateTransition = () => {
   }
 };
 
-const loadSocialDBData = () => {
+function loadSocialDBData() {
   let _bookmarked = Social.index(currentUser, `${ndcOrganization}/${typ}`);
-
-  return _bookmarked && _bookmarked[_bookmarked.length - 1]
-    ? _bookmarked[_bookmarked.length - 1].value
-    : [];
-};
+  const bookmarked =
+    _bookmarked && _bookmarked[_bookmarked.length - 1]
+      ? _bookmarked[_bookmarked.length - 1].value
+      : [];
+  State.update({ bookmarked });
+}
 
 function fetchGraphQL(series) {
   return asyncFetch(QUERY_API_ENDPOINT, {
@@ -539,23 +582,24 @@ if (state.reload) {
     user: currentUser,
   });
 
-  const bookmarked = loadSocialDBData();
-
   State.update({
     acceptedPolicy: acceptedPolicy === POLICY_HASH ?? acceptedPolicy,
     winnerIds: winnerIds ?? state.winnerIds,
-    bookmarked: bookmarked ?? state.bookmarked,
     candidates: filteredCandidates(),
     hasVotedOnAllProposals,
   });
 
   handleStateTransition();
+  loadSocialDBData();
 }
 
 const UserLink = ({ title, src, selected, winnerId }) => (
   <div className="d-flex mr-3">
     <StyledLink href={src} target="_blank">
-      {title}
+      <Widget
+        src="mob.near/widget/Profile.ShortInlineBlock"
+        props={{ accountId: title, tooltip: false }}
+      />
     </StyledLink>
     <UserIcons
       selected={selected}
@@ -597,6 +641,7 @@ const CandidateItem = ({ candidateId, votes }) => (
               onClick={(e) =>
                 State.update({
                   selected: state.selected === candidateId ? null : candidateId,
+                  reload: false,
                 })
               }
             />
@@ -625,14 +670,6 @@ const CandidateItem = ({ candidateId, votes }) => (
         )}
         <div className="d-flex align-items-center">
           <div className="d-flex justify-items-center">
-            <Widget
-              src="mob.near/widget/ProfileImage"
-              props={{
-                accountId: candidateId,
-                imageClassName: "rounded-circle w-100 h-100",
-                style: { width: "24px", height: "24px", marginRight: 5 },
-              }}
-            />
             <UserLink
               selected={state.selected === candidateId}
               winnerId={state.winnerIds.includes(candidateId)}
@@ -642,7 +679,11 @@ const CandidateItem = ({ candidateId, votes }) => (
           </div>
         </div>
       </div>
-      <InfoRow className="d-flex w-100 align-items-center justify-content-end">
+      <InfoRow
+        className={`d-flex w-100 align-items-center ${
+          iahToken ? "justify-content-center" : "justify-content-end"
+        }`}
+      >
         <NominationLink>
           <Widget
             src={widgets.styledComponents}
@@ -711,9 +752,9 @@ const CandidateItem = ({ candidateId, votes }) => (
 const Filters = () => (
   <FilterRow className="d-flex align-items-center justify-content-between">
     <div className="d-flex align-items-center w-100">
-      {isVisible() && <Expand />}
+      {isVisible() && <ExpandFilter />}
       {iahToken && (
-        <Bookmark
+        <BookmarkFilter
           role="button"
           className="text-secondary"
           onClick={() => handleFilter({ bookmark: true })}
@@ -724,7 +765,7 @@ const Filters = () => (
               state.filter.bookmark ? "bi-funnel-fill" : "bi-funnel"
             }`}
           />
-        </Bookmark>
+        </BookmarkFilter>
       )}
       <Candidates
         className="text-secondary"
@@ -738,14 +779,14 @@ const Filters = () => (
         />
       </Candidates>
     </div>
-    <div className="d-flex w-100 align-items-center justify-content-end gap-2">
+    <div className="d-flex w-100 align-items-center justify-content-end gap-1">
       <Nomination className="text-secondary text-start text-md-start">
         <small>Nomination</small>
       </Nomination>
       {isVisible() && (
-        <Votes
+        <VotesFilter
           role="button"
-          className="text-secondary"
+          className="text-secondary d-flex align-items-center"
           onClick={() => handleFilter({ votes: true })}
         >
           <small>Total votes</small>
@@ -754,12 +795,12 @@ const Filters = () => (
               state.filter.votes ? "bi-arrow-down" : "bi-arrow-up"
             }`}
           />
-        </Votes>
+        </VotesFilter>
       )}
       {iahToken && (
-        <Action
+        <VotesFilter
           role="button"
-          className="text-secondary"
+          className="text-secondary d-flex align-items-center"
           onClick={() => handleFilter({ my_votes: true })}
         >
           <small>My votes</small>
@@ -768,7 +809,7 @@ const Filters = () => (
               state.filter.my_votes ? "bi-funnel-fill" : "bi-funnel"
             }`}
           />
-        </Action>
+        </VotesFilter>
       )}
     </div>
   </FilterRow>
@@ -951,18 +992,10 @@ return (
               <Rule className="d-flex gap-2">
                 <h3>3</h3>
                 <p className="text-secondary text-start">
-                  You votes <b>cannot</b> be changed.
+                  You votes <b>cannot</b> be changed. You can only cast{" "}
+                  <b>once</b> per house.
                 </p>
               </Rule>
-
-              {state.selectedCandidates.length < seats && (
-                <VotingAlert className="p-3 mb-2 rounded">
-                  <i class="bi bi-exclamation-circle" />
-                  You've selected just {state.selectedCandidates.length || ""} /
-                  ${seats} candidates
-                </VotingAlert>
-              )}
-
               {greylisted && (
                 <GraylistedAlert className="p-3 mb-4 rounded">
                   <b>Voters without reputation need to be verified</b> by the
@@ -983,9 +1016,6 @@ return (
               state.selectedCandidates.length === 0 || alreadyVotedForHouse(),
             onCancel: () =>
               State.update({ bountyProgramModal: false, reload: false }),
-            icon: state.selectedCandidates.length < seats && (
-              <i class="bi bi-exclamation-triangle" />
-            ),
             onSubmit: handleVote,
           },
           SecondaryButton: {
@@ -995,6 +1025,15 @@ return (
             onSubmit: () =>
               State.update({ bountyProgramModal: false, reload: false }),
           },
+          footer: state.selectedCandidates.length < seats && (
+            <div class="w-100 pt-2 text-center">
+              <VotingAlert>
+                <i class="bi bi-exclamation-circle mr-2" />
+                You've selected only {state.selectedCandidates.length || ""} /
+                {seats} candidates
+              </VotingAlert>
+            </div>
+          ),
         }}
       />
     )}

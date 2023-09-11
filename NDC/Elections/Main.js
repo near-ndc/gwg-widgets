@@ -32,8 +32,7 @@ State.init({
   blacklisted: false,
   greylisted: false,
   candidateFilterId: "",
-  isBonded: false,
-  isBondedAmount: 0,
+  isBonded: 0,
   reload: true,
   houses: [],
   acceptedPolicy: false,
@@ -51,7 +50,7 @@ const steps = [
     completed: state.acceptedPolicy || state.myVotes.length > 0,
   },
   {
-    title: 'Minted "Fair Voting Policy" NFT',
+    title: 'Mint “Fair Voter” NFT',
     completed: state.hasPolicyNFT,
   },
   {
@@ -59,11 +58,11 @@ const steps = [
     completed: state.hasVotedOnAllProposals,
   },
   {
-    title: 'Minted "I Voted" NFT',
+    title: 'Mint "I Voted" NFT',
     completed: state.hasIVotedNFT,
   },
   {
-    title: 'Unbonded & Minted "I Voted SBT"',
+    title: 'Unbond & Mint "I Voted" SBT',
     completed: state.iVotedToken,
   },
 ];
@@ -147,8 +146,8 @@ function loadBond() {
   ).then((resp) => {
     if (resp.body) {
       const amount = resp.body.bond ? parseFloat(resp.body.bond) : 0;
-      console.log("bond ->", resp.body);
-      State.update({ isBonded: amount > 0 });
+
+      State.update({ isBonded: amount });
     }
   });
 }
@@ -237,7 +236,7 @@ const handleUnbond = () => {
     "is_human_call",
     { ctr: electionContract, function: "unbond", payload: "{}" },
     "110000000000000"
-  ).then((data) => State.update({ isBonded: false }));
+  ).then((data) => State.update({ isBonded: 0 }));
 };
 
 const handleFilter = (e) => State.update({ candidateFilterId: e.target.value });

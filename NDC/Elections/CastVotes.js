@@ -124,7 +124,10 @@ const CastVotes = () => (
         ) : blacklisted ? (
           <span>Your account is blacklisted</span>
         ) : (
-          <span>Make sure you selected {seats} candidates. You can only vote once per house</span>
+          <span>
+            Make sure you selected {seats} candidates. You can only vote once
+            per house
+          </span>
         )}
       </Info>
     </div>
@@ -145,13 +148,19 @@ const CastVotes = () => (
         src={widgets.styledComponents}
         props={{
           Button: {
-            className: "justify-content-center " +  seats - myVotesForHouse().length - selectedCandidates.length > 0 ? " bg-secondary text-white" : " primary",
+            className:
+              "justify-content-center " +
+                myVotesForHouse().length +
+                selectedCandidates.length <
+              seats
+                ? "bg-secondary text-white"
+                : "primary",
             disabled: selectedCandidates.length === 0 || blacklisted,
-            text: `Cast ${alreadyVotedForHouse()
-              ? 0
-              : seats - myVotesForHouse().length - selectedCandidates.length} / ${seats} Vote${
-                selectedCandidates.length === 1 ? "" : "s"
-              } `,
+            text: `Cast ${
+              alreadyVotedForHouse()
+                ? 0
+                : myVotesForHouse().length + selectedCandidates.length
+            } / ${seats} Vote${selectedCandidates.length === 1 ? "" : "s"} `,
             onClick: handleCast,
           },
         }}

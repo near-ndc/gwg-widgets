@@ -150,11 +150,9 @@ const CastVotes = () => (
           Button: {
             className:
               "justify-content-center " +
-                myVotesForHouse().length +
-                selectedCandidates.length <
-              seats
+              (myVotesForHouse().length + selectedCandidates.length < seats
                 ? "bg-secondary text-white"
-                : "primary",
+                : "primary"),
             disabled: selectedCandidates.length === 0 || blacklisted,
             text: `Cast ${
               alreadyVotedForHouse()

@@ -51,6 +51,10 @@ const GREYLIST_VERIFY_LINK =
 const MIN_BOND = 3; //3
 const MAX_BOND = 300; //300;
 
+const nearIdsWithName = props.result.map(([candidate, _vote]) => {
+  return [candidate, _vote, Social.getr(`${candidate}/profile`)?.name];
+});
+
 const Container = styled.div`
   position: relative:
   font-family: Avenir;
@@ -308,15 +312,19 @@ const filteredCandidates = () => {
         )
       : result;
 
-  if (candidateFilterId)
+  if (candidateFilterId) {
     candidates = Array.isArray(candidateFilterId)
-      ? result.filter(([candidate, _vote], _index) =>
-          candidateFilterId.includes(candidate)
+      ? nearIdsWithName.filter(
+          ([candidate, _vote, name], _index) =>
+            candidateFilterId.includes(name) ||
+            candidateFilterId.includes(candidate)
         )
-      : result.filter(([candidate, _vote], _index) =>
-          candidate.toLowerCase().includes(candidateFilterId.toLowerCase())
+      : nearIdsWithName.filter(
+          ([candidate, _vote, name], _index) =>
+            name.toLowerCase().includes(candidateFilterId.toLowerCase()) ||
+            candidate.toLowerCase().includes(candidateFilterId.toLowerCase())
         );
-
+  }
   return candidates;
 };
 
@@ -1098,7 +1106,7 @@ return (
                     props={{
                       Link: {
                         className: "primary dark",
-                        text: "Show All Candidated",
+                        text: "Show All Candidates",
                         doNotOpenNew: true,
                         href: `https://near.org/election.ndctools.near/widget/NDC.Elections.Main?house=${id}`,
                       },

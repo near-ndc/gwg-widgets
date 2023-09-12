@@ -30,6 +30,10 @@ const widgets = {
   castVotes: "election.ndctools.near/widget/NDC.Elections.CastVotes",
 };
 
+const LocalStorageKeys = {
+  Bookmarks: "Bookmarks",
+};
+
 const apiKey = "36f2b87a-7ee6-40d8-80b9-5e68e587a5b5";
 const QUERY_API_ENDPOINT = "https://graph.mintbase.xyz/mainnet";
 const POLICY_HASH =
@@ -376,32 +380,7 @@ const selectedBookmarks = (candidateId) => {
 
 const handleBookmarkCandidate = (candidateId) => {
   let selectedItems = selectedBookmarks(candidateId);
-  State.update({ loading: candidateId });
-
-  Social.set(
-    {
-      index: {
-        [currentUser]: JSON.stringify({
-          key: `${ndcOrganization}/${typ}`,
-          value: selectedBookmarks(candidateId),
-        }),
-      },
-    },
-    {
-      force: true,
-      onCommit: () => {
-        if (selectedItems.length === 0)
-          State.update({ selectedCandidates: result });
-
-        State.update({
-          loading: false,
-          reload: false,
-          bookmarked: selectedBookmarks(candidateId),
-        });
-      },
-      onCancel: () => State.update({ loading: false, reload: false }),
-    }
-  );
+  Storage.set(LocalStorageKeys.Bookmarks, JSON.stringify(selectedItems));
 };
 
 const handleVote = () => {
@@ -500,6 +479,8 @@ function loadSocialDBData() {
   const bookmarked =
     _bookmarked && _bookmarked[_bookmarked.length - 1]
       ? _bookmarked[_bookmarked.length - 1].value
+      : Storage.get(LocalStorageKeys.Bookmarks)
+      ? JSON.parse(Storage.get(LocalStorageKeys.Bookmarks))
       : [];
   State.update({ bookmarked });
 }

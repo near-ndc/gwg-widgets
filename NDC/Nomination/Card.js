@@ -607,7 +607,7 @@ return (
                   props={{
                     Button: {
                       text: `+${data.upVoteData.comments.length ?? 0} Comments`,
-                      disabled: !state.verified,
+                      disabled: true,
                       size: "sm",
                       className:
                         "secondary dark w-100 justify-content-center text-nowrap",

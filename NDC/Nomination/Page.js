@@ -275,6 +275,7 @@ return (
                       text: "Delete Self Nomination",
                       onClick: () => State.update({ showModalDelete: true }),
                       icon: <i class="bi bi-trash"></i>,
+                      disabled: true,
                     },
                   }}
                 />
@@ -286,6 +287,7 @@ return (
                       text: "Self Nominate",
                       onClick: () => State.update({ showModal: true }),
                       icon: <i class="bi bi-plus-lg"></i>,
+                      disabled: true,
                     },
                   }}
                 />

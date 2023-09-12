@@ -18,7 +18,7 @@ function handleSelfRevoke() {
 const widgets = {
   header: "election.ndctools.near/widget/NDC.Elections.Header",
   card: "nomination.ndctools.near/widget/NDC.Nomination.Card",
-  houses: "election.ndctools.near/widget/NDC.Elections.Houses",
+  houses: "nomination.ndctools.near/widget/NDC.Nomination.Houses",
   filter: "election.ndctools.near/widget/NDC.Elections.Filter",
   styledComponents: "nomination.ndctools.near/widget/NDC.StyledComponents",
   verifyHuman: "nomination.ndctools.near/widget/NDC.VerifyHuman",

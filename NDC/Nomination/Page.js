@@ -249,6 +249,7 @@ return (
           startTime: time ? time[0] : 0,
           endTime: time ? time[1] : 0,
           type: "Nomination",
+          isWhistleblower: true,
         }}
       />
       <Filter className="d-flex">

@@ -309,9 +309,13 @@ const filteredCandidates = () => {
       : result;
 
   if (candidateFilterId)
-    candidates = result.filter(([candidate, _vote], _index) =>
-      candidate.toLowerCase().includes(candidateFilterId.toLowerCase())
-    );
+    candidates = Array.isArray(candidateFilterId)
+      ? result.filter(([candidate, _vote], _index) =>
+          candidateFilterId.includes(candidate)
+        )
+      : result.filter(([candidate, _vote], _index) =>
+          candidate.toLowerCase().includes(candidateFilterId.toLowerCase())
+        );
 
   return candidates;
 };
@@ -409,7 +413,7 @@ const handleVote = () => {
     gas: "110000000000000",
     deposit: bondDiff * 1000000000000000000000000,
   };
-  const arr = bondDiff == 0 ? [voteFunc] : [bondFunc, voteFunc];
+  const arr = bondDiff <= 0 ? [voteFunc] : [bondFunc, voteFunc];
 
   Near.call(arr);
   State.update({
@@ -1087,10 +1091,25 @@ return (
                   />
                 ))}
               </CandidatesContainer>
+              {candidateFilterId && (
+                <div className="d-flex p-2 justify-content-center align-items-center">
+                  <Widget
+                    src={widgets.styledComponents}
+                    props={{
+                      Link: {
+                        className: "primary dark",
+                        text: "Show All Candidated",
+                        doNotOpenNew: true,
+                        href: `https://near.org/election.ndctools.near/widget/NDC.Elections.Main?house=${id}`,
+                      },
+                    }}
+                  />
+                </div>
+              )}
             </>
           ) : (
             <div className="d-flex p-5 justify-content-center align-items-center flex-column gap-2">
-              <span>There are no candidates found.</span>
+              <span>No candidates found.</span>
               {state.filterOption && (
                 <Widget
                   src={widgets.styledComponents}

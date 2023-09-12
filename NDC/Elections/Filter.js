@@ -26,7 +26,7 @@ return (
       <input
         placeholder={placeholder}
         className="form-control w-100"
-        value={candicateId}
+        value={candidateId}
         onChange={handleFilter}
       />
     </div>

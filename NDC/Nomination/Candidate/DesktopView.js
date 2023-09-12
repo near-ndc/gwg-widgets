@@ -481,6 +481,12 @@ const titles = [
   "Other Platform",
 ];
 
+const houseMapping = {
+  HouseOfMerit: 1,
+  CouncilOfAdvisors: 2,
+  TransparencyCommission: 3,
+};
+
 return (
   <Container class="row">
     <div class="" style={{ "margin-right": "5px", width: "950px" }}>
@@ -571,11 +577,14 @@ return (
                       !context.accountId ||
                       !state.verified ||
                       context.accountId === accountId,
-                    className: `${
-                      context.accountId && state.voted ? "primary" : "secondary"
-                    } dark`,
-                    href: "#/election.ndctools.near/widget/NDC.Elections.Main",
-                    icon: <i className="bi bi-hand-thumbs-up"></i>,
+                    className: "primary dark",
+                    href: `#/election.ndctools.near/widget/NDC.Elections.Main?house=${houseMapping[house]}&candidates=["${accountId}"]`,
+                    icon: (
+                      <img
+                        style={{ "margin-bottom": "5px" }}
+                        src="https://ipfs.near.social/ipfs/bafkreia4iqjdjqhwplrunkjvmri2c6egm2pmlt56f3n6qesmy5ofw27g3y"
+                      />
+                    ),
                   },
                 }}
               />
@@ -823,7 +832,7 @@ return (
                 props={{
                   Button: {
                     text: "Add a Comment",
-                    disabled: !context.accountId || !state.verified,
+                    disabled: true,
                     className: "primary w-100 mt-4 mb-2 justify-content-center",
                     onClick: () => State.update({ showModal: true }),
                     icon: <i className="bi bi-plus-lg"></i>,

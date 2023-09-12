@@ -31,7 +31,7 @@ State.init({
   humanToken: 0,
   blacklisted: false,
   greylisted: false,
-  candidateFilterId: "",
+  candidateFilterId: props.candidates ? JSON.parse(props.candidates) : "",
   isBonded: 0,
   reload: true,
   houses: [],

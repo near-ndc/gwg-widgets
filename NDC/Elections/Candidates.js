@@ -261,6 +261,8 @@ const Section = styled.div`
 
 const VotingAlert = styled.small`
   color: #f29bc0;
+  font-weight: 600;
+  text-aligh: center;
 `;
 
 const GraylistedAlert = styled.div`
@@ -1024,8 +1026,10 @@ return (
             <div class="w-100 pt-2 text-center">
               <VotingAlert>
                 <i class="bi bi-exclamation-circle mr-2" />
-                You've selected only {state.selectedCandidates.length || ""} /
-                {seats} candidates
+                Warning! You've loose{" "}
+                {state.availableVotes -
+                  (state.selectedCandidates.length || 0)}{" "}
+                votes and don't have ability to vote again in current house!
               </VotingAlert>
             </div>
           ),

@@ -561,7 +561,7 @@ return (
           src={widgets.styledComponents}
           props={{
             Link: {
-              text: "Vote",
+              text: "Vote Now",
               disabled:
                 !context.accountId ||
                 !state.verified ||

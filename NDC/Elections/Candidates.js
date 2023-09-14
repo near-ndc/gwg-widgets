@@ -260,7 +260,7 @@ const Section = styled.div`
 `;
 
 const VotingAlert = styled.small`
-  color: #f29bc0;
+  color: rgb(206 43 112);
   font-weight: 600;
   text-aligh: center;
 `;
@@ -854,7 +854,7 @@ return (
           ),
           description: (
             <>
-              The community has voted to block backlisted accounts from voting
+              The community has voted to block blacklisted accounts from voting
               in the NDC general election. You have been blacklisted due
               previously violating the
               <ALink title="Fair Voting Policy." href={FAIR_POLICY_DOC} />.
@@ -1026,7 +1026,7 @@ return (
             <div class="w-100 pt-2 text-center">
               <VotingAlert>
                 <i class="bi bi-exclamation-circle mr-2" />
-                Warning! You've loose{" "}
+                Warning! You'll loose{" "}
                 {state.availableVotes -
                   (state.selectedCandidates.length || 0)}{" "}
                 votes and don't have ability to vote again in current house!

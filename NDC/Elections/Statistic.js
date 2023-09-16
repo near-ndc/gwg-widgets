@@ -1,4 +1,4 @@
-const { electionContract } = props;
+const { electionContract, quorum } = props;
 
 const BLACKLISTED_COUNT = 911;
 
@@ -80,8 +80,15 @@ return (
     <Chart voted={percent}>
       <span>{percent.toFixed(1)}%</span>
     </Chart>
-    <H5>
-      <b>{state.voted}</b>/<small>{state.total} Humans Voted</small>
-    </H5>
+    <div className="text-center">
+      <H5>
+        <b>{state.voted}</b>/<small>{state.total} Humans Voted</small>
+      </H5>
+      <H5>
+        <small>
+          Quorum: {quorum}
+        </small>
+      </H5>
+    </div>
   </div>
 );

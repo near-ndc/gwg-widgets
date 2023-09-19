@@ -455,6 +455,67 @@ if (!data) return <Loader />;
 const candidateProps = data.nominations;
 if (!candidateProps) return <Loader />;
 
+const badWords = [
+  "arse",
+  "arsehead",
+  "arsehole",
+  "ass",
+  "asshole",
+  "bastard",
+  "bitch",
+  "bloody",
+  "bollocks",
+  "brotherfucker",
+  "bugger",
+  "bullshit",
+  "child-fucker",
+  "Christ on a bike",
+  "Christ on a cracker",
+  "cock",
+  "cocksucker",
+  "crap",
+  "cunt",
+  "damn",
+  "damn it",
+  "dick",
+  "dickhead",
+  "dyke",
+  "fatherfucker",
+  "frigger",
+  "fuc",
+  "goddamn",
+  "godsdamn",
+  "hell",
+  "holy shit",
+  "horseshit",
+  "in shit",
+  "Jesus Christ",
+  "Jesus fuck",
+  "Jesus H. Christ",
+  "Jesus Harold Christ",
+  "Jesus, Mary and Joseph",
+  "Jesus wept",
+  "kike",
+  "motherfucker",
+  "nigga",
+  "nigra",
+  "pigfucker",
+  "piss",
+  "prick",
+  "pussy",
+  "shit",
+  "shit ass",
+  "shite",
+  "sisterfucker",
+  "slut",
+  "son of a whore",
+  "son of a bitch",
+  "spastic",
+  "sweet Jesus",
+  "turd",
+  "twat",
+  "wanker",
+];
 const comments = data.comments[0] ? data.comments[0].comments : [];
 const afilations = JSON.parse(candidateProps.afiliation);
 if (!afilations) return <Loader />;
@@ -839,12 +900,16 @@ return (
                   },
                 }}
               />
-              {comments.map((data) => (
-                <Widget
-                  props={{ data, nomination_contract }}
-                  src={widgets.comment}
-                />
-              ))}
+              {comments
+                .filter(
+                  (data) => !badWords.some((w) => data.comment.includes(w))
+                )
+                .map((data) => (
+                  <Widget
+                    props={{ data, nomination_contract }}
+                    src={widgets.comment}
+                  />
+                ))}
             </CommentSection>
           )}
         </div>

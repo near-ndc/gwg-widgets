@@ -31,6 +31,68 @@ function getVerifiedHuman() {
 
 getVerifiedHuman();
 
+const badWords = [
+  "arse",
+  "arsehead",
+  "arsehole",
+  "ass",
+  "asshole",
+  "bastard",
+  "bitch",
+  "bloody",
+  "bollocks",
+  "brotherfucker",
+  "bugger",
+  "bullshit",
+  "child-fucker",
+  "Christ on a bike",
+  "Christ on a cracker",
+  "cock",
+  "cocksucker",
+  "crap",
+  "cunt",
+  "damn",
+  "damn it",
+  "dick",
+  "dickhead",
+  "dyke",
+  "fatherfucker",
+  "frigger",
+  "fuc",
+  "goddamn",
+  "godsdamn",
+  "hell",
+  "holy shit",
+  "horseshit",
+  "in shit",
+  "Jesus Christ",
+  "Jesus fuck",
+  "Jesus H. Christ",
+  "Jesus Harold Christ",
+  "Jesus, Mary and Joseph",
+  "Jesus wept",
+  "kike",
+  "motherfucker",
+  "nigga",
+  "nigra",
+  "pigfucker",
+  "piss",
+  "prick",
+  "pussy",
+  "shit",
+  "shit ass",
+  "shite",
+  "sisterfucker",
+  "slut",
+  "son of a whore",
+  "son of a bitch",
+  "spastic",
+  "sweet Jesus",
+  "turd",
+  "twat",
+  "wanker",
+];
+
 function handleUpVote() {
   Near.call(
     nomination_contract,
@@ -782,6 +844,7 @@ return (
         />
       </CommentHeader>
       {comments
+        .filter((data) => !badWords.some((w) => data.comment.includes(w)))
         .map((data) => {
           return (
             <Widget

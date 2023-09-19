@@ -332,12 +332,13 @@ const filteredCandidates = () => {
           !onlyFiltered.map((u) => u[0]).includes(candidate)
       );
       candidates = [...onlyFiltered, ...restCandidates];
-    } else
+    } else {
       candidates = nearIdsWithName.filter(
-        ([candidate, _v, _n], _i) =>
+        ([candidate, _v, name], _i) =>
           name.toLowerCase().includes(candidateFilterId.toLowerCase()) ||
           candidate.toLowerCase().includes(candidateFilterId.toLowerCase())
       );
+    }
   }
   return candidates;
 };

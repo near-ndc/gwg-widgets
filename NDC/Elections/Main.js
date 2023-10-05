@@ -40,6 +40,7 @@ State.init({
   hasPolicyNFT: null,
   hasIVotedNFT: null,
   iVotedToken: false,
+  finishTime: false,
 });
 
 const currentUser = context.accountId;
@@ -172,11 +173,12 @@ function loadPolicy() {
 }
 
 function loadWinners() {
+  const finishTime = Near.view(electionContract, "finish_time", {});
   const winnerIds = Near.view(electionContract, "winners_by_proposal", {
     prop_id: state.selectedHouse,
   });
 
-  State.update({ winnerIds });
+  State.update({ winnerIds, finishTime });
 }
 
 function loadElectionStatus() {
@@ -328,7 +330,7 @@ return (
               props={{
                 startTime: house.start,
                 endTime: house.end,
-                cooldown: house.cooldown,
+                cooldown: state.finishTime,
                 type: "Election",
                 isWhistleblower: true,
                 ids,
@@ -373,6 +375,8 @@ return (
           {currentUser &&
           !!state.iahToken &&
           state.winnerIds.length > 0 &&
+          new Date(parseInt(state.finishTime)).getTime() <
+            new Date().getTime() &&
           !state.iVotedToken ? (
             <UnbondContainer className={`not-verified d-flex flex-column`}>
               <div>

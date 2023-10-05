@@ -97,6 +97,8 @@ const CandidateItemRow = styled.div`
   background: ${(props) =>
     props.winnerId
       ? "rgb(206 233 207)"
+      : props.disqualified
+      ? "#ccc"
       : props.selected
       ? "#4aa6ee"
       : props.filtered
@@ -571,11 +573,18 @@ State.init({
   hasPolicyNFT: null,
   hasIVotedNFT: null,
   winnerIds: [],
+  disqualifiedIds: [],
 });
 
 const winnerIds = Near.view(electionContract, "winners_by_proposal", {
   prop_id: props.id,
 });
+
+const disqualifiedIds = Near.view(
+  electionContract,
+  "disqualified_candidates",
+  {}
+);
 
 if (state.reload) {
   const hasVotedOnAllProposals = Near.view(
@@ -591,6 +600,7 @@ if (state.reload) {
   State.update({
     acceptedPolicy: acceptedPolicy === POLICY_HASH ?? acceptedPolicy,
     winnerIds: winnerIds ?? state.winnerIds,
+    disqualifiedIds: disqualifiedIds ?? state.disqualifiedIds,
     candidates: filteredCandidates(),
     hasVotedOnAllProposals,
   });
@@ -634,6 +644,7 @@ const CandidateItem = ({ candidateId, votes }) => (
       className="d-flex align-items-center justify-content-between"
       selected={state.selected === candidateId}
       filtered={candidateFilterId.includes(candidateId)}
+      disqualified={state.disqualifiedIds.includes(candidateId)}
       winnerId={state.winnerIds.includes(candidateId)}
     >
       <div className="d-flex w-100 align-items-center">

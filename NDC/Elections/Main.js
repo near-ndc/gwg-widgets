@@ -174,8 +174,10 @@ function loadPolicy() {
 
 function loadWinners() {
   const finishTime = Near.view(electionContract, "finish_time", {});
+
   const winnerIds = Near.view(electionContract, "winners_by_proposal", {
     prop_id: state.selectedHouse,
+    ongoing: true,
   });
 
   State.update({ winnerIds, finishTime });
@@ -375,8 +377,6 @@ return (
           {currentUser &&
           !!state.iahToken &&
           state.winnerIds.length > 0 &&
-          new Date(parseInt(state.finishTime)).getTime() <
-            new Date().getTime() &&
           !state.iVotedToken ? (
             <UnbondContainer className={`not-verified d-flex flex-column`}>
               <div>

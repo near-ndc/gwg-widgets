@@ -392,7 +392,6 @@ return (
                   props={{
                     Button: {
                       className: "primary w-100 justify-content-center",
-                      disabled: !state.isBonded,
                       text: "Unbond & Mint I Voted SBT",
                       onClick: handleUnbond,
                     },
